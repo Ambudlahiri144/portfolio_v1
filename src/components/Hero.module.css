@@ -1,0 +1,203 @@
+.hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 6rem var(--gutter) 9rem;
+    overflow: hidden;
+}
+
+/* ------------------------------------------------------------------
+   Ambient field — dots + glow. Both are painted once and never
+   animated, so they cost nothing during scroll.
+   ------------------------------------------------------------------ */
+
+.field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.dots {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(var(--dot) 1px,
+            transparent 1.2px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 42%,
+            #000 25%,
+            transparent 100%);
+    mask-image: radial-gradient(ellipse 85% 65% at 50% 42%,
+            #000 25%,
+            transparent 100%);
+}
+
+.glow {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    width: min(1100px, 130vw);
+    aspect-ratio: 16 / 9;
+    transform: translate3d(-50%, -50%, 0);
+    background: radial-gradient(ellipse at center,
+            var(--glow) 0%,
+            transparent 68%);
+    animation: fadeIn 1.4s var(--ease-out) both;
+}
+
+/* ------------------------------------------------------------------
+   Content
+   ------------------------------------------------------------------ */
+
+.inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 62rem;
+    text-align: center;
+}
+
+.greeting {
+    font-size: clamp(1.5rem, 1.1rem + 2.1vw, 2.9rem);
+    font-weight: 200;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--ink-2);
+    animation: pop var(--dur-2) var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* ---- Name -------------------------------------------------------- */
+
+.name {
+    margin-top: clamp(0.5rem, 1.4vw, 1rem);
+    font-size: clamp(2.75rem, 1rem + 9.2vw, 9.5rem);
+    font-weight: 300;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+}
+
+.word {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.word+.word {
+    margin-left: 0.26em;
+}
+
+/* overflow:hidden clips the character while it slides up from below.
+   Clipping is far cheaper than animating clip-path or a mask. */
+.mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    /* Room for descenders so the clip doesn't shave the tail off a 'y'. */
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+}
+
+.char {
+    display: inline-block;
+    transform: translate3d(0, 108%, 0);
+    animation: unmask 0.72s var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* ---- Lines ------------------------------------------------------- */
+
+.lines {
+    margin-top: clamp(1.5rem, 3.5vh, 2.5rem);
+}
+
+.line {
+    font-size: clamp(1rem, 0.9rem + 0.55vw, 1.35rem);
+    font-weight: 300;
+    line-height: 1.55;
+    letter-spacing: -0.005em;
+    color: var(--ink-2);
+    text-wrap: balance;
+    animation: rise var(--dur-2) var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* ------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------ */
+
+@media (max-width: 40rem) {
+    .hero {
+        padding: 5rem var(--gutter) 8rem;
+    }
+
+    .dots {
+        background-size: 20px 20px;
+    }
+
+    /* Long lines break awkwardly on narrow screens; let them flow as
+     one paragraph instead of two forced lines. */
+    .line {
+        text-wrap: pretty;
+    }
+}
+
+@media (max-height: 34rem) and (orientation: landscape) {
+    .hero {
+        min-height: 0;
+        padding-block: 4rem 7rem;
+    }
+}
+
+/* ------------------------------------------------------------------
+   KEYFRAMES — must live in this file, not globals.css.
+
+   CSS Modules localises @keyframes names, so `animation: unmask` here
+   compiles to a hashed name. A keyframe defined in globals.css keeps
+   its plain name and will never match, so the animation silently does
+   nothing. Every .module.css file needs its own copy of the keyframes
+   it references.
+   ------------------------------------------------------------------ */
+
+@keyframes unmask {
+    from {
+        transform: translate3d(0, 108%, 0);
+    }
+
+    to {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes pop {
+    from {
+        opacity: 0;
+        transform: scale3d(0.86, 0.86, 1) translate3d(0, 10px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

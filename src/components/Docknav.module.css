@@ -1,0 +1,273 @@
+/* ==================================================================
+   THE DOCK
+   ================================================================== */
+
+.dock {
+    position: fixed;
+    left: 50%;
+    bottom: calc(1.15rem + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    transform: translateX(-50%);
+
+    padding: 0.4rem;
+    border: 1px solid var(--glass-rule);
+    border-radius: 999px;
+
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    backdrop-filter: blur(20px) saturate(1.8);
+
+    /* Three stacked shadows do the work here: a bright inner top edge
+     (light catching the rim), a dark inner bottom edge (thickness), and
+     a soft drop shadow (lift off the page). */
+    box-shadow:
+        inset 0 1px 0 0 var(--glass-sheen),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.06),
+        0 14px 38px -14px rgba(0, 0, 0, 0.5),
+        0 2px 8px -4px rgba(0, 0, 0, 0.25);
+
+    /* NOTE: do not add `contain: paint` here. Paint containment clips
+     descendants to the border box, which silently eats the tooltips. */
+    isolation: isolate;
+
+    animation: dockIn 0.7s var(--ease-out) both;
+    animation-delay: 1.35s;
+}
+
+/* Curved highlight across the top third, like light sitting on a lens. */
+.sheen {
+    position: absolute;
+    inset: 1px 1px auto 1px;
+    height: 55%;
+    border-radius: 999px 999px 40% 40% / 999px 999px 100% 100%;
+    background: linear-gradient(to bottom,
+            var(--glass-sheen) 0%,
+            transparent 100%);
+    pointer-events: none;
+}
+
+/* If backdrop-filter is unsupported (older Firefox, some Linux GPU
+   configs) the dock falls back to near-opaque so icons stay legible. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .dock {
+        background: var(--glass-solid);
+    }
+}
+
+.list {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sep {
+    width: 1px;
+    height: 22px;
+    margin-inline: 0.35rem;
+    background: var(--glass-rule);
+}
+
+/* ==================================================================
+   LIQUID BLOB
+
+   Two nested nodes on purpose. The track slides with a springy curve;
+   the blob squashes on its own timing. Both are pure transform, so the
+   whole thing runs on the compositor and never touches layout.
+   ================================================================== */
+
+.blobTrack {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 44px;
+    pointer-events: none;
+    z-index: 0;
+
+    /* The slight overshoot at the end of this curve is what sells it as
+     liquid rather than a box sliding on rails. */
+    transition:
+        transform 620ms cubic-bezier(0.34, 1.32, 0.42, 1),
+        opacity 220ms linear;
+}
+
+.blob {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+
+    /* Glass on glass: no nested blur (a second backdrop-filter inside a
+     blurred parent has nothing left to sample). A vertical gradient and
+     a rim highlight read as a raised lens instead. */
+    background: linear-gradient(to bottom,
+            var(--blob-top) 0%,
+            var(--blob-bottom) 100%);
+    box-shadow:
+        inset 0 1px 0 0 var(--glass-sheen),
+        inset 0 0 0 1px var(--glass-rule),
+        0 2px 8px -3px rgba(0, 0, 0, 0.35);
+
+    transform-origin: center;
+}
+
+.blobMoving {
+    animation: liquid 620ms cubic-bezier(0.34, 1.32, 0.42, 1) both;
+}
+
+/* ==================================================================
+   ITEMS
+   ================================================================== */
+
+.item {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    color: var(--ink-2);
+    transition: color 260ms var(--ease-out);
+}
+
+.glyph {
+    display: block;
+    width: 20px;
+    height: 20px;
+    transition: transform var(--dur-1) var(--ease-out);
+}
+
+.glyph svg {
+    width: 100%;
+    height: 100%;
+}
+
+.item:hover,
+.item:focus-visible {
+    color: var(--ink);
+}
+
+.item[data-active] {
+    color: var(--ink);
+}
+
+.item:hover .glyph {
+    transform: translate3d(0, -1px, 0);
+}
+
+.item:active .glyph {
+    transform: scale3d(0.88, 0.88, 1);
+}
+
+/* ==================================================================
+   TOOLTIP
+   ================================================================== */
+
+.tip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    padding: 0.32rem 0.62rem;
+    border: 1px solid var(--glass-rule);
+    border-radius: 8px;
+    background: var(--glass-solid);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.5);
+
+    color: var(--ink);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+
+    opacity: 0;
+    transform: translate3d(-50%, 6px, 0);
+    pointer-events: none;
+    transition:
+        opacity 180ms var(--ease-out),
+        transform 180ms var(--ease-out);
+}
+
+.item:hover .tip,
+.item:focus-visible .tip {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+}
+
+/* ==================================================================
+   TOUCH + SMALL SCREENS
+   ================================================================== */
+
+/* Touch devices have no hover, so a tooltip would only ever appear
+   stuck after a tap. Hide it and let the icons speak for themselves. */
+@media (hover: none) {
+    .tip {
+        display: none;
+    }
+
+    .item:hover .glyph {
+        transform: none;
+    }
+}
+
+@media (max-width: 26rem) {
+    .item {
+        width: 40px;
+        height: 40px;
+    }
+
+    .blobTrack {
+        height: 40px;
+    }
+
+    .glyph {
+        width: 18px;
+        height: 18px;
+    }
+
+    .sep {
+        margin-inline: 0.2rem;
+    }
+}
+
+/* ==================================================================
+   KEYFRAMES — local by necessity. CSS Modules localise keyframe names,
+   so these cannot be shared from globals.css.
+   ================================================================== */
+
+@keyframes dockIn {
+    from {
+        opacity: 0;
+        transform: translate3d(-50%, 24px, 0) scale3d(0.94, 0.94, 1);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale3d(1, 1, 1);
+    }
+}
+
+/* Stretch along the direction of travel, then settle. --stretch is set
+   per-move from JS based on distance. */
+@keyframes liquid {
+    0% {
+        transform: scale3d(1, 1, 1);
+    }
+
+    38% {
+        transform: scale3d(var(--stretch, 1.25), 0.9, 1);
+    }
+
+    70% {
+        transform: scale3d(0.97, 1.04, 1);
+    }
+
+    100% {
+        transform: scale3d(1, 1, 1);
+    }
+}

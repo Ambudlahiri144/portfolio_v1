@@ -1,26 +1,201 @@
 @import "tailwindcss";
 
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  --bg: #eff1ee;
+  --ink: #121615;
+  --ink-2: #5c6664;
+  --ink-3: #8c9491;
+  --rule: #d3d7d3;
+  --dot: #ccd1cd;
+  --signal: #2e7d4f;
+
+  /* Dock glass */
+  --glass: rgba(255, 255, 255, 0.5);
+  --glass-solid: rgba(246, 247, 245, 0.94);
+  --glass-rule: rgba(0, 0, 0, 0.09);
+  --glass-hover: rgba(0, 0, 0, 0.055);
+  --glass-sheen: rgba(255, 255, 255, 0.85);
+  /* The travelling blob. Slightly brighter than the dock it sits in,
+     so it reads as a raised lens rather than a hole. */
+  --blob-top: rgba(255, 255, 255, 0.95);
+  --blob-bottom: rgba(255, 255, 255, 0.62);
+
+  /* Ambient glow behind the hero type */
+  --glow: rgba(255, 255, 255, 0.9);
+
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+
+  --gutter: clamp(1.25rem, 5vw, 4rem);
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-1: 180ms;
+  --dur-2: 620ms;
+  --dur-3: 900ms;
+  --dur-theme: 480ms;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0a0c0d;
+  --ink: #eef1ef;
+  --ink-2: #98a2a0;
+  --ink-3: #626c6a;
+  --rule: #232827;
+  --dot: #1f2524;
+  --signal: #4ade80;
+
+  --glass: rgba(30, 36, 35, 0.45);
+  --glass-solid: rgba(22, 27, 26, 0.94);
+  --glass-rule: rgba(255, 255, 255, 0.1);
+  --glass-hover: rgba(255, 255, 255, 0.07);
+  --glass-sheen: rgba(255, 255, 255, 0.14);
+  --blob-top: rgba(255, 255, 255, 0.17);
+  --blob-bottom: rgba(255, 255, 255, 0.06);
+
+  --glow: rgba(122, 158, 168, 0.16);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================================
+   RESET
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.0625rem);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100svh;
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1 {
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================
+   THEME TRANSITION
+
+   The universal selector is expensive, so it is only live for the
+   ~480ms the swap is happening. ThemeToggle adds this class, flips
+   the theme, then removes it. Outside that window there is no
+   universal transition rule in the cascade at all.
+   ============================================================ */
+
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  transition:
+    background-color var(--dur-theme) var(--ease-out),
+    border-color var(--dur-theme) var(--ease-out),
+    color var(--dur-theme) var(--ease-out),
+    fill var(--dur-theme) var(--ease-out),
+    stroke var(--dur-theme) var(--ease-out) !important;
+  transition-delay: 0ms !important;
+}
+
+/* ============================================================
+   FOCUS + SKIP LINK
+   ============================================================ */
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.u-skip {
+  position: fixed;
+  left: var(--gutter);
+  top: -100%;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.8125rem;
+  border-radius: 6px;
+}
+
+.u-skip:focus-visible {
+  top: 0.75rem;
+}
+
+/* ============================================================
+   ENTRANCE MOTION
+
+   Keyframes are deliberately NOT defined here.
+
+   CSS Modules localise @keyframes names, so `animation: rise` inside a
+   .module.css file compiles to a hashed name that will never match a
+   plainly-named keyframe declared in this global file. The animation
+   then fails silently — no error, no warning, it just never runs.
+
+   So each .module.css declares the keyframes it uses. The cost is a few
+   duplicated blocks; the benefit is animations that actually work.
+   ============================================================ */
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
 }
