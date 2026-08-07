@@ -1,0 +1,268 @@
+.about {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: clamp(5rem, 12vh, 8rem) var(--gutter) clamp(8rem, 14vh, 10rem);
+    scroll-margin-top: 2rem;
+}
+
+.inner {
+    width: 100%;
+    max-width: 68rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: center;
+    gap: clamp(2.5rem, 6vw, 5rem);
+}
+
+/* ==================================================================
+   REVEAL
+
+   Children are hidden by default and animated in when the section
+   picks up data-visible. The hidden state is gated behind html.js so
+   that if the script never runs, nothing is stuck invisible.
+   ================================================================== */
+
+:global(html.js) .eyebrow,
+:global(html.js) .heading,
+:global(html.js) .para,
+:global(html.js) .actions,
+:global(html.js) .portraitCol {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+}
+
+.about[data-visible] .eyebrow,
+.about[data-visible] .heading,
+.about[data-visible] .para,
+.about[data-visible] .actions {
+    animation: rise 760ms var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* The portrait gets its own curve — a slight scale-up reads as the image
+   settling into its frame rather than sliding in like a text block. */
+.about[data-visible] .portraitCol {
+    animation: settle 900ms var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* ==================================================================
+   COPY
+   ================================================================== */
+
+.eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.eyebrowRule {
+    width: 28px;
+    height: 1px;
+    background: var(--rule);
+}
+
+.heading {
+    margin-top: 1.25rem;
+    font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3.1rem);
+    font-weight: 300;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+}
+
+.para {
+    max-width: 44ch;
+    margin-top: 1.25rem;
+    font-size: clamp(0.95rem, 0.9rem + 0.28vw, 1.075rem);
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--ink-2);
+    text-wrap: pretty;
+}
+
+/* ==================================================================
+   BUTTONS
+   ================================================================== */
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.btnSolid,
+.btnGhost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    transition:
+        transform 200ms var(--ease-out),
+        background-color 200ms var(--ease),
+        border-color 200ms var(--ease),
+        opacity 200ms var(--ease);
+}
+
+.btnSolid {
+    background: var(--ink);
+    color: var(--bg);
+}
+
+.btnGhost {
+    border-color: var(--rule);
+    color: var(--ink);
+}
+
+.arrow {
+    width: 15px;
+    height: 15px;
+    transition: transform 240ms var(--ease-out);
+}
+
+.btnSolid:hover,
+.btnGhost:hover {
+    transform: translate3d(0, -2px, 0);
+}
+
+.btnSolid:hover {
+    opacity: 0.9;
+}
+
+.btnSolid:hover .arrow {
+    transform: translate3d(3px, 0, 0);
+}
+
+.btnGhost:hover {
+    border-color: var(--ink);
+    background: var(--glass-hover);
+}
+
+@media (hover: none) {
+
+    .btnSolid:hover,
+    .btnGhost:hover {
+        transform: none;
+    }
+}
+
+/* ==================================================================
+   PORTRAIT
+   ================================================================== */
+
+.portraitCol {
+    display: grid;
+    place-items: center;
+}
+
+.portrait {
+    position: relative;
+    width: clamp(220px, 30vw, 340px);
+    aspect-ratio: 1;
+}
+
+/* No frame at all — just the image. This element still exists only
+   because next/image with `fill` needs a positioned parent to size
+   against; it draws nothing itself. */
+.frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.photo {
+    object-fit: cover;
+    /* Matches --dur-theme so the portrait swaps in step with the rest of
+     the page rather than lagging behind it. */
+    transition: opacity 480ms var(--ease-out);
+}
+
+.photoLight {
+    opacity: 1;
+}
+
+.photoDark {
+    opacity: 0;
+}
+
+:global(html[data-theme="dark"]) .photoLight {
+    opacity: 0;
+}
+
+:global(html[data-theme="dark"]) .photoDark {
+    opacity: 1;
+}
+
+/* ==================================================================
+   RESPONSIVE
+   ================================================================== */
+
+@media (max-width: 52rem) {
+    .inner {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2.75rem;
+        justify-items: center;
+        text-align: center;
+    }
+
+    /* Portrait leads on narrow screens — a face is a stronger opening
+     than a paragraph when there's only one column to work with. */
+    .portraitCol {
+        order: -1;
+    }
+
+    .eyebrow {
+        justify-content: center;
+    }
+
+    .para {
+        max-width: 52ch;
+    }
+
+    .actions {
+        justify-content: center;
+    }
+}
+
+/* ==================================================================
+   KEYFRAMES — local by necessity (CSS Modules localise these names).
+   ================================================================== */
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 22px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes settle {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 26px, 0) scale3d(0.94, 0.94, 1);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    }
+}

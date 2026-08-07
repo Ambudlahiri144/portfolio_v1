@@ -1,0 +1,130 @@
+.page {
+    min-height: 100svh;
+    padding: clamp(3.5rem, 9vh, 6rem) var(--gutter) clamp(8rem, 14vh, 10rem);
+}
+
+.inner {
+    max-width: 46rem;
+    margin-inline: auto;
+}
+
+.back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition: color 200ms var(--ease);
+}
+
+.back svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 220ms var(--ease-out);
+}
+
+.back:hover {
+    color: var(--ink);
+}
+
+.back:hover svg {
+    transform: translate3d(-3px, 0, 0);
+}
+
+.title {
+    margin-top: 2.5rem;
+    font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4rem);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+.lede {
+    margin-top: 0.9rem;
+    font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem);
+    font-weight: 300;
+    color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------------
+   Timeline
+   ------------------------------------------------------------------ */
+
+.group {
+    margin-top: clamp(3rem, 7vh, 4.5rem);
+}
+
+.groupLabel {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.list {
+    margin: 1.75rem 0 0;
+    padding: 0 0 0 1.75rem;
+    list-style: none;
+    /* The spine. A left border on the list rather than a pseudo-element on
+     each entry, so it stays continuous regardless of entry heights. */
+    border-left: 1px solid var(--rule);
+}
+
+.entry {
+    position: relative;
+    padding-bottom: 2.5rem;
+}
+
+.entry:last-child {
+    padding-bottom: 0;
+}
+
+.node {
+    position: absolute;
+    left: calc(-1.75rem - 4px);
+    top: 0.45rem;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--ink-3);
+}
+
+.period {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.role {
+    margin-top: 0.5rem;
+    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+}
+
+.org {
+    margin-top: 0.2rem;
+    font-size: 0.9375rem;
+    font-weight: 300;
+    color: var(--ink-2);
+}
+
+.detail {
+    margin-top: 0.7rem;
+    max-width: 46ch;
+    font-size: 0.9375rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--ink-2);
+    text-wrap: pretty;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { nav, type NavItem } from "@/lib/site";
 import ThemeToggle from "./ThemeToggle";
 import styles from "./Docknav.module.css";
@@ -55,6 +56,11 @@ function stretchFor(distancePx: number) {
 }
 
 export default function DockNav() {
+    const pathname = usePathname();
+    /* The blob only tracks the one-page sections. On a sub-route such as
+       /experience none of them apply, so it hides rather than lying. */
+    const onHome = pathname === "/";
+
     /* Home is active on load, per the design. */
     const [activeId, setActiveId] = useState<string>(nav[0].id);
 
@@ -118,7 +124,7 @@ export default function DockNav() {
                     style={{
                         transform: `translate3d(${blob.x}px, -50%, 0)`,
                         width: blob.w || undefined,
-                        opacity: blob.ready ? 1 : 0,
+                        opacity: blob.ready && onHome ? 1 : 0,
                     }}
                 >
                     <span
@@ -129,7 +135,7 @@ export default function DockNav() {
                 </li>
 
                 {nav.map((item) => {
-                    const isActive = item.id === activeId;
+                    const isActive = onHome && item.id === activeId;
                     return (
                         <li key={item.id}>
                             <a

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, IBM_Plex_Mono } from "next/font/google";
 import { site } from "@/lib/site";
+import DockNav from "@/components/Docknav";
 import "./globals.css";
 
 /* Outfit is a geometric sans with near-circular bowls and a very clean
@@ -41,6 +42,9 @@ const themeScript = `
   } catch (e) {
     document.documentElement.dataset.theme = "dark";
   }
+  /* Scroll reveals hide their content until observed. This class is the
+     gate for that, so if the script fails nothing is stuck invisible. */
+  document.documentElement.classList.add("js");
 })();
 `;
 
@@ -49,8 +53,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  /* data-scroll-behavior tells Next to suppress smooth scrolling during
+     route transitions, so navigating to /experience jumps to the top
+     instantly instead of gliding there. In-page anchors stay smooth. */
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
@@ -59,6 +66,8 @@ export default function RootLayout({
           Skip to content
         </a>
         {children}
+        {/* Lives in the layout so it persists across routes. */}
+        <DockNav />
       </body>
     </html>
   );
