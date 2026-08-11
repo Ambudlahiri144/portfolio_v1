@@ -1,10 +1,56 @@
 .page {
+    position: relative;
     min-height: 100svh;
     padding: clamp(3.5rem, 9vh, 6rem) var(--gutter) clamp(8rem, 14vh, 10rem);
+    overflow: hidden;
+
+    /* Page-level entrance. Everything inside then staggers on top of this,
+     so the page arrives as one object rather than a pile of parts. */
+    animation: pageIn 620ms var(--ease-out) both;
 }
 
+/* ------------------------------------------------------------------
+   Ambient field — matches the hero so the two pages feel related.
+   Painted once, never animated.
+   ------------------------------------------------------------------ */
+
+.field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.dots {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 12%,
+            #000 20%,
+            transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 55% at 50% 12%,
+            #000 20%,
+            transparent 100%);
+}
+
+.glow {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: min(900px, 120vw);
+    aspect-ratio: 16 / 10;
+    transform: translate3d(-50%, -40%, 0);
+    background: radial-gradient(ellipse at center, var(--glow) 0%, transparent 68%);
+}
+
+/* ------------------------------------------------------------------
+   Content
+   ------------------------------------------------------------------ */
+
 .inner {
-    max-width: 46rem;
+    position: relative;
+    z-index: 1;
+    max-width: 78rem;
     margin-inline: auto;
 }
 
@@ -19,6 +65,8 @@
     text-transform: uppercase;
     color: var(--ink-3);
     transition: color 200ms var(--ease);
+    animation: rise 620ms var(--ease-out) both;
+    animation-delay: 0.08s;
 }
 
 .back svg {
@@ -36,95 +84,47 @@
 }
 
 .title {
-    margin-top: 2.5rem;
-    font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4rem);
+    margin-top: 2.25rem;
+    font-size: clamp(2.5rem, 1.4rem + 4.4vw, 4.75rem);
     font-weight: 300;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
 }
 
 .lede {
-    margin-top: 0.9rem;
+    margin-top: 1rem;
+    max-width: 40ch;
     font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem);
     font-weight: 300;
     color: var(--ink-2);
+    animation: rise 700ms var(--ease-out) both;
+    animation-delay: 0.62s;
 }
 
 /* ------------------------------------------------------------------
-   Timeline
+   KEYFRAMES — local by necessity.
    ------------------------------------------------------------------ */
 
-.group {
-    margin-top: clamp(3rem, 7vh, 4.5rem);
+@keyframes pageIn {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
 }
 
-.groupLabel {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-}
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 16px, 0);
+    }
 
-.list {
-    margin: 1.75rem 0 0;
-    padding: 0 0 0 1.75rem;
-    list-style: none;
-    /* The spine. A left border on the list rather than a pseudo-element on
-     each entry, so it stays continuous regardless of entry heights. */
-    border-left: 1px solid var(--rule);
-}
-
-.entry {
-    position: relative;
-    padding-bottom: 2.5rem;
-}
-
-.entry:last-child {
-    padding-bottom: 0;
-}
-
-.node {
-    position: absolute;
-    left: calc(-1.75rem - 4px);
-    top: 0.45rem;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--bg);
-    border: 1px solid var(--ink-3);
-}
-
-.period {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-}
-
-.role {
-    margin-top: 0.5rem;
-    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
-    font-weight: 400;
-    letter-spacing: -0.015em;
-}
-
-.org {
-    margin-top: 0.2rem;
-    font-size: 0.9375rem;
-    font-weight: 300;
-    color: var(--ink-2);
-}
-
-.detail {
-    margin-top: 0.7rem;
-    max-width: 46ch;
-    font-size: 0.9375rem;
-    font-weight: 300;
-    line-height: 1.65;
-    color: var(--ink-2);
-    text-wrap: pretty;
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
 }

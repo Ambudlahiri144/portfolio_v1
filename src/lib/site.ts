@@ -43,37 +43,82 @@ export const nav: NavItem[] = [
 ];
 
 /* ------------------------------------------------------------------
-   /experience — replace with your real entries
+   /experience
    ------------------------------------------------------------------ */
+
+/* Every stack shown on the globe. `id` is what timeline entries
+   reference; the icon for each id is mapped in TechGlobe.tsx. */
+export const tech = [
+    { id: "react", label: "React" },
+    { id: "nextjs", label: "Next.js" },
+    { id: "typescript", label: "TypeScript" },
+    { id: "javascript", label: "JavaScript" },
+    { id: "nodejs", label: "Node.js" },
+    { id: "express", label: "Express" },
+    { id: "mongodb", label: "MongoDB" },
+    { id: "python", label: "Python" },
+    { id: "django", label: "Django" },
+    { id: "fastapi", label: "FastAPI" },
+    { id: "tailwind", label: "Tailwind CSS" },
+    { id: "expo", label: "Expo" },
+    { id: "socketio", label: "Socket.IO" },
+    { id: "aws", label: "AWS" },
+    { id: "java", label: "Java" },
+    { id: "flutter", label: "Flutter" },
+    { id: "git", label: "Git" },
+    { id: "cpp", label: "C++" },
+] as const;
+
+export type TechId = (typeof tech)[number]["id"];
 
 export type TimelineEntry = {
     period: string;
     title: string;
     org: string;
     detail: string;
+    /* Highlighted on the globe when this entry is selected. */
+    tech: TechId[];
 };
 
 export const work: TimelineEntry[] = [
     {
-        period: "2024 — Present",
-        title: "Your Role",
-        org: "Company Name",
+        period: "Aug 2025 — April 2026",
+        title: "Full-Stack Developer Intern",
+        org: "Syntalix",
         detail:
-            "One or two lines on what you owned and what changed because of it. Numbers land harder than adjectives.",
+            "Built React Native crowdfunding platform with 90% payment success. Cut Django latency 60% and led React/Tailwind UX redesign.",
+        tech: ["react", "expo", "django", "python", "tailwind", "javascript"],
     },
     {
-        period: "2023 — 2024",
-        title: "Your Role",
-        org: "Company Name",
-        detail: "What you built, and the constraint that made it interesting.",
+        period: "May 2026 — Present",
+        title: "Software Engineer Intern",
+        org: "Dataflow Group",
+        detail:
+            "Architected serverless AWS AI pipeline, automating 80% of processing, cutting turnaround 45%, and lifting routing accuracy 35%.",
+        tech: ["aws", "python"],
     },
 ];
 
 export const education: TimelineEntry[] = [
     {
-        period: "2021 — 2025",
-        title: "B.Tech, Computer Science",
-        org: "Your University",
-        detail: "Coursework, thesis, or anything you'd actually want asked about.",
+        period: "2007 — 2020",
+        title: "Class X, Secondary",
+        org: "Vivekananda Mission School — ICSE",
+        detail: "",
+        tech: [],
+    },
+    {
+        period: "2020 — 2022",
+        title: "Class XII, Senior Secondary",
+        org: "Delhi Public School — CBSE",
+        detail: "",
+        tech: ["cpp"],
+    },
+    {
+        period: "Aug 2022 — June 2026",
+        title: "B.Tech, Computer Science (Artificial Intelligence)",
+        org: "Bennett University",
+        detail: "CGPA 9.27.",
+        tech: ["python", "java", "cpp"],
     },
 ];

@@ -14,8 +14,8 @@
     border-radius: 999px;
 
     background: var(--glass);
-    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-    backdrop-filter: blur(20px) saturate(1.8);
+    -webkit-backdrop-filter: blur(12px) saturate(1.7);
+    backdrop-filter: blur(12px) saturate(1.7);
 
     /* Three stacked shadows do the work here: a bright inner top edge
      (light catching the rim), a dark inner bottom edge (thickness), and

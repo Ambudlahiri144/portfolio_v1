@@ -1,0 +1,321 @@
+/* ==================================================================
+   LAYOUT — copy pushed left, globe held right.
+   ================================================================== */
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: clamp(2rem, 5vw, 4rem);
+}
+
+.globeCol {
+    display: grid;
+    justify-items: center;
+    animation: rise 800ms var(--ease-out) both;
+    animation-delay: 0.7s;
+}
+
+.globeSticky {
+    position: sticky;
+    top: clamp(2rem, 12vh, 6rem);
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+}
+
+.globeHint {
+    max-width: 22ch;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.7;
+    text-align: center;
+    color: var(--ink-3);
+}
+
+.wrap {
+    margin-top: clamp(2.5rem, 6vh, 3.5rem);
+}
+
+/* ==================================================================
+   TABS
+   ================================================================== */
+
+.tabs {
+    position: relative;
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 4px;
+    border: 1px solid var(--glass-rule);
+    border-radius: 999px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(10px) saturate(1.5);
+    backdrop-filter: blur(10px) saturate(1.5);
+    box-shadow: inset 0 1px 0 0 var(--glass-sheen);
+
+    animation: rise 700ms var(--ease-out) both;
+    animation-delay: 0.5s;
+}
+
+/* Two equal slots, so the indicator is exactly one slot wide and moves
+   by exactly its own width. No measuring, no refs, no resize handling. */
+.indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    transform: translate3d(calc(var(--i, 0) * 100%), 0, 0);
+    transition: transform 520ms cubic-bezier(0.34, 1.32, 0.42, 1);
+    pointer-events: none;
+}
+
+.blob {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(to bottom,
+            var(--blob-top) 0%,
+            var(--blob-bottom) 100%);
+    box-shadow:
+        inset 0 1px 0 0 var(--glass-sheen),
+        inset 0 0 0 1px var(--glass-rule),
+        0 2px 8px -3px rgba(0, 0, 0, 0.35);
+    transform-origin: center;
+}
+
+.blobMoving {
+    animation: liquid 520ms cubic-bezier(0.34, 1.32, 0.42, 1) both;
+}
+
+.tab {
+    position: relative;
+    z-index: 1;
+    padding: 0.6rem 1.5rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    color: var(--ink-2);
+    white-space: nowrap;
+    transition: color 260ms var(--ease-out);
+}
+
+.tab[aria-selected="true"] {
+    color: var(--ink);
+}
+
+.tab:hover {
+    color: var(--ink);
+}
+
+/* ==================================================================
+   TIMELINE
+   ================================================================== */
+
+.panel {
+    margin-top: clamp(2rem, 5vh, 3rem);
+}
+
+.list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.entry {
+    position: relative;
+    padding: 0 0 2.75rem 2.25rem;
+}
+
+.entry:last-child {
+    padding-bottom: 0;
+}
+
+/* ---- The travelling spine ---------------------------------------
+
+   Each entry draws the segment from its own node down to the next.
+   scaleY from a top origin is a compositor-only operation, so the line
+   grows without touching layout even at 60fps.
+   ------------------------------------------------------------------ */
+
+.segment {
+    position: absolute;
+    left: 3px;
+    top: 0.5rem;
+    bottom: -0.5rem;
+    width: 1px;
+    background: var(--rule);
+    transform: scale3d(1, 0, 1);
+    transform-origin: top;
+    animation: drawY var(--seg-t, 0.46s) linear both;
+    animation-delay: var(--seg-d, 0s);
+}
+
+/* Nothing below the final node — this is what makes the line stop. */
+.entry:last-child .segment {
+    display: none;
+}
+
+.node {
+    position: absolute;
+    left: 0;
+    top: 0.42rem;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ink);
+    transform: scale3d(0, 0, 1);
+    animation: nodePop 420ms cubic-bezier(0.34, 1.5, 0.42, 1) both;
+    animation-delay: var(--node-d, 0s);
+}
+
+/* ---- Entry copy -------------------------------------------------- */
+
+.copy {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+    animation: rise 620ms var(--ease-out) both;
+    animation-delay: var(--copy-d, 0s);
+}
+
+/* The entry is a button, so reset the UA styles and let it sit flush
+   with the timeline rather than looking like a form control. */
+.card {
+    display: block;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    margin: -0.85rem 0 0 -1rem;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    text-align: left;
+    transition:
+        background-color 260ms var(--ease-out),
+        border-color 260ms var(--ease-out);
+}
+
+.card:hover {
+    background: var(--glass-hover);
+}
+
+.card[aria-pressed="true"] {
+    background: var(--glass);
+    border-color: var(--glass-rule);
+}
+
+.period {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.role {
+    margin-top: 0.5rem;
+    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+}
+
+.org {
+    margin-top: 0.2rem;
+    font-size: 0.9375rem;
+    font-weight: 300;
+    color: var(--ink-2);
+}
+
+.detail {
+    margin-top: 0.7rem;
+    max-width: 46ch;
+    font-size: 0.9375rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--ink-2);
+    text-wrap: pretty;
+}
+
+
+/* Below this width the globe sits under the timeline rather than beside
+   it — a sticky sidebar in a single column would just cover the text. */
+@media (max-width: 62rem) {
+    .layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .globeCol {
+        order: -1;
+        margin-top: 2.5rem;
+    }
+
+    .globeSticky {
+        position: static;
+    }
+}
+
+@media (max-width: 30rem) {
+    .tab {
+        padding: 0.55rem 1.15rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* ==================================================================
+   KEYFRAMES — local by necessity (CSS Modules localise these names).
+   ================================================================== */
+
+@keyframes drawY {
+    from {
+        transform: scale3d(1, 0, 1);
+    }
+
+    to {
+        transform: scale3d(1, 1, 1);
+    }
+}
+
+@keyframes nodePop {
+    from {
+        transform: scale3d(0, 0, 1);
+    }
+
+    to {
+        transform: scale3d(1, 1, 1);
+    }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes liquid {
+    0% {
+        transform: scale3d(1, 1, 1);
+    }
+
+    38% {
+        transform: scale3d(1.14, 0.88, 1);
+    }
+
+    70% {
+        transform: scale3d(0.98, 1.04, 1);
+    }
+
+    100% {
+        transform: scale3d(1, 1, 1);
+    }
+}

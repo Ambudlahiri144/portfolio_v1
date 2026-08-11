@@ -1,0 +1,42 @@
+.root {
+    display: inline-block;
+}
+
+.word {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.word+.word {
+    margin-left: 0.26em;
+}
+
+/* overflow:hidden clips the character while it slides up from below —
+   far cheaper than animating clip-path or a mask. */
+.mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    /* Room for descenders so the clip doesn't shave the tail off a 'y'. */
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+}
+
+.char {
+    display: inline-block;
+    transform: translate3d(0, 108%, 0);
+    animation: unmask 0.72s var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* Local by necessity — CSS Modules localise keyframe names, so this
+   cannot be shared from globals.css. */
+@keyframes unmask {
+    from {
+        transform: translate3d(0, 108%, 0);
+    }
+
+    to {
+        transform: translate3d(0, 0, 0);
+    }
+}
