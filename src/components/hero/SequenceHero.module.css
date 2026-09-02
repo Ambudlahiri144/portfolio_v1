@@ -1,0 +1,366 @@
+/* ==================================================================
+   SCROLLYTELLING HERO
+
+   The one place in this codebase that ignores the theme tokens. The
+   frames are near-black JPEGs turned WebP, and the section background
+   has to match them exactly (#010101, sampled off the footage) or the
+   2.29:1 image reads as a visible rectangle floating on the page. A
+   themed background cannot do that, so this section is black in both
+   themes and About below it carries on as normal.
+   ================================================================== */
+
+.wrap {
+    position: relative;
+
+    /* This is the scrub speed control.
+
+       The frame index is a fraction of the distance scrolled through this
+       element, so its height *is* how fast the sequence plays: taller means
+       more scrolling per frame, which means slower. At 4x viewport the 145
+       frames burned through in about 14px of travel each and the animation was
+       over before it could be read. At 7x that is roughly 29px per frame —
+       half the speed, and enough to actually watch. */
+    height: 700vh;
+    background: #010101;
+}
+
+/* A band the exact shape of the frames (1920 x 1080), not a full-height box.
+
+   Previously this was 100svh with the frame contain-fitted inside it, which
+   left a letterbox of dead height above and below baked into the sticky
+   element itself. That was invisible mid-scroll — same black either side — but
+   it showed at the hand-off: the element kept its full viewport height after
+   unpinning, so a strip of empty black sat between the last frame and About.
+
+   Sizing the element to the footage removes that strip. --aspect is set inline
+   from heroSequence.aspect so the CSS and the encoded frames cannot drift. */
+.sticky {
+    --band: min(100svh, calc(100vw / var(--aspect, 1.7778)));
+
+    position: sticky;
+    /* Centred in the viewport while pinned, rather than jammed to the top. */
+    top: calc((100svh - var(--band)) / 2);
+    width: 100%;
+    height: var(--band);
+    overflow: hidden;
+    background: #010101;
+    /* Deliberately no z-index. The dock is position:fixed at z-index 40 and
+       must stay above this; creating a stacking context here with a raised
+       z-index is what would put a full-bleed canvas over the navigation. */
+}
+
+/* The layer that slides. Separate from the canvas so the canvas keeps a stable
+   size for the 2D context while only this wrapper is transformed — resizing the
+   backing buffer mid-animation would clear it every frame. */
+.shift {
+    position: absolute;
+    inset: 0;
+    will-change: transform;
+}
+
+.canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ==================================================================
+   CLOSING INTRODUCTION
+   ================================================================== */
+
+.intro {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-inline: var(--gutter);
+    padding-bottom: 5rem;
+    pointer-events: none;
+}
+
+.introInner {
+    max-width: min(30rem, 42vw);
+    text-align: right;
+}
+
+.introEyebrow {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(1.1rem, 0.9rem + 1vw, 1.75rem);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: rgb(255 255 255 / 0.55);
+}
+
+.introName {
+    margin-top: 0.35rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(2.4rem, 1.2rem + 4.8vw, 5.75rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    color: rgb(255 255 255 / 0.92);
+    text-wrap: balance;
+}
+
+.introBody {
+    margin-top: 1.1rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(0.95rem, 0.88rem + 0.4vw, 1.2rem);
+    font-weight: 300;
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.6);
+    text-wrap: pretty;
+}
+
+/* Visually hidden, but it is the page's real <h1>. The canvas is aria-hidden
+   decoration, so without this the landing page has no heading at all. */
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* ==================================================================
+   BEATS
+   ================================================================== */
+
+/* Positioned with flexbox, never with a transform.
+
+   Framer Motion writes `transform` inline to animate `y`, which silently wins
+   over anything this stylesheet puts there — a `translate(-50%, -50%)` centring
+   trick gets wiped the moment the beat animates, and the block lands wherever
+   `left: 50%` alone put it. Flex alignment leaves the transform channel free
+   for motion to own. */
+.beat {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    padding-inline: var(--gutter);
+    /* Lifts the block off the dock, which is fixed across the bottom. */
+    padding-bottom: 5rem;
+    /* Never intercepts a drag or a click meant for the page. */
+    pointer-events: none;
+}
+
+.beatInner {
+    max-width: min(34rem, 44vw);
+}
+
+.center {
+    justify-content: center;
+    text-align: center;
+}
+
+.center .beatInner {
+    max-width: min(38rem, 60vw);
+}
+
+.left {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.right {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.beatTitle {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(2.25rem, 1.2rem + 4.4vw, 5.5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: rgb(255 255 255 / 0.9);
+    text-wrap: balance;
+}
+
+.beatBody {
+    margin-top: 1.1rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(0.95rem, 0.88rem + 0.4vw, 1.2rem);
+    font-weight: 300;
+    line-height: 1.55;
+    letter-spacing: -0.005em;
+    color: rgb(255 255 255 / 0.6);
+    text-wrap: pretty;
+}
+
+/* ==================================================================
+   SCROLL CUE
+   ================================================================== */
+
+.cue {
+    position: absolute;
+    z-index: 2;
+    left: var(--gutter);
+    bottom: 7.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.45);
+    pointer-events: none;
+}
+
+.cueRule {
+    display: block;
+    width: 34px;
+    height: 1px;
+    background: rgb(255 255 255 / 0.28);
+}
+
+/* ==================================================================
+   LOADER
+   ================================================================== */
+
+.loader {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 1.1rem;
+    background: #010101;
+}
+
+.spinner {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid rgb(255 255 255 / 0.16);
+    border-top-color: rgb(255 255 255 / 0.75);
+    animation: spin 720ms linear infinite;
+}
+
+.loaderBar {
+    display: block;
+    width: min(210px, 46vw);
+    height: 2px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.12);
+    overflow: hidden;
+}
+
+.loaderFill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: rgb(255 255 255 / 0.8);
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 180ms linear;
+}
+
+.loaderText {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    color: rgb(255 255 255 / 0.45);
+}
+
+/* ==================================================================
+   REDUCED MOTION — no 400vh, no canvas, no frame loop.
+   ================================================================== */
+
+.static {
+    background: #010101;
+    /* Generous bottom padding so the last beat is not sitting under the dock,
+       which is fixed across the bottom of every viewport. */
+    padding: clamp(4rem, 10vh, 7rem) var(--gutter) clamp(9rem, 16vh, 12rem);
+    display: grid;
+    justify-items: center;
+    gap: clamp(2rem, 5vh, 3.5rem);
+}
+
+.staticImage {
+    width: min(100%, 60rem);
+    height: auto;
+    display: block;
+}
+
+.staticCopy {
+    display: grid;
+    gap: 2rem;
+    max-width: 44rem;
+    width: 100%;
+}
+
+.staticBeat {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.staticTitle {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: rgb(255 255 255 / 0.9);
+}
+
+.staticBody {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: rgb(255 255 255 / 0.6);
+}
+
+/* ==================================================================
+   RESPONSIVE
+
+   The footage is 2.29:1. Contain-fitting that into a portrait phone
+   leaves it a narrow band across the middle with a lot of black above
+   and below — so on narrow screens the beats stop trying to sit beside
+   the subject and move into the empty space under the band instead.
+   ================================================================== */
+
+@media (max-width: 48rem) {
+
+    .beat,
+    .center,
+    .left,
+    .right {
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 16vh;
+        margin-top: 0;
+        transform: none;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .beatTitle {
+        font-size: clamp(1.75rem, 1.2rem + 3.6vw, 2.75rem);
+    }
+
+    .cue {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 6rem;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

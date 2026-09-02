@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { useLenis } from "lenis/react";
 import { nav, type NavItem } from "@/lib/site";
 import ThemeToggle from "./ThemeToggle";
+import DockFx from "./dock/DockFx";
 import styles from "./Docknav.module.css";
 
 /* Inline SVGs rather than an icon package — four icons is not worth a
@@ -61,9 +64,15 @@ export default function DockNav() {
        /experience none of them apply, so it hides rather than lying. */
     const onHome = pathname === "/";
 
+    /* Undefined under reduced motion, where Lenis is never constructed. Every
+       use below is optional-chained so the dock falls back to the browser's
+       own anchor handling in that case. */
+    const lenis = useLenis();
+
     /* Home is active on load, per the design. */
     const [activeId, setActiveId] = useState<string>(nav[0].id);
 
+    const navRef = useRef<HTMLElement>(null);
     const listRef = useRef<HTMLUListElement>(null);
     const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
@@ -98,7 +107,7 @@ export default function DockNav() {
         return () => ro.disconnect();
     }, [measure]);
 
-    function handleSelect(id: string) {
+    function moveBlobTo(id: string) {
         if (id === activeId) return;
 
         const from = itemRefs.current[activeId];
@@ -109,8 +118,35 @@ export default function DockNav() {
         setMoveKey((k) => k + 1);
     }
 
+    function handleClick(e: React.MouseEvent<HTMLAnchorElement>, item: NavItem) {
+        moveBlobTo(item.id);
+
+        /* Off the home route this is a real navigation — let Link handle it and
+           the browser settle on the hash once the new page renders. */
+        if (!onHome) return;
+
+        const targetId = item.href.split("#")[1];
+        const target = targetId && document.getElementById(targetId);
+        if (!target || !lenis) return;
+
+        /* Already home, so there is nothing to navigate to — this is purely a
+           scroll. Taking it over from the browser keeps the motion consistent
+           with the rest of the page and lets Lenis honour scroll-padding. */
+        e.preventDefault();
+        lenis.scrollTo(target, { offset: 0 });
+
+        /* Keep the URL truthful without letting the browser jump to the anchor
+           itself, which would fight the animation we just started. */
+        window.history.replaceState(null, "", item.href);
+    }
+
     return (
-        <nav className={styles.dock} aria-label="Sections">
+        <nav ref={navRef} className={styles.dock} aria-label="Sections">
+            {/* Liquid-metal surface and travelling rim glow. Purely decorative,
+                pointer-transparent, and absent entirely under reduced motion or
+                without WebGL2 — the dock below is fully functional on its own. */}
+            <DockFx targetRef={navRef} />
+
             {/* Specular highlight along the top edge — the thing that reads as
           "glass" more than the blur itself does. */}
             <span className={styles.sheen} aria-hidden="true" />
@@ -138,12 +174,12 @@ export default function DockNav() {
                     const isActive = onHome && item.id === activeId;
                     return (
                         <li key={item.id}>
-                            <a
+                            <Link
                                 href={item.href}
                                 ref={(el) => {
                                     itemRefs.current[item.id] = el;
                                 }}
-                                onClick={() => handleSelect(item.id)}
+                                onClick={(e) => handleClick(e, item)}
                                 className={styles.item}
                                 data-active={isActive || undefined}
                                 aria-current={isActive ? "page" : undefined}
@@ -154,7 +190,7 @@ export default function DockNav() {
                                 {/* The tooltip is also the link's accessible name, so the
                     two can never drift apart. */}
                                 <span className={styles.tip}>{item.label}</span>
-                            </a>
+                            </Link>
                         </li>
                     );
                 })}

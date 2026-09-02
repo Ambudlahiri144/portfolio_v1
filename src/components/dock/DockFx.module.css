@@ -1,0 +1,38 @@
+/* Position and size are set inline by DockFx.tsx.
+
+   The canvas has to extend well past the dock so the bloom has somewhere to
+   land — the last blur pass reaches roughly four sigma, and anything outside
+   the canvas is cut off against a hard rectangle. That padding is derived from
+   the dock's measured height in the runtime, which also computes the pixel
+   buffer size, so the two can never drift apart. Expressing it here as a
+   percentage would resolve against the dock's *width* and give a wildly
+   lopsided box on a pill this wide. */
+.fx {
+    position: absolute;
+
+    /* Under the icons and the travelling blob, over the dock's own glass —
+       the same order the reference uses: plate, then canvas, then content. */
+    z-index: 0;
+
+    /* Never eats a click meant for a nav item. */
+    pointer-events: none;
+
+    /* No mix-blend-mode. The shader already outputs premultiplied alpha with
+       the coverage it wants, so normal compositing lands it correctly on the
+       glass; screen on top of that would brighten everything twice. */
+
+    /* Fades up rather than popping in against an already-painted dock. Timed
+       to land just after the dock's own entrance. */
+    animation: fxIn 900ms var(--ease-out) both;
+    animation-delay: 1.5s;
+}
+
+@keyframes fxIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

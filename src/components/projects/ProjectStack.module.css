@@ -1,0 +1,419 @@
+/* ==================================================================
+   PROJECT STACK
+
+   Cards, not images. The reference component stacked <img> elements;
+   there is no project artwork here, so each card is typographic — a
+   number, a title, a claim and the stack it was built on. That also
+   means the cards inherit the site's tokens and respond to the theme,
+   which a set of baked images could not.
+   ================================================================== */
+
+.section {
+    position: relative;
+    scroll-margin-top: 2rem;
+}
+
+/* ==================================================================
+   STAGE
+
+   GSAP pins this element and translates the cards through it. Its
+   height is the viewport, and pinSpacing adds the scroll room.
+   ================================================================== */
+
+/* No padding and no centring box. The stage IS the card — a visitor scrolling
+   in should see a full-screen panel, not a card sitting on a page. The deck
+   only starts reading as cards once the first one pulls back. */
+.stage {
+    position: relative;
+    height: 100svh;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* The deck fills the stage exactly — no aspect-ratio box any more.
+
+   The cards were previously a fixed 16:9 panel floating in a padded stage,
+   which meant the section announced "deck of cards" before you had scrolled a
+   pixel. Filling the viewport instead lets the first card read as a plain
+   full-screen panel; GSAP rounds its corners and scales it back only as the
+   next one arrives, so the card shape is something the scroll reveals. */
+.deck {
+    position: absolute;
+    inset: 0;
+
+    /* Clips the cards still waiting their turn.
+
+       Every pending card sits at yPercent 100 in the same absolutely
+       positioned box, so they all overlap exactly and the LAST one in DOM
+       order paints on top — with four projects that meant card 04 was the one
+       visible below the deck while 03 was the one actually coming next. */
+    overflow: hidden;
+}
+
+/* border-radius is 0 here and animated by GSAP — the card only looks like a
+   card once it starts receding. No border either, for the same reason: a
+   hairline outline on a full-bleed panel just draws a box around the viewport. */
+.card {
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+    /* The page background itself, not a lifted surface. The card is full-bleed,
+       so its colour IS the section's colour — anything else reintroduces the
+       shade step this change was meant to remove. */
+    background: var(--bg);
+    /* A hairline rim instead of relying on the drop shadow. On a true black
+       page a dark shadow is invisible, so a receded card would have had no
+       edge at all. */
+    box-shadow:
+        0 0 0 1px var(--glass-rule),
+        0 24px 60px -24px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    /* Cards are translated from below and scaled as they stack, so the
+       transform origin has to be the top or the shrinking card appears to
+       drift away from the one landing on top of it. */
+    transform-origin: 50% 0%;
+    will-change: transform;
+}
+
+/* The measure. Full-bleed cards still need a column the copy can live in —
+   without this the number and the period sit at opposite edges of the screen. */
+.cardInner {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    max-width: 92rem;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: clamp(2rem, 5vh, 4.5rem) var(--gutter) clamp(5rem, 9vh, 7rem);
+}
+
+/* ==================================================================
+   CARD BACKGROUND
+
+   Every one of these images has its subject dead centre and sits at
+   roughly 16:9 — the same shape as the card. So object-position has
+   almost nothing to work with: cover shows the whole image and there
+   is no crop margin to slide around in.
+
+   Rather than zoom in and lop the right edge off (which is where the
+   detail lives in three of the four), the image is masked so it fades
+   out toward the left. Its visual weight lands on the right, the copy
+   column on the left stays clean, and nothing is cropped away.
+   ================================================================== */
+
+.media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.mediaImg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 60% center;
+
+    /* Fades out to the left, full strength across the whole right half.
+
+       This used to only reach 85% by 58% across and 100% at the very edge, so
+       even the right side of the card never showed the image at the opacity it
+       was set to. Reaching full by the halfway point keeps the weight on the
+       right — the left is still where it disappears — while letting the right
+       actually be the image. */
+    -webkit-mask-image: linear-gradient(to right,
+            transparent 0%,
+            rgba(0, 0, 0, 0.18) 16%,
+            rgba(0, 0, 0, 0.78) 36%,
+            #000 50%);
+    mask-image: linear-gradient(to right,
+            transparent 0%,
+            rgba(0, 0, 0, 0.18) 16%,
+            rgba(0, 0, 0, 0.78) 36%,
+            #000 50%);
+
+    /* LIGHT THEME. The artwork is dark, neon and high-contrast against a
+       near-white card, so it is desaturated and lifted rather than left to
+       punch a hole in the surface — but only lightly. */
+    opacity: 0.8;
+    filter: saturate(0.7) brightness(1.1) contrast(0.82);
+}
+
+/* DARK THEME — the artwork already belongs here, so it only needs knocking
+   back far enough that white text sits comfortably on top of it. */
+:global(html[data-theme="dark"]) .mediaImg {
+    opacity: 0.7;
+    filter: saturate(0.95) brightness(0.8) contrast(1.02);
+}
+
+/* A second pass over the top, in the card's own colour. The mask handles the
+   far left; this keeps the middle — where the title and the sentence sit —
+   from ever competing with whatever is behind it. */
+/* This was the real reason the artwork looked washed out — not the opacity.
+
+   It used to still be laying 34% of the card colour over the image at 72%
+   across and 12% at the very right edge, so the image could never reach the
+   opacity it was set to anywhere on the card. It now clears completely by
+   about three-quarters across, and only covers the strip the copy actually
+   occupies (roughly 8%-43% of the card's width). */
+.scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg,
+            var(--bg) 0%,
+            color-mix(in srgb, var(--bg) 92%, transparent) 26%,
+            color-mix(in srgb, var(--bg) 62%, transparent) 42%,
+            color-mix(in srgb, var(--bg) 18%, transparent) 58%,
+            transparent 78%);
+}
+
+/* ---- Card content ------------------------------------------------ */
+
+/* The media layer is absolutely positioned with z-index 0, and within a
+   stacking context that paints ABOVE non-positioned block children — so
+   without this the artwork would sit on top of the copy rather than behind
+   it. Positioning the content puts it back on top. */
+.cardTop,
+.cardBody,
+.tech,
+.cardFoot {
+    position: relative;
+    z-index: 1;
+}
+
+.cardTop {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.cardBody {
+    display: grid;
+    gap: 0.6rem;
+}
+
+/* ---- Intro card -------------------------------------------------- */
+
+/* The opening card reads as a title page, so it is centred and carries the
+   signal accent — the project cards that follow stay left-aligned and quiet. */
+.card[data-intro] .cardInner {
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+}
+
+.card[data-intro] .cardTop,
+.card[data-intro] .cardFoot {
+    width: 100%;
+    justify-content: center;
+}
+
+.eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.introTitle {
+    font-size: clamp(2.75rem, 1.5rem + 6vw, 6.5rem);
+    font-weight: 200;
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+}
+
+.introLines {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 1.5rem;
+    justify-items: center;
+}
+
+.introLine {
+    max-width: 34ch;
+    font-size: clamp(0.95rem, 0.9rem + 0.35vw, 1.15rem);
+    font-weight: 300;
+    line-height: 1.55;
+    color: var(--ink-2);
+    text-wrap: pretty;
+}
+
+.cardFoot {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.cardFootRule {
+    width: 28px;
+    height: 1px;
+    background: var(--rule);
+}
+
+.kind {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.title {
+    font-size: clamp(2rem, 1.2rem + 3.4vw, 4rem);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.035em;
+}
+
+.detail {
+    max-width: 46ch;
+    margin-top: 0.4rem;
+    font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.0625rem);
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--ink-2);
+    text-wrap: pretty;
+}
+
+/* ---- Tech chips -------------------------------------------------- */
+
+.tech {
+    /* The chips rotate in 3D, so they need a perspective to rotate within —
+       without one the flip flattens into a vertical squash. FlipFadeText sets
+       its own; this list is animated directly so it needs its own. */
+    perspective: 900px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.chip {
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+}
+
+/* ==================================================================
+   REDUCED MOTION / NO-GSAP FALLBACK
+
+   data-static is set by the component when motion is reduced, before
+   any ScrollTrigger is created. The deck stops being an absolutely
+   positioned pile and becomes an ordinary column, so the same markup
+   reads as a plain list with no pinning and no transforms.
+   ================================================================== */
+
+.stage[data-static] {
+    height: auto;
+    overflow: visible;
+    padding-bottom: clamp(4rem, 10vh, 7rem);
+}
+
+.stage[data-static] .deck {
+    position: relative;
+    inset: auto;
+    height: auto;
+    display: grid;
+    gap: 1.5rem;
+}
+
+.stage[data-static] .card {
+    position: relative;
+    inset: auto;
+    /* GSAP never runs in this branch, so nothing would clear an inline
+       transform — but the cards also never receive one. */
+    transform: none;
+    border-radius: 20px;
+    min-height: 26rem;
+}
+
+.stage[data-static] .cardInner {
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+/* ==================================================================
+   PHONES
+
+   16:9 stops working well below roughly a tablet. At 375px wide a
+   true 1920x1080 card is 211px tall — not enough room for a title and
+   a sentence at a readable size, and the type would have to shrink to
+   fit rather than the box growing to hold it. The card turns portrait
+   instead: same design, aspect flipped to suit the device.
+   ================================================================== */
+
+@media (max-width: 48rem) {
+    .cardInner {
+        gap: 1.25rem;
+        padding-bottom: clamp(6rem, 12vh, 8rem);
+    }
+
+    /* The whole treatment rotates 90 degrees on a phone.
+
+       Fading the image out to the LEFT only protects the copy when the card is
+       wide and the text occupies a narrow column of it. Once the card is the
+       full width of a 375px screen the text spans nearly all of it, so the
+       left-fade does nothing and the description ends up sitting on the
+       brightest part of the artwork. Vertically instead: image at the top,
+       copy reading down into an increasingly solid base. */
+    .mediaImg {
+        -webkit-mask-image: linear-gradient(to bottom,
+                #000 0%,
+                rgba(0, 0, 0, 0.92) 34%,
+                rgba(0, 0, 0, 0.55) 62%,
+                rgba(0, 0, 0, 0.28) 100%);
+        mask-image: linear-gradient(to bottom,
+                #000 0%,
+                rgba(0, 0, 0, 0.92) 34%,
+                rgba(0, 0, 0, 0.55) 62%,
+                rgba(0, 0, 0, 0.28) 100%);
+    }
+
+    .scrim {
+        background: linear-gradient(to bottom,
+                color-mix(in srgb, var(--bg) 10%, transparent) 0%,
+                color-mix(in srgb, var(--bg) 42%, transparent) 30%,
+                color-mix(in srgb, var(--bg) 82%, transparent) 58%,
+                color-mix(in srgb, var(--bg) 94%, transparent) 100%);
+    }
+}
+
+/* Short landscape windows — a phone on its side, or a small laptop. Height is
+   the binding constraint there, so let the card use the full width it can. */
+@media (max-height: 34rem) and (orientation: landscape) {
+    .cardInner {
+        padding-block: 1.1rem 3.5rem;
+        gap: 0.75rem;
+    }
+}

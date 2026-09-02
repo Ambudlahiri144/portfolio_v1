@@ -2,41 +2,51 @@
     position: relative;
     min-height: 100svh;
     display: grid;
-    place-items: center;
+    /* Left-aligned and optically centred: the type block sits slightly above
+       the middle, which reads as composed rather than as having fallen to the
+       bottom of the viewport. */
+    align-content: center;
+    justify-items: start;
     padding: 6rem var(--gutter) 9rem;
     overflow: hidden;
 }
 
 /* ------------------------------------------------------------------
-   Ambient field — dots + glow. Both are painted once and never
-   animated, so they cost nothing during scroll.
+   Ambient field — dots + glow.
+
+   These are the hero's floor. The WebGL layer sits behind them and may
+   never arrive (reduced motion, no WebGL, slow network), so this has to
+   stand on its own.
    ------------------------------------------------------------------ */
 
 .field {
     position: absolute;
     inset: 0;
+    z-index: 0;
     pointer-events: none;
 }
 
 .dots {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(var(--dot) 1px,
-            transparent 1.2px);
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
     background-size: 26px 26px;
-    -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 42%,
-            #000 25%,
+    /* Weighted left now that the type is left-aligned, so the densest part of
+       the texture sits under the name instead of stranded in the middle. */
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 30% 45%,
+            #000 20%,
             transparent 100%);
-    mask-image: radial-gradient(ellipse 85% 65% at 50% 42%,
-            #000 25%,
+    mask-image: radial-gradient(ellipse 70% 60% at 30% 45%,
+            #000 20%,
             transparent 100%);
+    opacity: 0.7;
 }
 
 .glow {
     position: absolute;
-    left: 50%;
-    top: 38%;
-    width: min(1100px, 130vw);
+    left: 30%;
+    top: 42%;
+    width: min(1000px, 120vw);
     aspect-ratio: 16 / 9;
     transform: translate3d(-50%, -50%, 0);
     background: radial-gradient(ellipse at center,
@@ -53,72 +63,148 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 62rem;
-    text-align: center;
+    max-width: 60rem;
 }
 
-.greeting {
-    font-size: clamp(1.5rem, 1.1rem + 2.1vw, 2.9rem);
-    font-weight: 200;
-    line-height: 1;
-    letter-spacing: -0.01em;
-    color: var(--ink-2);
-    animation: pop var(--dur-2) var(--ease-out) both;
-    animation-delay: var(--d, 0s);
+/* Legibility scrim.
+
+   The constellation moves, so any given word can end up sitting on a bright
+   node from one second to the next — contrast that measures fine in a
+   screenshot and fails in motion. This lifts the page background back up
+   behind the copy just enough to guarantee the text always wins, while
+   staying soft enough that the field still reads as continuous behind it. */
+.inner::before {
+    content: "";
+    position: absolute;
+    inset: -12% -20% -14% -35%;
+    z-index: -1;
+    background: radial-gradient(ellipse at 35% 50%,
+            var(--bg) 0%,
+            color-mix(in srgb, var(--bg) 72%, transparent) 42%,
+            transparent 72%);
+    pointer-events: none;
 }
 
-/* ---- Name -------------------------------------------------------- */
+/* ---- Status rail -------------------------------------------------- */
 
-.name {
-    margin-top: clamp(0.5rem, 1.4vw, 1rem);
-    font-size: clamp(2.75rem, 1rem + 9.2vw, 9.5rem);
-    font-weight: 300;
-    line-height: 1.04;
-    letter-spacing: -0.025em;
-}
-
-.word {
-    display: inline-block;
-    white-space: nowrap;
-}
-
-.word+.word {
-    margin-left: 0.26em;
-}
-
-/* overflow:hidden clips the character while it slides up from below.
-   Clipping is far cheaper than animating clip-path or a mask. */
-.mask {
-    display: inline-block;
-    overflow: hidden;
-    vertical-align: bottom;
-    /* Room for descenders so the clip doesn't shave the tail off a 'y'. */
-    padding-bottom: 0.14em;
-    margin-bottom: -0.14em;
-}
-
-.char {
-    display: inline-block;
-    transform: translate3d(0, 108%, 0);
-    animation: unmask 0.72s var(--ease-out) both;
-    animation-delay: var(--d, 0s);
-}
-
-/* ---- Lines ------------------------------------------------------- */
-
-.lines {
-    margin-top: clamp(1.5rem, 3.5vh, 2.5rem);
-}
-
-.line {
-    font-size: clamp(1rem, 0.9rem + 0.55vw, 1.35rem);
-    font-weight: 300;
-    line-height: 1.55;
-    letter-spacing: -0.005em;
-    color: var(--ink-2);
-    text-wrap: balance;
+.status {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
     animation: rise var(--dur-2) var(--ease-out) both;
     animation-delay: var(--d, 0s);
+}
+
+/* --signal is the only accent in the token set and was previously unused.
+   A live dot is the one place on the page where a colour genuinely carries
+   meaning rather than decoration. */
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 0 0 var(--signal);
+    animation: pulse 2.4s var(--ease-out) infinite;
+}
+
+/* ---- Role --------------------------------------------------------- */
+
+.role {
+    margin-top: 1.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    animation: rise var(--dur-2) var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* ---- Name --------------------------------------------------------- */
+
+.name {
+    margin-top: clamp(0.75rem, 1.6vw, 1.25rem);
+    font-size: clamp(3rem, 1rem + 11vw, 10.5rem);
+    font-weight: 200;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+}
+
+/* Each word on its own line. block rather than a <br> so the mask overflow
+   on the characters has a real box to clip against. */
+.nameLine {
+    display: block;
+}
+
+/* The second line is indented — the offset is what turns two stacked words
+   into a composition instead of a list. */
+.nameLine+.nameLine {
+    margin-left: 0.14em;
+    color: var(--ink-2);
+}
+
+/* ---- Tagline ------------------------------------------------------ */
+
+.tagline {
+    margin-top: clamp(1.75rem, 3.5vh, 2.5rem);
+    max-width: 34ch;
+    font-size: clamp(1.05rem, 0.95rem + 0.6vw, 1.4rem);
+    font-weight: 300;
+    line-height: 1.5;
+    letter-spacing: -0.008em;
+    color: var(--ink-2);
+    text-wrap: pretty;
+    animation: rise var(--dur-2) var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* ---- Scroll cue --------------------------------------------------- */
+
+.cue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: clamp(2.5rem, 6vh, 4rem);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition: color 200ms var(--ease);
+    animation: rise var(--dur-2) var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+.cue:hover {
+    color: var(--ink);
+}
+
+/* A rule that travels rather than an arrow that bounces — quieter, and it
+   points along the axis the page actually moves on. */
+.cueRule {
+    position: relative;
+    display: block;
+    width: 34px;
+    height: 1px;
+    background: var(--rule);
+    overflow: hidden;
+}
+
+.cueRule::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform: translate3d(-100%, 0, 0);
+    animation: sweep 2.6s var(--ease-out) infinite;
 }
 
 /* ------------------------------------------------------------------
@@ -134,10 +220,18 @@
         background-size: 20px 20px;
     }
 
-    /* Long lines break awkwardly on narrow screens; let them flow as
-     one paragraph instead of two forced lines. */
-    .line {
-        text-wrap: pretty;
+    .tagline {
+        max-width: 30ch;
+    }
+
+    /* There is far less empty canvas to spare on a phone, so the field crowds
+       the copy much harder. The scrim has to work correspondingly harder. */
+    .inner::before {
+        inset: -8% -30% -10% -30%;
+        background: radial-gradient(ellipse at 50% 50%,
+                var(--bg) 0%,
+                color-mix(in srgb, var(--bg) 88%, transparent) 55%,
+                transparent 85%);
     }
 }
 
@@ -146,27 +240,20 @@
         min-height: 0;
         padding-block: 4rem 7rem;
     }
+
+    .name {
+        font-size: clamp(2.5rem, 8vw, 5rem);
+    }
 }
 
 /* ------------------------------------------------------------------
    KEYFRAMES — must live in this file, not globals.css.
 
-   CSS Modules localises @keyframes names, so `animation: unmask` here
-   compiles to a hashed name. A keyframe defined in globals.css keeps
-   its plain name and will never match, so the animation silently does
-   nothing. Every .module.css file needs its own copy of the keyframes
-   it references.
+   CSS Modules localises @keyframes names, so `animation: rise` here
+   compiles to a hashed name. A keyframe defined in globals.css keeps its
+   plain name and will never match, so the animation silently does
+   nothing. Every .module.css file needs its own copy.
    ------------------------------------------------------------------ */
-
-@keyframes unmask {
-    from {
-        transform: translate3d(0, 108%, 0);
-    }
-
-    to {
-        transform: translate3d(0, 0, 0);
-    }
-}
 
 @keyframes rise {
     from {
@@ -180,18 +267,6 @@
     }
 }
 
-@keyframes pop {
-    from {
-        opacity: 0;
-        transform: scale3d(0.86, 0.86, 1) translate3d(0, 10px, 0);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
-    }
-}
-
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -199,5 +274,30 @@
 
     to {
         opacity: 1;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal) 55%, transparent);
+    }
+
+    70% {
+        box-shadow: 0 0 0 7px color-mix(in srgb, var(--signal) 0%, transparent);
+    }
+}
+
+@keyframes sweep {
+
+    0%,
+    18% {
+        transform: translate3d(-100%, 0, 0);
+    }
+
+    55%,
+    100% {
+        transform: translate3d(100%, 0, 0);
     }
 }

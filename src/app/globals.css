@@ -1,4 +1,15 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Pointed at data-theme, not `.dark`.
+
+   shadcn ships this variant as `&:is(.dark *)`, but nothing in this project
+   ever adds a `.dark` class — the theme is carried by data-theme on <html>,
+   set by the blocking script in layout.tsx and flipped by ThemeToggle. Left on
+   the default selector, every `dark:` utility and every shadcn dark token below
+   is inert, and components stay light while the rest of the site is dark. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* ============================================================
    DESIGN TOKENS
@@ -29,7 +40,9 @@
   /* Ambient glow behind the hero type */
   --glow: rgba(255, 255, 255, 0.9);
 
-  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  /* Bricolage Grotesque is the whole site's face now, not just the hero's.
+     Outfit has been removed rather than left loaded and unused. */
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
 
   --gutter: clamp(1.25rem, 5vw, 4rem);
@@ -40,21 +53,63 @@
   --dur-2: 620ms;
   --dur-3: 900ms;
   --dur-theme: 480ms;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0a0c0d;
+  /* #010101, sampled off the hero footage.
+
+     The hero cannot change colour — it has to match the frames exactly or the
+     image's edges become visible — so every other surface moves to meet it
+     instead. This used to be #0a0c0d, which left a visible step where the hero
+     handed off to About and again at the projects section.
+
+     The greys below were also faintly green (#232827, rgba(22,27,26)). That
+     reads as a deliberate tint against #0a0c0d and as a mistake against a true
+     black, so they are neutral now. */
+  --bg: #010101;
   --ink: #eef1ef;
   --ink-2: #98a2a0;
   --ink-3: #626c6a;
-  --rule: #232827;
-  --dot: #1f2524;
+  --rule: #1d1d1f;
+  --dot: #161618;
   --signal: #4ade80;
 
-  --glass: rgba(30, 36, 35, 0.45);
-  --glass-solid: rgba(22, 27, 26, 0.94);
+  --glass: rgba(26, 26, 28, 0.5);
+  --glass-solid: rgba(16, 16, 17, 0.94);
   --glass-rule: rgba(255, 255, 255, 0.1);
   --glass-hover: rgba(255, 255, 255, 0.07);
   --glass-sheen: rgba(255, 255, 255, 0.14);
@@ -80,7 +135,21 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  scroll-behavior: smooth;
+
+  /* NOTE: no `scroll-behavior: smooth` here.
+
+     Lenis owns smooth scrolling now (see SmoothScroll.tsx). Running both means
+     the browser eases the scroll and Lenis eases the result of that easing,
+     which reads as a soft double-bounce on every anchor jump. Under reduced
+     motion Lenis is never constructed, and instant native scroll is what we
+     want there anyway. */
+
+  /* The dock is fixed to the bottom of the viewport, so an element scrolled to
+     the very bottom edge can land underneath it — including one the keyboard
+     just focused. This reserves the dock's height plus breathing room.
+     WCAG 2.2 AA, 2.4.11 Focus Not Obscured. */
+  scroll-padding-bottom: 6.5rem;
+  scroll-padding-top: 2rem;
 }
 
 body {
@@ -186,9 +255,6 @@ h1 {
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
 
   *,
   *::before,
@@ -197,5 +263,98 @@ h1 {
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
+  }
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* shadcn's dark tokens, moved off `.dark` onto the selector this project
+   actually sets. Separate from the hand-written block above on purpose — that
+   one owns the site's own palette (--bg, --ink, --signal, glass), this one owns
+   the shadcn component tokens. */
+:root[data-theme="dark"] {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }
