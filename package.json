@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "mail:check": "node scripts/check-mail.mjs"
   },
   "dependencies": {
     "@designcodeio/threeui": "^1.1.0",

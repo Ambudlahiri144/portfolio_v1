@@ -1,6 +1,7 @@
 import SequenceHero from "@/components/hero/SequenceHero";
 import About from "@/components/About";
 import ProjectStack from "@/components/projects/ProjectStack";
+import ContactSequence from "@/components/contact/ContactSequence";
 
 export default function Home() {
   return (
@@ -10,8 +11,8 @@ export default function Home() {
       <About />
       {/* Carries id="projects" internally. */}
       <ProjectStack />
-      {/* Placeholder so the dock link resolves until this is built. */}
-      <div id="contact" />
+      {/* Carries id="contact" internally. */}
+      <ContactSequence />
     </main>
   );
 }

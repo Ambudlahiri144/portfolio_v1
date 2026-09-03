@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, Geist, Bricolage_Grotesque } from "next/font/google";
+import {
+  IBM_Plex_Mono,
+  Geist,
+  Bricolage_Grotesque,
+  Dancing_Script,
+} from "next/font/google";
 import { site } from "@/lib/site";
 import DockNav from "@/components/Docknav";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -18,6 +23,16 @@ const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   weight: ["200", "300", "400", "500"],
   variable: "--font-bricolage",
+  display: "swap",
+});
+
+/* One heading only — the contact form's. Scoped deliberately: a script face is
+   an accent, and the moment it appears anywhere else it stops reading as one.
+   Just the two weights that heading uses, nothing speculative. */
+const dancingScript = Dancing_Script({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-dancing",
   display: "swap",
 });
 
@@ -78,7 +93,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn(geist.variable, bricolage.variable, plexMono.variable)}
+      className={cn(
+        geist.variable,
+        bricolage.variable,
+        plexMono.variable,
+        dancingScript.variable,
+      )}
     >
       <head>
         {/* A raw, blocking, inline script — on purpose. Please leave it.

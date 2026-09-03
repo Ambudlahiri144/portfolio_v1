@@ -1,0 +1,734 @@
+/* ==================================================================
+   CONTACT FORM — glass card
+
+   Sits over the last frame of the coffee sequence, so every colour
+   here is a white at some opacity rather than a theme token. The
+   section is locked to #010101 in both themes and the backdrop is
+   always the same photograph; tokens would only introduce a light
+   variant that never renders.
+   ================================================================== */
+
+.card {
+    /* Fills the layer it is given, which is the viewport minus the gutters and
+       the space the dock occupies — so it reads as almost-full-bleed without
+       ever touching an edge. */
+    width: 100%;
+    max-width: 72rem;
+    height: 100%;
+    /* Overrides the automatic minimum a grid item gets from its own content.
+       Without it the card refuses to shrink below its natural height and
+       overflows the layer rather than letting the panel scroll. */
+    min-height: 0;
+
+    display: grid;
+    /* Heading and tabs take what they need; the panel absorbs the rest and
+        scrolls internally. Without the `minmax(0, 1fr)` the panel would size to
+        its content and push the card past the viewport instead of scrolling. */
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 1rem;
+    padding: clamp(1.1rem, 0.6rem + 2vw, 2.25rem);
+    border-radius: 24px;
+
+    /* Glass, tinted dark — not light.
+
+       A white 5% fill is the usual glassmorphism starting point and it fails
+       badly here. The card lands on the final frame, which is a large, bright,
+       almost-white cup, so a lightening fill left white labels sitting on a
+       near-white ground: the field borders vanished and "NAME" was barely
+       there. Darkening instead guarantees the text has something to sit on
+       whatever the frame behind it happens to be doing, and it matches the
+       site's own dark --glass token, which is likewise a dark tint.
+
+       The blur is still what sells it — a flat translucent fill over busy
+       photography just looks like a smudge. saturate() pulls the crema's
+       warmth through, so the card picks up the colour behind it rather than
+       greying it out. */
+    background: rgb(8 8 9 / 0.46);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow:
+        /* The lit top edge of a pane of glass. */
+        inset 0 1px 0 0 rgb(255 255 255 / 0.18),
+        /* Its thickness, catching a little light from below. */
+        inset 0 -1px 0 0 rgb(255 255 255 / 0.05),
+        /* Lifts the card off the photograph. Wide and soft — a tight shadow
+           would read as a border, which the card already has. */
+        0 26px 80px -22px rgb(0 0 0 / 0.7);
+}
+
+/* ---- Heading ------------------------------------------------------ */
+
+.heading {
+    margin: 0;
+    font-family: var(--font-dancing), cursive;
+    /* A script face carries far less weight per pixel than Bricolage, so it has
+       to run larger than a sans heading would at the same rank to hold its
+       place at the top of the card. */
+    font-size: clamp(1.75rem, 1.1rem + 2.4vw, 2.9rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: 0.005em;
+    color: rgb(255 255 255 / 0.95);
+    text-align: center;
+}
+
+/* ---- Tabs --------------------------------------------------------- */
+
+/* Bare labels in a row — no enclosing pill.
+
+   The container used to be a bordered, filled capsule spanning the card, which
+   read as a segmented control and drew far more attention than a three-item
+   switch deserves. The only thing that needs to be visible is which one is
+   selected, and the blob says that on its own. */
+.tabs {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 0.2rem;
+    /* Never squashes below its content on a narrow card — it scrolls sideways
+       instead, which keeps all three reachable at 320px. */
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    position: relative;
+    /* Above the blob, which sits at z-index 0 in this row. */
+    z-index: 1;
+    flex: 0 0 auto;
+    padding: 0.5rem 1.1rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    white-space: nowrap;
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    color: rgb(255 255 255 / 0.55);
+
+    /* Colour only. The blob owns every other visual change — a background
+       transition here would cross-fade underneath a shape that is already
+       sliding, and the two read as one smeared element. */
+    transition: color 260ms var(--ease-out);
+}
+
+.tab:hover {
+    color: rgb(255 255 255 / 0.85);
+}
+
+.tab[data-active] {
+    color: rgb(255 255 255 / 0.97);
+    font-weight: 500;
+}
+
+.tab:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 0.8);
+    outline-offset: 2px;
+}
+
+/* ---- Travelling blob ---------------------------------------------
+   Lifted from the dock, where the same gesture already exists. Outer node
+   translates, inner node squashes, so the two run on independent curves. */
+
+.blobTrack {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 2.15rem;
+    z-index: 0;
+    pointer-events: none;
+
+    /* The slight overshoot at the end of this curve is what sells it as liquid
+       rather than a box sliding on rails. Matches the dock exactly. */
+    transition:
+        transform 620ms cubic-bezier(0.34, 1.32, 0.42, 1),
+        opacity 220ms linear;
+}
+
+.blob {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    transform-origin: center;
+
+    /* Glass on glass: no nested blur — a second backdrop-filter inside an
+       already-blurred parent has nothing left to sample. A vertical gradient
+       and a rim highlight read as a raised lens instead.
+
+       Brighter than the dock's because this sits on a dark card over
+       photography rather than on the page's own background. */
+    background: linear-gradient(to bottom,
+            rgb(255 255 255 / 0.24) 0%,
+            rgb(255 255 255 / 0.09) 100%);
+    box-shadow:
+        inset 0 1px 0 0 rgb(255 255 255 / 0.3),
+        inset 0 0 0 1px rgb(255 255 255 / 0.13),
+        0 2px 8px -3px rgb(0 0 0 / 0.4);
+}
+
+.blobMoving {
+    animation: liquid 620ms cubic-bezier(0.34, 1.32, 0.42, 1) both;
+}
+
+/* Stretch along the direction of travel, then settle. --stretch is set per
+   move from JS, scaled by how far the blob has to go. */
+@keyframes liquid {
+    0% {
+        transform: scale3d(1, 1, 1);
+    }
+
+    38% {
+        transform: scale3d(var(--stretch, 1.25), 0.9, 1);
+    }
+
+    70% {
+        transform: scale3d(0.97, 1.04, 1);
+    }
+
+    100% {
+        transform: scale3d(1, 1, 1);
+    }
+}
+
+/* The blob is decoration; the selected tab is still legible without it. */
+@media (prefers-reduced-motion: reduce) {
+    .blobTrack {
+        transition: none;
+    }
+
+    .blobMoving {
+        animation: none;
+    }
+}
+
+/* ---- Panel -------------------------------------------------------- */
+
+.panel {
+    /* min-height:0 lets a grid item actually shrink; without it the row's
+       implicit `auto` minimum keeps the panel at its content height and the
+       overflow never engages. */
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 0.4rem;
+
+    /* Keeps the wheel inside the panel once it is scrolling, rather than
+       handing the overscroll to the page mid-gesture. Pairs with the
+       data-lenis-prevent attribute set from ContactForm.tsx — that one stops
+       Lenis swallowing the wheel, this one stops the page stealing it back. */
+    overscroll-behavior: contain;
+}
+
+/* A scrollbar that belongs to the card rather than the operating system.
+   Firefox takes the two-value shorthand; WebKit needs its own pseudo-elements,
+   and they are additive, so both are declared. */
+.panel {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+}
+
+.panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.panel::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.18);
+}
+
+.panel::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 0.3);
+}
+
+.panel:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 0.35);
+    outline-offset: 4px;
+    border-radius: 10px;
+}
+
+.panelTitle {
+    margin: 0 0 0.3rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.4rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: rgb(255 255 255 / 0.92);
+}
+
+.panelBody {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.blurb {
+    margin: 0;
+    max-width: 46rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 300;
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.62);
+    text-wrap: pretty;
+}
+
+.note {
+    margin: 0;
+    padding: 0.7rem 0.9rem;
+    border-radius: 11px;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    /* A hair warmer than the card so it reads as a highlighted aside rather
+       than another input. */
+    background: rgb(255 255 255 / 0.05);
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 300;
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.72);
+}
+
+/* ---- Sub-tabs and chips ------------------------------------------- */
+
+.subTabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.subTab,
+.chip {
+    padding: 0.45rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    background: rgb(255 255 255 / 0.05);
+    cursor: pointer;
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: rgb(255 255 255 / 0.72);
+
+    transition:
+        background var(--dur-1) var(--ease-out),
+        border-color var(--dur-1) var(--ease-out),
+        color var(--dur-1) var(--ease-out);
+}
+
+.subTab:hover,
+.chip:hover {
+    border-color: rgb(255 255 255 / 0.32);
+    color: rgb(255 255 255 / 0.95);
+}
+
+.subTab[data-active],
+.chip[data-active] {
+    background: rgb(255 255 255 / 0.9);
+    border-color: transparent;
+    color: #0b0b0c;
+    font-weight: 500;
+}
+
+.subTab:focus-visible,
+.chip:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 0.8);
+    outline-offset: 2px;
+}
+
+.fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: grid;
+    gap: 0.55rem;
+}
+
+.legend {
+    /* Floated out of the border box by default in some engines; grid layout on
+       the fieldset needs it back in normal flow to sit above the chips. */
+    float: left;
+    width: 100%;
+    padding: 0;
+    margin-bottom: 0.15rem;
+
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.66);
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    clear: both;
+}
+
+/* ---- Verification ------------------------------------------------- */
+
+.verify {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+    border-radius: 14px;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    background: rgb(255 255 255 / 0.035);
+}
+
+.verified {
+    margin: 0;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--signal, #4ade80);
+}
+
+/* ---- Resume links ------------------------------------------------- */
+
+.resume {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    background: rgb(255 255 255 / 0.08);
+    text-decoration: none;
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(255 255 255 / 0.95);
+
+    transition:
+        background var(--dur-1) var(--ease-out),
+        border-color var(--dur-1) var(--ease-out);
+}
+
+.resume:hover {
+    background: rgb(255 255 255 / 0.16);
+    border-color: rgb(255 255 255 / 0.45);
+}
+
+.resume:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 0.8);
+    outline-offset: 3px;
+}
+
+/* Shown instead of the link while a PDF path is still empty in site.ts. A
+   disabled note is honest; a live anchor to a 404 is not. */
+.resumePending {
+    justify-self: start;
+    margin: 0;
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    border: 1px dashed rgb(255 255 255 / 0.22);
+
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    color: rgb(255 255 255 / 0.45);
+}
+
+/* ---- Fields ------------------------------------------------------- */
+
+.form {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+}
+
+.field {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.66);
+}
+
+.input {
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    border-radius: 11px;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    background: rgb(255 255 255 / 0.07);
+    color: rgb(255 255 255 / 0.95);
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 300;
+    line-height: 1.5;
+
+    transition:
+        border-color var(--dur-1) var(--ease-out),
+        background var(--dur-1) var(--ease-out),
+        box-shadow var(--dur-1) var(--ease-out);
+}
+
+.input::placeholder {
+    color: rgb(255 255 255 / 0.3);
+}
+
+.input:hover {
+    border-color: rgb(255 255 255 / 0.3);
+}
+
+/* :focus-visible, not :focus — a mouse click on a text field should not paint a
+   ring, but a keyboard tab must. Browsers still match :focus-visible on text
+   inputs for pointer focus, so typing users keep the affordance either way. */
+.input:focus-visible {
+    outline: none;
+    border-color: rgb(255 255 255 / 0.45);
+    background: rgb(255 255 255 / 0.1);
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.09);
+}
+
+/* Scales with the viewport rather than sitting at a fixed few lines.
+
+   The card is deliberately close to full-height, so a 5.5rem textarea left a
+   third of it empty under the send button on the shorter tabs. Growing the one
+   field people actually write in is the natural way to spend that space — and
+   a bigger box quietly invites a longer message, which is the point. */
+.textarea {
+    resize: vertical;
+    min-height: clamp(5.5rem, 26vh, 15rem);
+}
+
+/* ---- Actions ------------------------------------------------------ */
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.15rem;
+}
+
+/* ==================================================================
+   SUBMIT BUTTON
+
+   Three states, three different jobs:
+     hover  — a travelling band of light, the grammar of an
+              indeterminate progress bar, saying the button is ready
+              to go and do something
+     press  — a pop, answering the click immediately
+     pending — the sweep speeds up and the label changes; the visual
+              language of "loading" now means it
+   ================================================================== */
+
+.submit {
+    position: relative;
+    /* Clips the sweep to the pill. */
+    overflow: hidden;
+    isolation: isolate;
+
+    padding: 0.75rem 1.6rem;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    background: rgb(255 255 255 / 0.92);
+    color: #0b0b0c;
+    cursor: pointer;
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+
+    transition:
+        background var(--dur-1) var(--ease-out),
+        box-shadow var(--dur-1) var(--ease-out);
+}
+
+.submit:hover:not(:disabled) {
+    background: #fff;
+    box-shadow: 0 6px 22px -8px rgb(0 0 0 / 0.6);
+}
+
+.submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.submit:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 0.85);
+    outline-offset: 3px;
+}
+
+.submitLabel {
+    position: relative;
+    /* Above the sweep, which is z-index 0 inside the button's own stacking
+       context (see `isolation` above). */
+    z-index: 1;
+}
+
+/* The travelling band. Idle at zero opacity and parked off to the left, so
+   nothing animates until it is actually hovered — a loop running permanently
+   under every button is wasted compositing on every frame of the page. */
+.sweep {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    background: linear-gradient(100deg,
+            transparent 0%,
+            rgb(0 0 0 / 0.06) 38%,
+            rgb(0 0 0 / 0.13) 50%,
+            rgb(0 0 0 / 0.06) 62%,
+            transparent 100%);
+    /* A band wider than the button, so the light crosses rather than blinks. */
+    background-size: 220% 100%;
+    background-position: -110% 0;
+    transition: opacity var(--dur-1) var(--ease-out);
+}
+
+.submit:hover:not(:disabled) .sweep,
+.submit:focus-visible:not(:disabled) .sweep {
+    opacity: 1;
+    animation: sweep 1.15s linear infinite;
+}
+
+/* Once it is genuinely working the sweep runs regardless of the pointer, and
+   runs faster — the same signal, now meaning it literally. */
+.submit[data-pending] .sweep {
+    opacity: 1;
+    animation: sweep 0.75s linear infinite;
+}
+
+@keyframes sweep {
+    to {
+        background-position: 110% 0;
+    }
+}
+
+/* The press. Overshoots, then settles under it before coming to rest — a
+   straight scale-up-and-back reads as a twitch rather than a pop. */
+.submit[data-pop] {
+    animation: pop 320ms var(--ease-out);
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(1);
+    }
+
+    38% {
+        transform: scale(1.075);
+    }
+
+    68% {
+        transform: scale(0.975);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* A quieter button for secondary actions — resending a code, mostly. */
+.ghost {
+    padding: 0.7rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    background: transparent;
+    cursor: pointer;
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: rgb(255 255 255 / 0.75);
+
+    transition:
+        border-color var(--dur-1) var(--ease-out),
+        color var(--dur-1) var(--ease-out);
+}
+
+.ghost:hover {
+    border-color: rgb(255 255 255 / 0.4);
+    color: rgb(255 255 255 / 0.95);
+}
+
+.ghost:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 0.8);
+    outline-offset: 3px;
+}
+
+.status {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    color: rgb(255 255 255 / 0.62);
+    /* Reserves its line whether or not there is text, so confirming a send does
+       not nudge the button as the message appears. */
+    min-height: 1em;
+}
+
+.status[data-error] {
+    color: #fca5a5;
+}
+
+/* ---- Responsive --------------------------------------------------- */
+
+@media (max-width: 44rem) {
+    .row {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        gap: 0.8rem;
+        border-radius: 18px;
+    }
+
+    .tabs {
+        justify-content: flex-start;
+    }
+
+    .tab {
+        padding: 0.45rem 0.9rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Safari on iOS zooms the page when a focused input's text is under 16px.
+   Bumping the size on small screens is the only reliable way to stop it. */
+@media (max-width: 30rem) {
+    .input {
+        font-size: 1rem;
+    }
+}
+
+/* The sweep and the pop are decoration on a control that works perfectly well
+   without them. */
+@media (prefers-reduced-motion: reduce) {
+
+    .sweep,
+    .submit[data-pop] {
+        animation: none;
+    }
+}

@@ -1,0 +1,29 @@
+# Files that stay in the repo but should not be uploaded to Vercel.
+#
+# public/ is served wholesale, so anything left in it is both deployed and
+# publicly reachable — even when nothing on the site links to it. These are all
+# SOURCE material that has already been converted into what the site actually
+# loads, so shipping them costs build time and bandwidth for no benefit.
+#
+# Nothing in the build imports any of these; they are raw inputs, not modules.
+# Removing a line here does not break anything, it just makes the deploy larger.
+
+# Raw frame sets for the contact sequence.
+# Converted to public/contact-motion (WebP, 9 MB) by ffmpeg.
+public/contact_forms/
+public/contact_forms_1/
+
+# Raw frame archives for the hero sequence.
+# Converted to public/hero-motion (WebP, 6.7 MB).
+public/hero_motion.zip
+public/hero_motion_1.zip
+
+# Original project card artwork, 19.9 MB of PNG.
+# Converted to public/projects/*.webp (0.6 MB, same pixels).
+public/Bail_bg.png
+public/BU_bg.png
+public/Kine_bg.png
+public/Murmur_bg.png
+
+# Local browser-automation output.
+.playwright-cli/

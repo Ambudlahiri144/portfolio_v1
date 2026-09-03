@@ -317,6 +317,172 @@ export const projects: Project[] = [
     },
 ];
 
+/* ------------------------------------------------------------------
+   Contact
+   ------------------------------------------------------------------ */
+
+/* The converted sequence in /public/contact-motion, from the frames in
+   /public/contact_forms_1. An espresso pour in two acts: extraction through a
+   portafilter (1-60), then a cut to the cup filling and settling (61-142).
+
+   Encoded at native 1920 with an unsharp pass rather than upscaled to 2560 like
+   the hero. A crop comparison at equal display size showed the sharpening was
+   what fixed the hero's blur, not the extra pixels — there is no real detail
+   above the source's own resolution, so upscaling only buys bytes. */
+export const contactSequence = {
+    count: 142,
+
+    /* Unlike the hero's footage, these frames are lit right to the edge —
+       corners run from #080808 at the open up to #827f74 by the last frame. So
+       this is not a colour match that makes the panel's boundary vanish; it is
+       the page colour that the panel is faded into. See .veil in the
+       stylesheet. */
+    background: "#010101",
+    aspect: 16 / 9,
+
+    /* Where the frames run out. The remaining scroll holds on the settled cup,
+       leaving room for the section's closing content. */
+    seqEnd: 0.82,
+} as const;
+
+export type ContactBeat = {
+    /* Scroll range this beat owns, 0..1 through the sequence. */
+    from: number;
+    to: number;
+    align: "center" | "left" | "right";
+    title: string;
+    /* Optional. These three beats are single lines by design — a subtitle under
+       "Still here?" would answer the question the line is asking. */
+    body?: string;
+};
+
+/* Three lines, timed to the footage.
+
+   The first is pinned to the moment the espresso starts dripping. That is
+   frame 9 — frames 1-8 are crema pooling on the screen with nothing falling
+   yet, and the first drop visibly detaches at 9. A frame index maps to scroll
+   progress as ((frame - 1) / count) * seqEnd, so frame 9 is
+   (8 / 142) * 0.82 = 0.046, and the beat opens just after at 0.05.
+
+   The other two are spaced across the pour with a clear gap between each, so
+   only ever one line is on screen and none is mid-fade while it is alone. The
+   last one clears by 0.78, leaving a short stretch of the settled cup before
+   the form arrives. */
+export const contactBeats: ContactBeat[] = [
+    { from: 0.05, to: 0.28, align: "center", title: "Still here?" },
+    { from: 0.33, to: 0.54, align: "center", title: "Take a sip" },
+    { from: 0.59, to: 0.78, align: "center", title: "Let's connect" },
+];
+
+/* The form that closes the page. `from` sits past seqEnd (0.82), so it fades up
+   over the held final frame rather than competing with the footage. It holds to
+   the end of the scroll — this is the last thing on the page, and something the
+   visitor is meant to actually use. */
+/* Which field a visitor is hiring for. The first four each map to their own
+   resume; "others" deliberately has none — that path asks what capacity they
+   have in mind and is answered by hand with whichever resume actually fits. */
+export type HireField = {
+    id: string;
+    label: string;
+    /**
+     * Path to the PDF in /public.
+     *
+     * Empty means "not supplied yet" — the UI renders a disabled control saying
+     * so rather than a live link to a 404. "others" is the only one that stays
+     * empty on purpose.
+     */
+    resume: string;
+};
+
+export const hireFields: HireField[] = [
+    { id: "sde", label: "SDE", resume: "/Ambud_Resume_SDE-1.pdf" },
+    { id: "fullstack", label: "Full-Stack Development", resume: "/Resume_FullStack.pdf" },
+    { id: "ai", label: "AI", resume: "/Ambud_Resume_AI.pdf" },
+    { id: "android", label: "Android Development", resume: "/Resume_AppDev.pdf" },
+    /* No resume by design — see the type above. This path asks what capacity
+       they have in mind and is answered by hand. */
+    { id: "others", label: "Others", resume: "" },
+];
+
+/* The form that closes the page. `from` sits past seqEnd (0.82), so it fades up
+   over the held final frame rather than competing with the footage. It holds to
+   the end of the scroll — this is the last thing on the page, and something the
+   visitor is meant to actually use. */
+export const contactForm = {
+    from: 0.86,
+    heading: "Drop a message",
+
+    /* Where everything this form sends is delivered.
+     *
+     * Read on the SERVER only, by /api/contact and /api/verify. It is not
+     * imported by any client component, so the address never reaches the
+     * browser bundle and cannot be scraped off the page. */
+    email: "ambudlahiriofficial@outlook.com",
+
+    submit: "Send message",
+
+    /* Three reasons someone might be down here, in rough order of how many
+       visitors each one covers. */
+    tabs: [
+        {
+            id: "feedback",
+            label: "Feedback",
+            title: "How did the site land?",
+            blurb:
+                "Anything that felt good, anything that broke, anything you would have done differently. Blunt is fine.",
+            messageLabel: "Your comment",
+        },
+        {
+            id: "connect",
+            label: "Connect",
+            title: "Start a conversation",
+            blurb:
+                "A proposal, a project, a question — or something entirely unrelated. All of it is welcome.",
+            messageLabel: "Your message",
+        },
+        {
+            id: "hire",
+            label: "Hire me",
+            title: "Let's talk about the role",
+            blurb: "Pick how you would be bringing me on, and take the CV with you.",
+            messageLabel: "Your message",
+        },
+    ],
+
+    hire: {
+        freelance: {
+            label: "As a freelancer",
+            blurb:
+                "Project work, a fixed scope, or an extra pair of hands for a sprint. Take the CV, and tell me what you need built.",
+            /* Deliberately the same file as the SDE CV — freelance work here is
+               the same engineering, sold differently, so a separate document
+               would only be the same content under another filename. */
+            resume: "/Ambud_Resume_SDE-1.pdf",
+            resumeLabel: "Freelance CV",
+        },
+        employee: {
+            label: "As an employee",
+            blurb:
+                "Tell me which side of the stack the role sits on and I will send you the CV written for it.",
+            question: "Which field are you hiring for?",
+            /* Only the resume downloads sit behind the code. The "Others" path
+               has no file to gate, so it stays a plain message. */
+            verifyBlurb:
+                "The CV goes to a verified address, so I know who I am talking to. Enter your email and I will send a six-digit code.",
+            othersLabel: "In what capacity are you hiring?",
+            othersNote:
+                "Drop a message with the job requirements in detail and I will be in touch shortly with the resume that fits.",
+        },
+    },
+
+    fields: {
+        name: "Name",
+        email: "Email",
+        topic: "Topic",
+        message: "Your message",
+    },
+} as const;
+
 export const education: TimelineEntry[] = [
     {
         period: "2007 — 2020",

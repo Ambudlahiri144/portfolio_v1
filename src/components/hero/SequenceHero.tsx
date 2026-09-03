@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
     useScroll,
     useSpring,
@@ -9,6 +9,8 @@ import {
     motion,
 } from "framer-motion";
 import FlipFadeText from "./FlipFadeText";
+import SequenceCanvas from "../sequence/SequenceCanvas";
+import { useFrameSequence } from "../sequence/useFrameSequence";
 import {
     heroBeats,
     heroIntro,
@@ -27,25 +29,9 @@ const {
     slideEnd: SLIDE_END,
 } = heroSequence;
 
-/* How many frames are in flight at once while preloading.
-
-   Firing all 205 at once is fine over HTTP/2 but stampedes the dev server on
-   HTTP/1.1, and it makes the progress bar jump rather than fill. A modest
-   window keeps both honest. */
-const CONCURRENCY = 12;
-
 function framePath(i: number, small: boolean) {
     const n = String(i + 1).padStart(3, "0");
     return small ? `/hero-motion/sm/frame-${n}.webp` : `/hero-motion/frame-${n}.webp`;
-}
-
-/* The small set is picked on physical pixels, not CSS width — a 390pt phone at
-   3x is asking for more detail than a 900px laptop window. The threshold sits
-   just above a typical phone's device width so handsets take the 1.57 MB set
-   rather than the 4.27 MB one. */
-function wantsSmallSet() {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth * (window.devicePixelRatio || 1) < 1400;
 }
 
 /* Split into two components on purpose.
@@ -89,61 +75,13 @@ function StaticHero() {
 /* ------------------------------------------------------------------ */
 function ScrollHero() {
     const wrapRef = useRef<HTMLElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const imagesRef = useRef<HTMLImageElement[]>([]);
-    const drawnRef = useRef(-1);
-
-    const [progress, setProgress] = useState(0);
-    const [ready, setReady] = useState(false);
 
     /* ---- preload ---------------------------------------------------- */
-    useEffect(() => {
-        let cancelled = false;
-        const small = wantsSmallSet();
-        const images: HTMLImageElement[] = new Array(FRAME_COUNT);
-        imagesRef.current = images;
-
-        let loaded = 0;
-        let next = 0;
-
-        const startOne = (): Promise<void> => {
-            const i = next++;
-            if (i >= FRAME_COUNT) return Promise.resolve();
-            return new Promise<void>((resolve) => {
-                const img = new Image();
-                img.decoding = "async";
-                /* Resolve on error too. One missing frame should degrade to a
-                   held previous frame, never a permanently stuck loader. */
-                const done = () => {
-                    loaded += 1;
-                    if (!cancelled) setProgress(loaded / FRAME_COUNT);
-                    resolve();
-                };
-                img.onload = done;
-                img.onerror = done;
-                img.src = framePath(i, small);
-                images[i] = img;
-            }).then(() => (next < FRAME_COUNT ? startOne() : undefined));
-        };
-
-        Promise.all(Array.from({ length: CONCURRENCY }, startOne)).then(() => {
-            if (!cancelled) setReady(true);
-        });
-
-        return () => {
-            cancelled = true;
-            /* Drop the decoded bitmaps rather than waiting for GC to notice —
-               205 frames is a lot of memory to leave hanging on a route change. */
-            for (const img of images) {
-                if (img) {
-                    img.onload = null;
-                    img.onerror = null;
-                    img.src = "";
-                }
-            }
-            imagesRef.current = [];
-        };
-    }, []);
+    /* Above the fold, so it starts immediately — no `enabled` gate. */
+    const { imagesRef, progress, ready } = useFrameSequence({
+        count: FRAME_COUNT,
+        path: framePath,
+    });
 
     /* ---- scroll ----------------------------------------------------- */
     const { scrollYProgress } = useScroll({
@@ -165,94 +103,6 @@ function ScrollHero() {
         ["0%", `${SLIDE_TO * 100}%`],
     );
 
-    /* ---- draw ------------------------------------------------------- */
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d", { alpha: false });
-        if (!ctx) return;
-
-        let raf = 0;
-        let cw = 0;
-        let ch = 0;
-
-        const resize = () => {
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
-            cw = Math.round(canvas.clientWidth * dpr);
-            ch = Math.round(canvas.clientHeight * dpr);
-            if (canvas.width !== cw || canvas.height !== ch) {
-                canvas.width = cw;
-                canvas.height = ch;
-
-                /* Assigning width or height resets the whole 2D context state,
-                   so the smoothing hint has to be re-applied every time rather
-                   than once at setup. It defaults to "low" — a cheap filter that
-                   is very visible on a frame scaled to fill a hero. */
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = "high";
-
-                /* The buffer was just reallocated and cleared, so whatever was
-                   on screen is gone — force the next tick to repaint. */
-                drawnRef.current = -1;
-            }
-        };
-
-        const paint = (index: number) => {
-            /* Bail rather than "successfully" drawing nothing.
-
-               The canvas is sized by CSS from the viewport width, so on the
-               first effect run it can still measure 0. Painting at 0x0 returns
-               true, marks the frame as drawn, and the loop then skips every
-               subsequent frame — a permanently black canvas with no error. */
-            if (!cw || !ch) return false;
-
-            const img = imagesRef.current[index];
-            if (!img || !img.complete || !img.naturalWidth) return false;
-
-            ctx.fillStyle = BG;
-            ctx.fillRect(0, 0, cw, ch);
-
-            /* contain, never cover. The sequence is 2.29:1 and the last frames
-               carry the title card off to the right — a cover crop on a phone
-               would slice that card clean off. */
-            const scale = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
-            const w = img.naturalWidth * scale;
-            const h = img.naturalHeight * scale;
-            ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
-            return true;
-        };
-
-        const tick = () => {
-            raf = requestAnimationFrame(tick);
-            /* Frames run out at SEQ_END, not at 1 — the remaining scroll is the
-               slide and the introduction, which hold on the final frame. */
-            const t = Math.min(1, smooth.get() / SEQ_END);
-            /* Clamped: at t exactly 1 the raw index lands one past the end and
-               the last frame flickers to nothing. */
-            const i = Math.min(
-                FRAME_COUNT - 1,
-                Math.max(0, Math.floor(t * FRAME_COUNT)),
-            );
-            if (i === drawnRef.current) return;
-            if (paint(i)) drawnRef.current = i;
-        };
-
-        resize();
-        raf = requestAnimationFrame(tick);
-
-        /* Observing the canvas rather than the window. Its height comes from a
-           CSS calc on the viewport width, so it can settle after the effect has
-           already run — and a window resize listener alone never hears about
-           that first 0 -> real transition. */
-        const ro = new ResizeObserver(resize);
-        ro.observe(canvas);
-
-        return () => {
-            cancelAnimationFrame(raf);
-            ro.disconnect();
-        };
-    }, [smooth, ready]);
-
     return (
         /* id="top" lives here because the dock's Home link points at /#top and
            the hero this replaces owned that anchor. */
@@ -270,7 +120,22 @@ function ScrollHero() {
                     centred on the last frame and the area he vacates is plain
                     black, so nothing is lost off the left edge. */}
                 <motion.div className={styles.shift} style={{ x: slideX }}>
-                    <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+                    {/* contain, never cover. The sequence is 16:9 and the frame
+                        is the whole composition — a cover crop on a phone would
+                        slice the subject off at the sides. */}
+                    <SequenceCanvas
+                        className={styles.canvas}
+                        imagesRef={imagesRef}
+                        progress={smooth}
+                        count={FRAME_COUNT}
+                        /* Frames run out at SEQ_END, not at 1 — the remaining
+                           scroll is the slide and the introduction, which hold
+                           on the final frame. */
+                        seqEnd={SEQ_END}
+                        background={BG}
+                        fit="contain"
+                        revision={ready}
+                    />
                 </motion.div>
 
                 {/* The canvas is decorative; this carries the meaning for anyone
