@@ -1,0 +1,437 @@
+/* ==================================================================
+   FOOTER — 3D stage over drifting topography
+
+   Unlike the hero and the contact section, which are locked to
+   #010101 in both themes because their footage is, this section is
+   theme aware: every colour resolves from the site's own tokens, so
+   it turns over with the toggle the way About and Projects do.
+   ================================================================== */
+
+.footer {
+    /* One source of truth for the wordmark's size. The floor's clip height is
+       derived from it below, so the two cannot drift apart. */
+    --wm: clamp(3rem, 9.5vw, 9.5rem);
+
+    position: relative;
+    isolation: isolate;
+    background: var(--bg);
+    color: var(--ink);
+
+    /* Tall enough that the scroll rise has real distance to play across and
+       the footer reads as a destination rather than a strip tacked on. */
+    min-height: min(84svh, 54rem);
+    display: grid;
+    align-items: end;
+
+    /* The bottom row must clear the dock, which is fixed across the bottom of
+       every viewport. Matches scroll-padding-bottom in globals.css. */
+    padding: clamp(3.5rem, 8vh, 6rem) var(--gutter) 7rem;
+
+    /* The tilted stage, the reflection and the canvas must never spill outside
+       the section, where they would either cause horizontal scroll or paint
+       over the contact form's card as it scrolls away above. */
+    overflow: hidden;
+}
+
+/* ---- Background -------------------------------------------------- */
+
+/* The WebGL topography. Absolutely positioned so it leaves the grid flow
+   entirely, and behind everything. */
+.topo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+}
+
+/* Readability. The grid and contours are drawn at full strength edge to edge;
+   this pushes them back down under the type without touching the shader, so
+   the pattern stays crisp where there is nothing on top of it.
+
+   Both layers resolve from --bg, so the veil turns over with the theme along
+   with everything else. */
+.veil {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        /* Seals the top and bottom edges into the sections either side. */
+        linear-gradient(to bottom,
+            var(--bg) 0%,
+            color-mix(in srgb, var(--bg) 35%, transparent) 16%,
+            transparent 44%,
+            color-mix(in srgb, var(--bg) 62%, transparent) 100%),
+        /* Quiets the corners so the columns and the meta row sit on something
+           closer to flat colour. */
+        radial-gradient(130% 100% at 50% 40%,
+            transparent 0%,
+            color-mix(in srgb, var(--bg) 72%, transparent) 100%);
+}
+
+/* ---- The 3D scene ------------------------------------------------- */
+
+/* Perspective lives on the parent of the thing that rotates. Putting it on the
+   stage itself would make it a flat 2D transform of the whole box; on the
+   parent, every child's translateZ becomes real depth. */
+.scene {
+    position: relative;
+    z-index: 2;
+    perspective: 1400px;
+    /* Slightly below centre, so the vanishing point sits nearer the floor line
+       the stage rises out of. */
+    perspective-origin: 50% 62%;
+}
+
+.stage {
+    transform-style: preserve-3d;
+    /* Pivot at the bottom edge: the stage lies back and stands up from its
+       base, like something set down on a surface. */
+    transform-origin: 50% 100%;
+    will-change: transform;
+
+    width: 100%;
+    max-width: 92rem;
+    margin-inline: auto;
+
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 1.5rem;
+    row-gap: clamp(1.75rem, 3.5vh, 2.75rem);
+}
+
+/* ---- Depth layers ------------------------------------------------- */
+
+/* Three planes. Under the pointer tilt they shift against each other, and that
+   parallax is the visible proof the thing has depth. Far to near: the wordmark,
+   then the columns and the role line, then the meta row on the floor. */
+
+.mark {
+    grid-column: 1 / 7;
+    grid-row: 1;
+    transform: translateZ(70px);
+}
+
+.about {
+    grid-column: 1 / 7;
+    grid-row: 2;
+    align-self: end;
+    transform: translateZ(35px);
+    display: grid;
+    gap: 0.2rem;
+}
+
+.links {
+    grid-column: 7 / 13;
+    grid-row: 1 / span 2;
+    transform: translateZ(35px);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.meta {
+    grid-column: 1 / 13;
+    grid-row: 3;
+    transform: translateZ(0);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+}
+
+/* ---- Wordmark ----------------------------------------------------- */
+
+.wordmark,
+.reflection {
+    margin: 0;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: var(--wm);
+    font-weight: 400;
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+    /* Two words. If the column is too narrow for one line they break at the
+       space and stack, which reads as well as a single line at this size. */
+    text-wrap: balance;
+}
+
+/* The sheen is the wordmark's own colour: a gradient clipped to the letters,
+   wider than the box, whose position follows the pointer. Rolled metal rather
+   than a flat fill, and it is what ties this to the dock's liquid surface.
+
+   Built from --ink mixed toward --bg rather than from literal whites, so the
+   same recipe produces bright metal on the dark theme and dark metal on the
+   light one. */
+.wordmark {
+    color: transparent;
+    background-image: linear-gradient(105deg,
+            color-mix(in srgb, var(--ink) 58%, var(--bg)) 0%,
+            color-mix(in srgb, var(--ink) 82%, var(--bg)) 36%,
+            var(--ink) 50%,
+            color-mix(in srgb, var(--ink) 82%, var(--bg)) 64%,
+            color-mix(in srgb, var(--ink) 58%, var(--bg)) 100%);
+    background-size: 240% 100%;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* Clips the reflection to the part that is actually visible. The mask fades it
+   out well before its box ends, so without this an empty line's worth of
+   height would sit under the name and make the column look hollow. */
+.floor {
+    overflow: hidden;
+    height: calc(var(--wm) * 1.05);
+}
+
+/* Mirrored about its own centre so it stays in its box, tucked up against the
+   wordmark's baseline, then faded and blurred away from it.
+
+   The mask is written "to top" on purpose: masks paint in the element's own
+   coordinate space and are flipped along with it by scaleY(-1), so element-
+   space top is visual bottom. Opaque at the element's bottom edge is opaque at
+   the visual baseline, which is where a reflection is strongest. */
+.reflection {
+    transform: scaleY(-1);
+    margin-top: -0.06em;
+    color: var(--ink);
+    opacity: 0.26;
+    filter: blur(1.5px);
+    -webkit-mask-image: linear-gradient(to top, rgb(0 0 0 / 0.9) 0%, transparent 58%);
+    mask-image: linear-gradient(to top, rgb(0 0 0 / 0.9) 0%, transparent 58%);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ---- Role line ---------------------------------------------------- */
+
+.role {
+    margin: 0;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.3rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+
+.status {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+}
+
+/* ---- Columns ------------------------------------------------------ */
+
+.col {
+    display: grid;
+    gap: 0.7rem;
+    align-content: start;
+}
+
+/* A plain noun, not the small uppercase wide-tracking label this codebase
+   otherwise avoids. Three short lists need naming to be scannable; they do not
+   need decorating. */
+.colHead {
+    margin: 0;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+}
+
+.list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.link,
+.pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.1rem 0;
+    text-decoration: none;
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 300;
+    letter-spacing: -0.005em;
+    color: var(--ink-2);
+
+    transition: color 220ms var(--ease-out);
+}
+
+.link:hover {
+    color: var(--ink);
+}
+
+.link:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* An entry whose URL has not been supplied yet. Listed so the column is
+   complete, dimmed and inert so it never promises a page that is not there. */
+.pending {
+    color: var(--ink-3);
+    /* Dimmed enough to read as inactive, not so far that the label stops being
+       legible. Disabled controls are exempt from the WCAG contrast minimum,
+       but a name nobody can make out communicates nothing at all. */
+    opacity: 0.78;
+    cursor: default;
+}
+
+.icon {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+}
+
+/* ---- Meta --------------------------------------------------------- */
+
+.copy {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+}
+
+/* A ghost pill, secondary to the contact form's solid submit above it. The
+   arrow lives in its own disc flush with the right padding, so the control
+   reads as one machined piece rather than a label with a symbol next to it. */
+.top {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.4rem 0.4rem 0.4rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--ink) 4%, transparent);
+    text-decoration: none;
+
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--ink-2);
+
+    transition:
+        border-color 220ms var(--ease-out),
+        color 220ms var(--ease-out),
+        transform 220ms var(--ease-out);
+}
+
+.top:hover {
+    border-color: color-mix(in srgb, var(--ink) 34%, transparent);
+    color: var(--ink);
+}
+
+.top:active {
+    transform: translateY(1px);
+}
+
+.top:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+}
+
+.topDisc {
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--ink) 11%, transparent);
+    transition:
+        background 220ms var(--ease-out),
+        transform 220ms var(--ease-out);
+}
+
+.top:hover .topDisc {
+    background: color-mix(in srgb, var(--ink) 19%, transparent);
+    /* Nudges upward in the direction the arrow points. */
+    transform: translateY(-1px);
+}
+
+.topArrow {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+/* ---- Responsive --------------------------------------------------- */
+
+/* Every explicit grid-row from the desktop layout has to be released together,
+   not just the one on .links.
+
+   The desktop places .links in rows 1-2 beside the wordmark and pins .meta to
+   row 3. Clearing the row on .links alone left .meta still claiming row 3, so
+   the link columns were pushed to row 4 and the copyright and back-to-top
+   rendered ABOVE them. Returning all four to auto lets them flow in DOM order:
+   wordmark, role, columns, meta. */
+@media (max-width: 64rem) {
+
+    .mark,
+    .about,
+    .links,
+    .meta {
+        grid-column: 1 / 13;
+        grid-row: auto;
+    }
+}
+
+/* Single column, and the depth layers go flat: there is no pointer to tilt
+   toward, so parallax would only cost compositing for nothing. The scroll rise
+   still plays; it is driven by scroll, not by hover. */
+@media (max-width: 48rem) {
+    .footer {
+        --wm: clamp(2.5rem, 12vw, 4.5rem);
+        min-height: auto;
+        padding-top: 3.5rem;
+    }
+
+    .stage {
+        grid-template-columns: 1fr;
+        row-gap: 1.75rem;
+    }
+
+    .mark,
+    .about,
+    .links,
+    .meta {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        transform: none;
+    }
+
+    /* Two columns, not three: at 390px a third would put one word per line. */
+    .links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.5rem 1rem;
+    }
+
+    .meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .reflection {
+        /* Less floor on a phone; the section is shorter and the wordmark is
+           already a large share of it. */
+        -webkit-mask-image: linear-gradient(to top, rgb(0 0 0 / 0.8) 0%, transparent 45%);
+        mask-image: linear-gradient(to top, rgb(0 0 0 / 0.8) 0%, transparent 45%);
+    }
+}

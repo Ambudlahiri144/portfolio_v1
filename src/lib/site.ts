@@ -414,9 +414,11 @@ export const contactForm = {
 
     /* Where everything this form sends is delivered.
      *
-     * Read on the SERVER only, by /api/contact and /api/verify. It is not
-     * imported by any client component, so the address never reaches the
-     * browser bundle and cannot be scraped off the page. */
+     * Read on the SERVER by /api/contact and /api/verify. The same address is
+     * also shown publicly in the footer, by decision: it is already printed on
+     * every resume the Hire tab hands out, so hiding it here would protect
+     * nothing. The footer reads `footer.email` below rather than this field, so
+     * the two can diverge if a separate public address is ever wanted. */
     email: "ambudlahiriofficial@outlook.com",
 
     submit: "Send message",
@@ -480,6 +482,67 @@ export const contactForm = {
         email: "Email",
         topic: "Topic",
         message: "Your message",
+    },
+} as const;
+
+/* ------------------------------------------------------------------
+   Footer
+   ------------------------------------------------------------------ */
+
+export type SocialLink = {
+    id: "github" | "linkedin" | "instagram" | "leetcode";
+    label: string;
+    /**
+     * Empty means "not supplied yet".
+     *
+     * The footer still LISTS an empty entry, dimmed and not clickable, rather
+     * than hiding it: the row is a statement about where to find me, and a
+     * missing URL is a temporary gap rather than a reason to pretend the
+     * account does not exist. Fill the href in and it becomes a live link with
+     * no other change.
+     */
+    href: string;
+};
+
+export const social: SocialLink[] = [
+    { id: "github", label: "GitHub", href: "https://github.com/Ambudlahiri144" },
+    {
+        id: "linkedin",
+        label: "LinkedIn",
+        href: "https://www.linkedin.com/in/ambud-lahiri/",
+    },
+    {
+        id: "instagram",
+        label: "Instagram",
+        href: "https://www.instagram.com/ambudlahiri_004/",
+    },
+    {
+        id: "leetcode",
+        label: "LeetCode",
+        href: "https://leetcode.com/u/Ambudlahiri144/",
+    },
+];
+
+export const footer = {
+    /* Public by decision. See the note on contactForm.email above. Reached
+       from the footer as an "Email" row beside the social links rather than
+       printed in full, so the column reads as one list of ways to get hold of
+       me instead of a link list plus a loose address. */
+    email: "ambudlahiriofficial@outlook.com",
+    backToTop: "Back to top",
+
+    /* Routes the footer lists beyond the dock's four. The dock leaves
+       /experience out on purpose, since its blob only tracks the one-page
+       sections; the footer has no such constraint. */
+    extraLinks: [{ id: "experience", label: "Experience", href: "/experience" }],
+
+    /* Plain nouns, not the small uppercase wide-tracking labels this codebase
+       otherwise avoids. Three short columns need naming to be scannable; they
+       do not need decorating. */
+    columns: {
+        explore: "Explore",
+        work: "Work",
+        connect: "Connect",
     },
 } as const;
 
