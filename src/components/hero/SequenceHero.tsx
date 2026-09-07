@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import {
     useScroll,
     useSpring,
@@ -8,6 +8,7 @@ import {
     useMotionValueEvent,
     motion,
 } from "framer-motion";
+import { useState } from "react";
 import FlipFadeText from "./FlipFadeText";
 import SequenceCanvas from "../sequence/SequenceCanvas";
 import { useFrameSequence } from "../sequence/useFrameSequence";
@@ -19,129 +20,144 @@ import {
     type HeroBeat,
 } from "@/lib/site";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { useTheme, type Theme } from "@/lib/useTheme";
+import scene from "../scene/scene.module.css";
 import styles from "./SequenceHero.module.css";
 
-const {
-    count: FRAME_COUNT,
-    background: BG,
-    seqEnd: SEQ_END,
-    slideTo: SLIDE_TO,
-    slideEnd: SLIDE_END,
-} = heroSequence;
+/* ==================================================================
+   HERO
 
-function framePath(i: number, small: boolean) {
+   The way in. A camera pushing along a path toward a torii gate, and
+   passing under it as the section ends.
+
+   TWO WORLDS. Light is a mountain path at sunrise; dark is a Tokyo back
+   alley in the rain. Both do the same move and arrive at the same gate,
+   so flipping the theme mid-scroll changes the place without changing
+   the shot. That is the whole reason the toggle exists now.
+
+   MOTIVATION, in one sentence: you are walking somewhere, and the site
+   begins by taking you through the entrance rather than showing you a
+   picture of one.
+
+   No WebGL. The camera move is rendered into the footage, so all the
+   browser does is scrub it and lay type over it in a shared perspective.
+   ================================================================== */
+
+const { count: FRAME_COUNT, seqEnd: SEQ_END } = heroSequence;
+
+/* One set per world, rendered by scripts/scene.mjs. The theme is part of
+   the path, so a toggle is a different directory rather than a filter over
+   the same pixels. */
+function framePath(i: number, small: boolean, theme: Theme) {
     const n = String(i + 1).padStart(3, "0");
-    return small ? `/hero-motion/sm/frame-${n}.webp` : `/hero-motion/frame-${n}.webp`;
+    return `/scene/hero/${theme}/${small ? "sm/" : ""}frame-${n}.webp`;
 }
 
-/* Split into two components on purpose.
-
-   Hooks cannot be called conditionally, so a single component would have to run
-   useScroll even when rendering the reduced-motion branch — where its target ref
-   is never attached to anything, and Motion throws "Target ref is defined but
-   not hydrated". The same applies to the 205-frame preload: it has no business
-   running for a fallback that shows one still image. Choosing the component
-   rather than branching inside one keeps each path honest. */
+/* Split into two components on purpose. `useScroll` needs a mounted target
+   and the static branch has no scroll track to measure, so the branch is on
+   the component rather than inside one. */
 export default function SequenceHero() {
-    const reduced = useReducedMotion();
-    return reduced ? <StaticHero /> : <ScrollHero />;
+    return useReducedMotion() ? <StaticHero /> : <ScrollHero />;
 }
 
 /* ------------------------------------------------------------------
-   Reduced motion: one still, all beats as ordinary stacked text.
-   No 400vh, no canvas, no frame loop, no 205-image download.
+   Reduced motion: the arrival, held. The last frame is the moment
+   under the gate, which is the one frame worth keeping if you only
+   keep one.
    ------------------------------------------------------------------ */
 function StaticHero() {
+    const theme = useTheme();
     return (
         <section id="top" className={styles.static}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-                src={framePath(FRAME_COUNT - 1, false)}
-                alt={`${site.name} — ${site.tagline}`}
+                src={framePath(FRAME_COUNT - 1, false, theme)}
+                alt=""
+                aria-hidden="true"
                 className={styles.staticImage}
             />
             <div className={styles.staticCopy}>
+                <h1 className={styles.sr}>
+                    {site.name}. {site.role}. {site.tagline}
+                </h1>
                 {heroBeats.map((beat) => (
                     <div key={beat.title} className={styles.staticBeat}>
                         <h2 className={styles.staticTitle}>{beat.title}</h2>
                         <p className={styles.staticBody}>{beat.body}</p>
                     </div>
                 ))}
+                <div className={styles.staticBeat}>
+                    <p className={styles.introEyebrow}>{heroIntro.eyebrow}</p>
+                    <h2 className={styles.staticTitle}>{heroIntro.name}</h2>
+                    <p className={styles.staticBody}>{heroIntro.body}</p>
+                </div>
             </div>
         </section>
     );
 }
 
 /* ------------------------------------------------------------------ */
+
 function ScrollHero() {
     const wrapRef = useRef<HTMLElement>(null);
+    const theme = useTheme();
 
-    /* ---- preload ---------------------------------------------------- */
-    /* Above the fold, so it starts immediately — no `enabled` gate. */
-    const { imagesRef, progress, ready } = useFrameSequence({
+    /* Above the fold, so it starts immediately and reports progress. The
+       other world follows on its own once this one is complete. */
+    const { imagesRef, progress, ready, revision } = useFrameSequence({
         count: FRAME_COUNT,
         path: framePath,
+        theme,
     });
 
-    /* ---- scroll ----------------------------------------------------- */
     const { scrollYProgress } = useScroll({
         target: wrapRef,
         offset: ["start start", "end end"],
     });
 
-    /* Softer than the usual 100/30. A lower stiffness lets the frame index trail
-       the scrollbar slightly and glide into place instead of snapping to it,
-       which is what makes a scrubbed sequence read as footage rather than as a
-       flipbook being dragged. */
+    /* Softer than the usual 100/30. A lower stiffness lets the frame index
+       trail the scrollbar slightly and glide into place instead of snapping
+       to it, which is what makes a scrubbed camera read as a camera rather
+       than as a flipbook being dragged. */
     const smooth = useSpring(scrollYProgress, { stiffness: 70, damping: 28 });
 
-    /* Percentage of the element's own width, so it scales with the viewport
-       instead of sliding a fixed pixel distance that would be wrong on a phone. */
-    const slideX = useTransform(
-        smooth,
-        [SEQ_END, SLIDE_END],
-        ["0%", `${SLIDE_TO * 100}%`],
-    );
+    /* The last stretch, after the footage has played out, pushes the whole
+       plate toward the viewer: the camera keeps travelling after the gate,
+       which is what carries you into the section below rather than stopping
+       dead at the last frame. */
+    const pushZ = useTransform(smooth, [SEQ_END, 1], [0, 220]);
+    const pushScale = useTransform(smooth, [SEQ_END, 1], [1, 1.14]);
 
     return (
-        /* id="top" lives here because the dock's Home link points at /#top and
-           the hero this replaces owned that anchor. */
-        <section
-            id="top"
-            ref={wrapRef}
-            className={styles.wrap}
-            /* One source of truth for the footage's shape — the CSS band and the
-               encoded frames are the same number. */
-            style={{ "--aspect": heroSequence.aspect } as React.CSSProperties}
-        >
-            <div className={styles.sticky}>
-                {/* The frame is pushed left once the sequence has played out,
-                    clearing the right of the stage for the introduction. He is
-                    centred on the last frame and the area he vacates is plain
-                    black, so nothing is lost off the left edge. */}
-                <motion.div className={styles.shift} style={{ x: slideX }}>
-                    {/* contain, never cover. The sequence is 16:9 and the frame
-                        is the whole composition — a cover crop on a phone would
-                        slice the subject off at the sides. */}
+        <section id="top" ref={wrapRef} className={styles.wrap}>
+            <div className={`${styles.sticky} ${scene.stage}`}>
+                <motion.div
+                    className={styles.plateWrap}
+                    style={{ z: pushZ, scale: pushScale }}
+                >
                     <SequenceCanvas
-                        className={styles.canvas}
+                        className={scene.plate}
                         imagesRef={imagesRef}
                         progress={smooth}
                         count={FRAME_COUNT}
-                        /* Frames run out at SEQ_END, not at 1 — the remaining
-                           scroll is the slide and the introduction, which hold
-                           on the final frame. */
+                        /* Frames run out before the end of the track. The
+                           remaining scroll is the push through the gate. */
                         seqEnd={SEQ_END}
-                        background={BG}
-                        fit="contain"
-                        revision={ready}
+                        fit="cover"
+                        revision={revision}
                     />
                 </motion.div>
 
-                {/* The canvas is decorative; this carries the meaning for anyone
-                    who cannot see it, and for crawlers. */}
+                <span className={scene.air} aria-hidden="true" />
+                {/* The scrim follows the beat that is showing: each one sits on
+                    a different side of the frame, so a fixed wash would darken
+                    the half the copy is not on. */}
+                <BeatScrim progress={smooth} />
+
+                {/* The footage is decorative; this carries the meaning for
+                    anyone who cannot see it, and for crawlers. */}
                 <h1 className={styles.sr}>
-                    {site.name} — {site.role}. {site.tagline}
+                    {site.name}. {site.role}. {site.tagline}
                 </h1>
 
                 {heroBeats.map((beat) => (
@@ -150,11 +166,8 @@ function ScrollHero() {
 
                 <Intro progress={smooth} />
 
-                <ScrollCue progress={smooth} />
-
                 {!ready && (
                     <div className={styles.loader} role="status" aria-live="polite">
-                        <span className={styles.spinner} aria-hidden="true" />
                         <span className={styles.loaderBar} aria-hidden="true">
                             <span
                                 className={styles.loaderFill}
@@ -171,8 +184,51 @@ function ScrollHero() {
     );
 }
 
-/* ------------------------------------------------------------------ */
+/* The wash under whichever beat is currently up. Three stacked gradients,
+   each faded by its own beat's range, so the dark side of the frame tracks
+   the copy across the section instead of sitting in one place. */
+function BeatScrim({ progress }: { progress: ReturnType<typeof useSpring> }) {
+    return (
+        <>
+            {heroBeats.map((beat) => (
+                <ScrimFor key={beat.title} beat={beat} progress={progress} />
+            ))}
+            <ScrimFor
+                beat={{ from: heroIntro.from, to: 1, align: "right" }}
+                progress={progress}
+            />
+        </>
+    );
+}
 
+function ScrimFor({
+    beat,
+    progress,
+}: {
+    beat: { from: number; to: number; align: HeroBeat["align"] };
+    progress: ReturnType<typeof useSpring>;
+}) {
+    const opacity = useTransform(
+        progress,
+        [beat.from - 0.03, beat.from + 0.04, beat.to - 0.04, beat.to + 0.03],
+        [0, 1, 1, 0],
+    );
+    const side =
+        beat.align === "right" ? scene.scrimRight : beat.align === "center" ? scene.scrimCentre : "";
+    return (
+        <motion.span
+            className={`${scene.scrim} ${side}`}
+            style={{ opacity }}
+            aria-hidden="true"
+        />
+    );
+}
+
+/* ------------------------------------------------------------------
+   One beat. Fades in, holds, fades out across its own slice of the
+   scroll, and drifts toward the viewer while it does, so it sits in
+   the world rather than on a pane of glass in front of it.
+   ------------------------------------------------------------------ */
 function Beat({
     beat,
     progress,
@@ -181,87 +237,50 @@ function Beat({
     progress: ReturnType<typeof useSpring>;
 }) {
     const { from, to } = beat;
-    /* Fade in over the first slice of the beat's range, hold, fade out over the
-       last — so a beat is never mid-fade while it is the only thing on screen. */
-    const opacity = useTransform(
-        progress,
-        [from, from + 0.04, to - 0.04, to],
-        [0, 1, 1, 0],
-    );
-    const y = useTransform(
-        progress,
-        [from, from + 0.04, to - 0.04, to],
-        [20, 0, 0, -20],
-    );
+    const opacity = useTransform(progress, [from, from + 0.04, to - 0.04, to], [0, 1, 1, 0]);
+    const z = useTransform(progress, [from, to], [-90, 60]);
 
-    /* A boolean, not a per-frame value. The flip is a discrete entrance, so it
-       only needs to know when the beat crosses into its range — the setState is
-       guarded so scrolling inside the range does not re-render on every frame. */
-    const [active, setActive] = useState(false);
+    /* Mounting is gated separately from opacity so a beat that is fully
+       transparent is also not in the accessibility tree, and a screen reader
+       does not read all three at once. */
+    const [live, setLive] = useState(false);
     useMotionValueEvent(progress, "change", (v) => {
-        const next = v >= from && v <= to;
-        setActive((prev) => (prev === next ? prev : next));
+        const on = v >= from - 0.02 && v <= to + 0.02;
+        setLive((was) => (was === on ? was : on));
     });
 
     return (
         <motion.div
             className={`${styles.beat} ${styles[beat.align]}`}
-            style={{ opacity, y }}
+            style={{ opacity, z }}
+            aria-hidden={!live}
         >
             <div className={styles.beatInner}>
-                {/* The title flips letter by letter; the body keeps the plain
-                    fade. Flipping a full sentence one character at a time reads
-                    as noise and actively hurts reading it. */}
-                <h2 className={styles.beatTitle}>
-                    <FlipFadeText text={beat.title} active={active} />
+                <h2 className={`${styles.beatTitle} ${scene.onWorld}`}>
+                    <FlipFadeText text={beat.title} active={live} />
                 </h2>
-                <p className={styles.beatBody}>{beat.body}</p>
+                <p className={`${styles.beatBody} ${scene.onWorldDim}`}>{beat.body}</p>
             </div>
         </motion.div>
     );
 }
 
-/* The closing introduction — the beat the footage used to carry as baked-in
-   pixels. Same type treatment as the beats above, but it holds to the end of
-   the scroll instead of fading out. */
+/* The arrival. Holds from its cue to the end of the track, so it is still
+   on screen while the camera pushes through the gate. */
 function Intro({ progress }: { progress: ReturnType<typeof useSpring> }) {
     const { from } = heroIntro;
     const opacity = useTransform(progress, [from, from + 0.06], [0, 1]);
-    const y = useTransform(progress, [from, from + 0.06], [24, 0]);
-
-    /* Holds once reached — this is the closing beat, so it never flips away. */
-    const [active, setActive] = useState(false);
-    useMotionValueEvent(progress, "change", (v) => {
-        const next = v >= from;
-        setActive((prev) => (prev === next ? prev : next));
-    });
+    const z = useTransform(progress, [from, 1], [-120, 90]);
 
     return (
-        <motion.div className={styles.intro} style={{ opacity, y }}>
+        <motion.div className={styles.intro} style={{ opacity, z }}>
             <div className={styles.introInner}>
-                <p className={styles.introEyebrow}>{heroIntro.eyebrow}</p>
-                <p className={styles.introName}>
-                    <FlipFadeText
-                        text={heroIntro.name}
-                        active={active}
-                        /* Slower and wider apart than the beats: this is the
-                           payoff line, and it has the stage to itself. */
-                        letterDuration={0.7}
-                        staggerDelay={0.07}
-                    />
+                <p className={`${styles.introEyebrow} ${scene.onWorldDim}`}>
+                    {heroIntro.eyebrow}
                 </p>
-                <p className={styles.introBody}>{heroIntro.body}</p>
+                <p className={`${styles.introName} ${scene.onWorld}`}>{heroIntro.name}</p>
+                <p className={`${styles.introBody} ${scene.onWorldDim}`}>{heroIntro.body}</p>
             </div>
-        </motion.div>
-    );
-}
-
-function ScrollCue({ progress }: { progress: ReturnType<typeof useSpring> }) {
-    const opacity = useTransform(progress, [0, 0.06], [1, 0]);
-    return (
-        <motion.div className={styles.cue} style={{ opacity }} aria-hidden="true">
-            <span className={styles.cueRule} />
-            {site.scrollCue}
         </motion.div>
     );
 }

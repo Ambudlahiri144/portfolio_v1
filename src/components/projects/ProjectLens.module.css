@@ -74,7 +74,10 @@
     pointer-events: none;
 }
 
-/* ---- Liquid metal rim, no glow ----------------------------------- */
+/* ---- Ink rim, no glow ---------------------------------------------
+   Rolled metal in the site's ink: the same conic banding as before, but
+   every stop is --ink at some strength, so it is indigo on paper and bone
+   on sumi rather than always white. */
 
 .rim {
     position: absolute;
@@ -86,14 +89,14 @@
        dark facets. A smooth gradient reads as plastic; the banding is what
        makes it metal. */
     background: conic-gradient(from 210deg,
-            rgba(255, 255, 255, 0.92) 0deg,
-            rgba(255, 255, 255, 0.18) 42deg,
-            rgba(255, 255, 255, 0.62) 96deg,
-            rgba(255, 255, 255, 0.08) 150deg,
-            rgba(255, 255, 255, 0.78) 208deg,
-            rgba(255, 255, 255, 0.14) 262deg,
-            rgba(255, 255, 255, 0.55) 318deg,
-            rgba(255, 255, 255, 0.92) 360deg);
+            color-mix(in srgb, var(--ink) 92%, transparent) 0deg,
+            color-mix(in srgb, var(--ink) 18%, transparent) 42deg,
+            color-mix(in srgb, var(--ink) 62%, transparent) 96deg,
+            color-mix(in srgb, var(--ink) 8%, transparent) 150deg,
+            color-mix(in srgb, var(--ink) 78%, transparent) 208deg,
+            color-mix(in srgb, var(--ink) 14%, transparent) 262deg,
+            color-mix(in srgb, var(--ink) 55%, transparent) 318deg,
+            color-mix(in srgb, var(--ink) 92%, transparent) 360deg);
 
     /* Punches the middle out so only the ring paints — a border cannot carry a
        conic gradient, and an outline cannot be masked. */
@@ -114,9 +117,9 @@
     inset: 0;
     border-radius: 50%;
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
-        inset 0 -1px 0 0 rgba(0, 0, 0, 0.45),
-        inset 0 0 22px -8px rgba(255, 255, 255, 0.28);
+        inset 0 1px 0 0 color-mix(in srgb, var(--ink) 35%, transparent),
+        inset 0 -1px 0 0 color-mix(in srgb, var(--bg) 45%, transparent),
+        inset 0 0 22px -8px color-mix(in srgb, var(--ink) 28%, transparent);
 }
 
 /* ---- Arrow -------------------------------------------------------- */
@@ -149,7 +152,7 @@
     color: var(--ink);
     /* On a metal rim over artwork, pure --ink alone can lose its edge; a hair
        of shadow keeps the glyph readable on any frame behind it. */
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+    filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--bg) 60%, transparent));
 }
 
 .arrowShaft,

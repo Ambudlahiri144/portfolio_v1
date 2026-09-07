@@ -40,7 +40,7 @@
     width: min(900px, 120vw);
     aspect-ratio: 16 / 10;
     transform: translate3d(-50%, -40%, 0);
-    background: radial-gradient(ellipse at center, var(--glow) 0%, transparent 68%);
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ink) 9%, transparent) 0%, transparent 68%);
 }
 
 /* ------------------------------------------------------------------
@@ -83,12 +83,14 @@
     transform: translate3d(-3px, 0, 0);
 }
 
+/* One of the few display moments set in the Mincho. */
 .title {
     margin-top: 2.25rem;
+    font-family: var(--font-mincho);
     font-size: clamp(2.5rem, 1.4rem + 4.4vw, 4.75rem);
-    font-weight: 300;
-    line-height: 1.02;
-    letter-spacing: -0.035em;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: 0;
 }
 
 .lede {

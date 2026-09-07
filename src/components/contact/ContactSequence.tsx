@@ -20,19 +20,22 @@ import {
 } from "@/lib/site";
 import { useInView } from "@/lib/useinview";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { useTheme, type Theme } from "@/lib/useTheme";
+import scene from "../scene/scene.module.css";
 import styles from "./ContactSequence.module.css";
 
 const {
     count: FRAME_COUNT,
-    background: BG,
     seqEnd: SEQ_END,
 } = contactSequence;
 
-function framePath(i: number, small: boolean) {
+/* One set per world, rendered by scripts/scene.mjs. Light climbs the last
+   steps to a summit shrine in the afternoon; dark approaches an old shrine
+   wedged between towers in the rain. Both arrive and come to rest facing it,
+   so the toggle changes where you are and not what the camera is doing. */
+function framePath(i: number, small: boolean, theme: Theme) {
     const n = String(i + 1).padStart(3, "0");
-    return small
-        ? `/contact-motion/sm/frame-${n}.webp`
-        : `/contact-motion/frame-${n}.webp`;
+    return `/scene/contact/${theme}/${small ? "sm/" : ""}frame-${n}.webp`;
 }
 
 /* Same split as SequenceHero, for the same reason: hooks cannot be called
@@ -49,12 +52,13 @@ export default function ContactSequence() {
    No 480vh, no canvas, no 81-image download.
    ------------------------------------------------------------------ */
 function StaticContact() {
+    const theme = useTheme();
     return (
         <section id="contact" className={styles.static}>
             <h2 className={styles.sr}>Contact</h2>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-                src={framePath(FRAME_COUNT - 1, false)}
+                src={framePath(FRAME_COUNT - 1, false, theme)}
                 alt=""
                 className={styles.staticImage}
             />
@@ -82,6 +86,7 @@ function StaticContact() {
 
 /* ------------------------------------------------------------------ */
 function ScrollContact() {
+    const theme = useTheme();
     const wrapRef = useRef<HTMLElement>(null);
 
     /* Hold the download until the section is nearly on screen.
@@ -100,9 +105,10 @@ function ScrollContact() {
         once: true,
     });
 
-    const { imagesRef, progress, ready } = useFrameSequence({
+    const { imagesRef, progress, ready, revision } = useFrameSequence({
         count: FRAME_COUNT,
         path: framePath,
+        theme,
         enabled: near,
     });
 
@@ -139,28 +145,28 @@ function ScrollContact() {
                 viewport costs nothing here: this is the last section on the
                 page, so there is no hand-off below it where leftover height
                 could show as a dead strip. */}
-            <div className={styles.sticky}>
+            <div className={`${styles.sticky} ${scene.stage}`}>
                 <div className={styles.band}>
                     {/* cover, not contain. The band is already the footage's
                         aspect, so on any normal viewport this crops nothing; it
                         only earns its keep on a short, wide window where the
                         band hits the 100svh cap and would otherwise letterbox. */}
                     <SequenceCanvas
-                        className={styles.canvas}
+                        className={scene.plate}
                         imagesRef={imagesRef}
                         progress={smooth}
                         count={FRAME_COUNT}
                         seqEnd={SEQ_END}
-                        background={BG}
                         fit="cover"
-                        revision={ready}
+                        revision={revision}
                     />
 
                     {/* Fades the panel's edges into the page. The first sixty
                         frames are lit right into the corners, so unlike the hero
                         there is no background colour that makes the boundary
                         disappear on its own. */}
-                    <div className={styles.veil} aria-hidden="true" />
+                    <span className={scene.air} aria-hidden="true" />
+                    <span className={`${scene.scrim} ${scene.scrimCentre}`} aria-hidden="true" />
                 </div>
 
                 {/* The canvas is decorative, so without this the section is a

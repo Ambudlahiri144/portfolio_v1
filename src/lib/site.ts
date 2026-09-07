@@ -16,10 +16,7 @@ export const site = {
 
     /* One sentence, not two. The old hero ran a pair of competing lines and
        neither landed; a single claim reads harder. */
-    tagline: "I ship products end to end — schema to pixels, idea to uptime.",
-
-    /* The scroll affordance under the fold. */
-    scrollCue: "Scroll",
+    tagline: "I ship products end to end, schema to pixels, idea to uptime.",
 } as const;
 
 /* ------------------------------------------------------------------
@@ -79,27 +76,18 @@ export const heroBeats: HeroBeat[] = [
     },
 ];
 
-/* The converted sequence in /public/hero-motion. `sm` is a 1280-wide set used on
-   narrow viewports — 145 frames decoded at 1920x1080 is far more bitmap than a
-   mid-range phone wants to hold. */
+/* The hero's two worlds, in /public/scene/hero/{light,dark}, rendered by
+   scripts/scene.mjs from the supplied clips. Light is a mountain path at
+   sunrise; dark is a Tokyo alley in the rain. Both push forward and pass
+   under a torii as the section ends. `sm` is a 960-wide set for phones. */
 export const heroSequence = {
-    count: 145,
-    /* Matches the frames exactly, sampled across the sequence. The section
-       background must be this value or the image's edges become visible. */
-    background: "#010101",
-    /* Encoded at the source's native 1920x1080 — no crop, no downscale. Anything
-       smaller was being upscaled to fill the hero and read as soft. */
+    count: 96,
     aspect: 16 / 9,
 
-    /* Where the frame sequence finishes. The footage's own ending — where he
-       slides left and a title card fades in — is not in this cut, so the slide
-       and the introduction are done here instead, as real text. */
+    /* Where the footage runs out. The remaining scroll is the push through
+       the gate, which carries you into About rather than stopping dead on
+       the last frame. */
     seqEnd: 0.78,
-    /* How far the frame is pushed left to clear space for the introduction,
-       as a fraction of the viewport width. He sits centred at the last frame,
-       so this moves him to roughly the left third. */
-    slideTo: -0.2,
-    slideEnd: 0.94,
 } as const;
 
 /* The closing introduction. Rendered as live text in the same style as the
@@ -108,8 +96,22 @@ export const heroSequence = {
 export const heroIntro = {
     eyebrow: "Hi, I'm",
     name: "Ambud Lahiri",
-    body: "I ship products end to end — schema to pixels, idea to uptime.",
+    body: "I ship products end to end, schema to pixels, idea to uptime.",
     from: 0.82,
+} as const;
+
+/* The avatar, in /public/scene/avatar/{light,dark}, rendered by
+   scripts/scene.mjs from the footage in /public/hero-motion.
+
+   Keyed off its studio black and graded once per world, so he picks up the
+   dojo's warm side light or the apartment's cool lamp rather than carrying a
+   third lighting scheme into whichever room he is standing in. */
+export const aboutSequence = {
+    count: 72,
+    /* The turn is finished before the section is centred, so the figure is
+       facing the reader for the whole time the copy beside him is readable.
+       The remaining scroll holds on that last frame. */
+    seqEnd: 0.62,
 } as const;
 
 export const about = {
@@ -121,9 +123,9 @@ export const about = {
         "I work across the stack, from database schema to the last few pixels of a hover state. Most of what I build lives in TypeScript, React and Next.js, sitting on Node and Postgres.",
         "What I care about is the part users feel: pages that load before they notice, interfaces that behave the way they expect, and systems that stay boring under load.",
     ],
-    /* Drop your two portraits into /public with these exact names. */
-    photoLight: "/light.png",
-    photoDark: "/dark.png",
+    /* The frame the reduced-motion branch holds on: the end of the turn,
+       where he is facing the reader. Per world, like the sequence itself. */
+    photo: (theme: "light" | "dark") => `/scene/avatar/${theme}/frame-072.webp`,
     photoAlt: "Portrait of Ambud Lahiri",
 } as const;
 
@@ -183,7 +185,7 @@ export type TimelineEntry = {
 
 export const work: TimelineEntry[] = [
     {
-        period: "Aug 2025 — April 2026",
+        period: "Aug 2025 - April 2026",
         title: "Full-Stack Developer Intern",
         org: "Syntalix",
         detail:
@@ -191,7 +193,7 @@ export const work: TimelineEntry[] = [
         tech: ["react", "expo", "django", "python", "tailwind", "javascript"],
     },
     {
-        period: "May 2026 — Present",
+        period: "May 2026 - Present",
         title: "Software Engineer Intern",
         org: "Dataflow Group",
         detail:
@@ -231,6 +233,10 @@ export type Project = {
        supplied PNGs — the originals totalled 19.9 MB, which is not a thing to
        put behind four cards. Same pixels, 0.58 MB. */
     image: string;
+    /* Which pigment this project's leaf is cut in. One per project, drawn
+       from the Edo set in globals.css, so the four read as four blocks from
+       the same workshop rather than four unrelated pictures. */
+    pigment: "ai" | "rokusho" | "gunjo" | "odo";
 
     /* GitHub repository. The hover lens opens this in a new tab.
 
@@ -265,7 +271,8 @@ export const projects: Project[] = [
         no: "01",
         title: "Murmur",
         repo: "https://github.com/Ambudlahiri144/Murmur",
-        image: "/projects/murmur.webp",
+        image: "/scene/projects/murmur.webp",
+        pigment: "ai",
         kind: "Social platform",
         detail:
             "A MERN social network with JWT-secured APIs, live Socket.IO messaging and notifications, and in-browser video processing that made uploads 75% faster.",
@@ -282,17 +289,19 @@ export const projects: Project[] = [
         no: "02",
         title: "Bail Reckoner",
         repo: "https://github.com/Ambudlahiri144/Sudo_bail",
-        image: "/projects/bail.webp",
+        image: "/scene/projects/bail.webp",
+        pigment: "rokusho",
         kind: "Legal decision support",
         detail:
-            "Automated case-law retrieval for legal professionals — a Next.js interface over FastAPI services, matching precedents in real time against a Llama 3.1 backed database.",
+            "Automated case-law retrieval for legal professionals. A Next.js interface over FastAPI services, matching precedents in real time against a Llama 3.1 backed database.",
         tech: ["Next.js", "Django", "Python", "Llama 3.1", "Fast API"],
     },
     {
         no: "03",
         title: "BU-GPT",
         repo: "https://github.com/Ambudlahiri144/BU-GPT",
-        image: "/projects/bu.webp",
+        image: "/scene/projects/bu.webp",
+        pigment: "gunjo",
         kind: "Mobile AI assistant",
         detail:
             "A Flutter assistant that answers questions against your own documents, with OpenAI-powered conversation behind Firebase auth, cutting manual document analysis by 90%.",
@@ -302,7 +311,8 @@ export const projects: Project[] = [
         no: "04",
         title: "Kine-sense",
         repo: "https://github.com/Ambudlahiri144/Kine-sense",
-        image: "/projects/kine.webp",
+        image: "/scene/projects/kine.webp",
+        pigment: "odo",
         kind: "Video analytics",
         detail:
             "A video analytics platform that auto-categorises 95% of ingested YouTube content, then runs live engagement inference through Django Channels.",
@@ -321,23 +331,16 @@ export const projects: Project[] = [
    Contact
    ------------------------------------------------------------------ */
 
-/* The converted sequence in /public/contact-motion, from the frames in
-   /public/contact_forms_1. An espresso pour in two acts: extraction through a
-   portafilter (1-60), then a cut to the cup filling and settling (61-142).
-
-   Encoded at native 1920 with an unsharp pass rather than upscaled to 2560 like
-   the hero. A crop comparison at equal display size showed the sharpening was
-   what fixed the hero's blur, not the extra pixels — there is no real detail
-   above the source's own resolution, so upscaling only buys bytes. */
+/* The contact section's two worlds, in /public/scene/contact/{light,dark}.
+   Light climbs the last steps to a summit shrine in the afternoon; dark
+   approaches an old shrine wedged between towers in the rain. Both arrive
+   and come to rest facing it. */
 export const contactSequence = {
-    count: 142,
+    count: 72,
 
-    /* Unlike the hero's footage, these frames are lit right to the edge —
-       corners run from #080808 at the open up to #827f74 by the last frame. So
-       this is not a colour match that makes the panel's boundary vanish; it is
-       the page colour that the panel is faded into. See .veil in the
-       stylesheet. */
-    background: "#010101",
+    /* These frames are lit right to the edge, so no ground colour can hide
+       their rectangle; the section's .veil fades their borders into var(--bg)
+       instead, in both themes. */
     aspect: 16 / 9,
 
     /* Where the frames run out. The remaining scroll holds on the settled cup,
@@ -356,21 +359,20 @@ export type ContactBeat = {
     body?: string;
 };
 
-/* Three lines, timed to the footage.
+/* Three lines, timed to the grinding.
 
-   The first is pinned to the moment the espresso starts dripping. That is
-   frame 9 — frames 1-8 are crema pooling on the screen with nothing falling
-   yet, and the first drop visibly detaches at 9. A frame index maps to scroll
-   progress as ((frame - 1) / count) * seqEnd, so frame 9 is
-   (8 / 142) * 0.82 = 0.046, and the beat opens just after at 0.05.
+   The footage is an inkstick worked in circles on a wet stone until the well
+   is full, so the beats track how much ink there is: a question while the
+   stone is still bare, the answer once it has pooled, and the invitation as
+   it thickens. "Take a sip" lived here while the footage was an espresso and
+   left with it.
 
-   The other two are spaced across the pour with a clear gap between each, so
-   only ever one line is on screen and none is mid-fade while it is alone. The
-   last one clears by 0.78, leaving a short stretch of the settled cup before
-   the form arrives. */
+   Spaced with a clear gap between each, so only ever one line is on screen
+   and none is mid-fade while it is alone. The last clears by 0.78, leaving a
+   stretch of full inkwell before the form arrives on it. */
 export const contactBeats: ContactBeat[] = [
     { from: 0.05, to: 0.28, align: "center", title: "Still here?" },
-    { from: 0.33, to: 0.54, align: "center", title: "Take a sip" },
+    { from: 0.33, to: 0.54, align: "center", title: "The ink is ready" },
     { from: 0.59, to: 0.78, align: "center", title: "Let's connect" },
 ];
 

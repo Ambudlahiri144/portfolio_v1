@@ -25,5 +25,22 @@ public/BU_bg.png
 public/Kine_bg.png
 public/Murmur_bg.png
 
+# The photographic sets above feed scripts/ink.mjs, which renders the themed
+# ink versions the site actually loads (public/ink/, 32 MB). They stay on disk
+# as the pipeline's inputs but nothing in the site references them any more.
+public/hero-motion/
+public/contact-motion/
+public/projects/
+public/light.png
+public/dark.png
+
+# Hand-supplied art at full size, before scripts/textures.mjs grades and
+# resizes it into public/byobu/. Keeping the originals means a re-grade never
+# needs them regenerated; shipping them would send the same pictures twice.
+public/_incoming/
+
+# Print prototypes, rendered for approval by scripts/nishiki.mjs --proto.
+public/nishiki/_proto/
+
 # Local browser-automation output.
 .playwright-cli/

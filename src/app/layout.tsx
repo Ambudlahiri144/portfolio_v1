@@ -3,11 +3,13 @@ import {
   IBM_Plex_Mono,
   Geist,
   Bricolage_Grotesque,
-  Dancing_Script,
+  Shippori_Mincho,
 } from "next/font/google";
 import { site } from "@/lib/site";
 import DockNav from "@/components/Docknav";
 import SmoothScroll from "@/components/SmoothScroll";
+/* The door. See LoaderMount for why it cannot be imported directly here. */
+import LoaderMount from "@/components/loader/LoaderMount";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -26,13 +28,15 @@ const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
-/* One heading only — the contact form's. Scoped deliberately: a script face is
-   an accent, and the moment it appears anywhere else it stops reading as one.
-   Just the two weights that heading uses, nothing speculative. */
-const dancingScript = Dancing_Script({
+/* Display serif, for a few section-level moments only: the contact form's
+   heading, the About and Projects titles, the Experience h1. A face from the
+   Mincho tradition with proper Latin glyphs, so it reads as Japanese
+   typographic heritage rather than as a brush-font costume. Two weights;
+   nothing speculative. Bricolage stays the face of everything else. */
+const shippori = Shippori_Mincho({
   subsets: ["latin"],
-  weight: ["500", "600"],
-  variable: "--font-dancing",
+  weight: ["400", "500"],
+  variable: "--font-shippori",
   display: "swap",
 });
 
@@ -50,8 +54,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eff1ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0c0d" },
+    /* Must track --bg in globals.css, both themes: this is the colour the
+       browser paints its own chrome with before the page has rendered. */
+    { media: "(prefers-color-scheme: light)", color: "#f1eadb" },
+    { media: "(prefers-color-scheme: dark)", color: "#14100e" },
   ],
 };
 
@@ -97,7 +103,7 @@ export default function RootLayout({
         geist.variable,
         bricolage.variable,
         plexMono.variable,
-        dancingScript.variable,
+        shippori.variable,
       )}
     >
       <head>
@@ -135,6 +141,9 @@ export default function RootLayout({
         {/* Wraps the routed content, not the dock — the dock is fixed and must
             never be inside a scroll-managed subtree. */}
         <SmoothScroll>{children}</SmoothScroll>
+
+        {/* Over everything, including the dock. It removes itself. */}
+        <LoaderMount />
         {/* Lives in the layout so it persists across routes. */}
         <DockNav />
       </body>

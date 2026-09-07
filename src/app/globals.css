@@ -18,40 +18,72 @@
 :root {
   color-scheme: light;
 
-  --bg: #eff1ee;
-  --ink: #121615;
-  --ink-2: #5c6664;
-  --ink-3: #8c9491;
-  --rule: #d3d7d3;
-  --dot: #ccd1cd;
-  --signal: #2e7d4f;
+  /* ============================================================
+     BYŌBU — day: the screen standing on washi
 
-  /* Dock glass */
-  --glass: rgba(255, 255, 255, 0.5);
-  --glass-solid: rgba(246, 247, 245, 0.94);
-  --glass-rule: rgba(0, 0, 0, 0.09);
-  --glass-hover: rgba(0, 0, 0, 0.055);
-  --glass-sheen: rgba(255, 255, 255, 0.85);
-  /* The travelling blob. Slightly brighter than the dock it sits in,
-     so it reads as a raised lens rather than a hole. */
-  --blob-top: rgba(255, 255, 255, 0.95);
-  --blob-bottom: rgba(255, 255, 255, 0.62);
+     The site is one gold-leaf folding screen. Only two things
+     change between day and night: the ground it stands on, and the
+     ink written on it. The gold, the lacquer and the pigments below
+     are materials, and materials do not change colour after dark.
 
-  /* Ambient glow behind the hero type */
-  --glow: rgba(255, 255, 255, 0.9);
+     --bg light is also the paper the contact and project prints are
+     mounted on by scripts/nishiki.mjs, so a mounted print meets the
+     page without a step. Change it here and re-run that script.
+     ============================================================ */
+  --bg: #f1eadb;
+  --bg-2: #e8dfc9;
+  --ink: #231f1d;
+  --ink-2: #4a4440;
+  --ink-3: #776e66;
+  --rule: #d5c9ad;
+  --dot: #e0d6bd;
+
+  /* Shu vermilion, the colour of a seal, and the only accent in the
+     system. It means "act": the seal itself, the ring on the current nav
+     item, the send button, focus. Gold is a material and takes no
+     interaction; vermilion takes all of it. */
+  --seal: #c9412a;
+
+  /* The single shadow in the site belongs to the dock, because the dock
+     is the only object not part of the screen. Tinted to the ground it
+     falls on, never neutral black. */
+  --shadow-tint: color-mix(in srgb, var(--ink) 34%, transparent);
+
+  /* Paper grain, see body::after below. */
+  --grain-opacity: 0.05;
+  --grain-blend: multiply;
 
   /* Bricolage Grotesque is the whole site's face now, not just the hero's.
      Outfit has been removed rather than left loaded and unused. */
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+  /* Display serif for a few section-level moments only: the Mincho
+     typographic tradition, with real Latin glyphs. Bricolage stays the
+     face of everything else. */
+  --font-mincho: var(--font-shippori), "Shippori Mincho", "Yu Mincho", Georgia, serif;
 
   --gutter: clamp(1.25rem, 5vw, 4rem);
 
+  /* ------------------------------------------------------------
+     SHAPE
+
+     One rule, and it is a physical one: surfaces are square because
+     a panel of a screen has edges, and controls are pills because a
+     lacquer bead is turned. Nothing in the site is allowed a radius
+     that is neither of these.
+     ------------------------------------------------------------ */
+  --radius-panel: 0px;
+  --radius-control: 999px;
+
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* A hinged panel is heavy at rest and light once moving, so it leaves
+     slowly and arrives softly. Used by anything that folds or lays flat. */
+  --ease-fold: cubic-bezier(0.32, 0, 0.12, 1);
   --dur-1: 180ms;
   --dur-2: 620ms;
   --dur-3: 900ms;
+  --dur-fold: 1100ms;
   --dur-theme: 480ms;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -87,36 +119,110 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* ============================================================
+   MATERIALS
+
+   Outside both theme blocks on purpose. Gold leaf does not become
+   a different gold at night, and neither does lacquer or a jar of
+   pigment. Only the ground and the ink change; everything here is
+   a substance the screen is physically made of, so it is declared
+   once and inherited by both.
+   ============================================================ */
+
+:root,
+:root[data-theme="dark"] {
+  /* Kinpaku. A surface, never a control: nothing clickable is gold.
+     Matches the constants in scripts/textures.mjs, which renders the
+     actual leaf texture these three tint. */
+  --gold: #c9a24a;
+  --gold-hi: #eed58a;
+  --gold-lo: #8a6a22;
+
+  /* Urushi. The dock tray, the panel edges, the projects spine, the
+     footer floor: everything that is lacquered rather than gilded. */
+  --lacquer: #17120f;
+  /* Anything drawn on lacquer is drawn in shell white, in both themes,
+     because the tray is dark at noon too. */
+  --lacquer-ink: #eadfc6;
+
+  /* Type set on the seal. One value for both themes: the seal is an ink,
+     and the paper it is read against is the seal's own ground. */
+  --seal-ink: #f6f0e4;
+
+  /* Type laid over the world rather than over the page.
+
+     Not a theme token, because what is behind it is not the page: it is a
+     forest at sunrise or an alley at night, and both are dark where the copy
+     sits. --ink would put near-black type on a mountain at noon and bone on a
+     black alley, which is exactly backwards. One value for both, with the
+     shadow in scene.module.css doing the work of separating it. */
+  --on-world: #f4f1ea;
+  --on-world-dim: #cfc9bd;
+
+  /* Type written ON a panel, as opposed to on the page.
+
+     This exists because --ink flips with the theme and gold does not. The
+     hero's beats are painted on the leaf, so at night --ink made them bone
+     white on gold, which is barely legible and, worse, says the panel is part
+     of the page. It is not: it is an object standing in the room, lit the
+     same way at any hour, and what is written on it is sumi.
+
+     Anything drawn on gold, lacquer or a mounted print takes these. Anything
+     drawn on the page takes --ink. */
+  --panel-ink: #231f1d;
+  --panel-ink-2: #4a4440;
+  --panel-ink-3: #776e66;
+
+  /* The pigments a block-cutter had. They appear inside prints and as
+     one-per-project tints, and nowhere else: they are not a UI palette
+     and no control may take one. */
+  --pig-ai: #1f3a5f;
+  --pig-rokusho: #3f7d6a;
+  --pig-gunjo: #2f5ba3;
+  --pig-odo: #b07a2a;
+
+  /* The dock, as a lacquer tray. Identical in both themes for the same
+     reason the lacquer is: it is an object in the room, not a surface of
+     the page, and it is the one thing that floats in front of the screen. */
+  --stone: rgba(23, 18, 15, 0.74);
+  --stone-solid: rgba(23, 18, 15, 0.96);
+  --stone-rule: rgba(234, 223, 198, 0.14);
+  --stone-hover: rgba(234, 223, 198, 0.08);
+  /* The tray's rim catches the leaf it hovers over, so its sheen is gold
+     rather than white. */
+  --stone-sheen: rgba(238, 213, 138, 0.2);
+  --blob-top: rgba(238, 213, 138, 0.22);
+  --blob-bottom: rgba(238, 213, 138, 0.06);
+}
+
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* #010101, sampled off the hero footage.
+  /* ============================================================
+     BYŌBU — night: the screen on black urushi
 
-     The hero cannot change colour — it has to match the frames exactly or the
-     image's edges become visible — so every other surface moves to meet it
-     instead. This used to be #0a0c0d, which left a visible step where the hero
-     handed off to About and again at the projects section.
+     Warm black, not blue-black and not pure black, because the
+     ground is lacquer rather than ink now. The foreground is gofun,
+     the shell white a painter actually reaches for on a dark
+     ground, so the two themes are the same room at different hours
+     rather than two different colour schemes.
+     ============================================================ */
+  --bg: #14100e;
+  --bg-2: #1d1613;
+  --ink: #eadfc6;
+  --ink-2: #bfb197;
+  --ink-3: #8c8066;
+  --rule: #2e2520;
+  --dot: #241d19;
 
-     The greys below were also faintly green (#232827, rgba(22,27,26)). That
-     reads as a deliberate tint against #0a0c0d and as a mistake against a true
-     black, so they are neutral now. */
-  --bg: #010101;
-  --ink: #eef1ef;
-  --ink-2: #98a2a0;
-  --ink-3: #626c6a;
-  --rule: #1d1d1f;
-  --dot: #161618;
-  --signal: #4ade80;
+  --seal: #d8523a;
 
-  --glass: rgba(26, 26, 28, 0.5);
-  --glass-solid: rgba(16, 16, 17, 0.94);
-  --glass-rule: rgba(255, 255, 255, 0.1);
-  --glass-hover: rgba(255, 255, 255, 0.07);
-  --glass-sheen: rgba(255, 255, 255, 0.14);
-  --blob-top: rgba(255, 255, 255, 0.17);
-  --blob-bottom: rgba(255, 255, 255, 0.06);
+  /* Deeper and cooler than the day shadow: on a lacquer floor the dock's
+     shadow is nearly the floor itself, lifted only by the leaf under it. */
+  --shadow-tint: color-mix(in srgb, var(--lacquer) 72%, transparent);
 
-  --glow: rgba(122, 158, 168, 0.16);
+  --grain-opacity: 0.07;
+  --grain-blend: screen;
 }
 
 /* ============================================================
@@ -162,6 +268,33 @@ body {
   text-rendering: optimizeLegibility;
   min-height: 100svh;
   overflow-x: hidden;
+}
+
+/* ============================================================
+   PAPER GRAIN
+
+   One fixed, pointer-transparent layer of fractal noise over the
+   whole viewport. Fixed, so it is composited once and never
+   repaints on scroll; blended, so on washi it reads as fibre
+   (multiply darkens the paper very slightly along the noise) and
+   on sumi as the tooth of the stone (screen lifts it). The
+   opacity is low enough that it is felt rather than seen.
+
+   z-index sits above every section and the dock, below the skip
+   link, so the material is the last thing between the page and
+   the viewer.
+   ============================================================ */
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
 }
 
 img,
@@ -215,7 +348,7 @@ h1 {
    ============================================================ */
 
 :where(a, button, [tabindex]):focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--seal);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -311,7 +444,7 @@ h1 {
 
 /* shadcn's dark tokens, moved off `.dark` onto the selector this project
    actually sets. Separate from the hand-written block above on purpose — that
-   one owns the site's own palette (--bg, --ink, --signal, glass), this one owns
+   one owns the site's own palette (--bg, --ink, --seal, stone), this one owns
    the shadcn component tokens. */
 :root[data-theme="dark"] {
   --background: oklch(0.145 0 0);

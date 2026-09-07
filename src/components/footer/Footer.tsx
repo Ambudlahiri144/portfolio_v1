@@ -24,7 +24,8 @@ import {
     type SocialLink,
 } from "@/lib/site";
 import { useReducedMotion } from "@/lib/useReducedMotion";
-import FooterTopo from "./FooterTopo";
+import { useTheme } from "@/lib/useTheme";
+import scene from "../scene/scene.module.css";
 import styles from "./Footer.module.css";
 
 /* ==================================================================
@@ -75,9 +76,22 @@ export default function Footer() {
    topography still paints, but as one held frame.
    ------------------------------------------------------------------ */
 function StaticFooter() {
+    const theme = useTheme();
     return (
         <footer className={styles.footer}>
-            <FooterTopo className={styles.topo} />
+            {/* The last place: the valley from above by day, the city from above
+                as the rain eases by night. It replaced a WebGL topographic
+                contour field, which was a beautiful map and belonged to a
+                site about maps. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+                src={`/scene/backdrop/footer-${theme}.webp`}
+                alt=""
+                aria-hidden="true"
+                className={`${scene.plate} ${scene.far} ${styles.topo}`}
+            />
+            <span className={scene.air} aria-hidden="true" />
+            <span className={`${scene.scrim} ${scene.scrimCentre}`} aria-hidden="true" />
             <div className={styles.veil} aria-hidden="true" />
             <div className={styles.scene}>
                 <div className={styles.stage}>
@@ -90,6 +104,7 @@ function StaticFooter() {
 
 /* ------------------------------------------------------------------ */
 function MotionFooter() {
+    const theme = useTheme();
     const ref = useRef<HTMLElement>(null);
 
     /* ---- scroll rise --------------------------------------------------
@@ -177,7 +192,19 @@ function MotionFooter() {
             {/* Background first, then the readability veil, then the content.
                 All three are siblings so the canvas never sits inside the
                 perspective context and get flattened by it. */}
-            <FooterTopo className={styles.topo} />
+            {/* The last place: the valley from above by day, the city from above
+                as the rain eases by night. It replaced a WebGL topographic
+                contour field, which was a beautiful map and belonged to a
+                site about maps. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+                src={`/scene/backdrop/footer-${theme}.webp`}
+                alt=""
+                aria-hidden="true"
+                className={`${scene.plate} ${scene.far} ${styles.topo}`}
+            />
+            <span className={scene.air} aria-hidden="true" />
+            <span className={`${scene.scrim} ${scene.scrimCentre}`} aria-hidden="true" />
             <div className={styles.veil} aria-hidden="true" />
 
             {/* Opacity lives on the perspective root and NOT on the stage. An
@@ -335,6 +362,18 @@ function Body({ sheen }: { sheen?: MotionValue<string> }) {
             {/* ---- meta, on the floor ----------------------------------- */}
             <div className={styles.meta}>
                 <p className={styles.copy}>
+                    {/* The seal. The one place the accent appears as a fill: a
+                        hanko-style square with the initials, set a few degrees
+                        off true the way a stamp lands. Decorative; the name
+                        beside it is the real text. */}
+                    <span className={styles.seal} aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="1" y="1" width="22" height="22" rx="3.2" />
+                            <text x="12" y="16.4" textAnchor="middle">
+                                AL
+                            </text>
+                        </svg>
+                    </span>
                     &copy; <span suppressHydrationWarning>{YEAR}</span> {site.name}
                 </p>
 

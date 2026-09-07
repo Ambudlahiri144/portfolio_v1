@@ -17,7 +17,7 @@
 .toggle:hover,
 .toggle:focus-visible {
     color: var(--ink);
-    background: var(--glass-hover);
+    background: var(--stone-hover);
 }
 
 /* Matches Docknav's .glyph so the toggle sits on the same optical rhythm as

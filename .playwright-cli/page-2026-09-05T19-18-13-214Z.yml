@@ -1,0 +1,57 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "Byōbu — materials and marks" [level=1] [ref=e3]
+    - paragraph [ref=e4]:
+      - text: Everything below is rendered offline by
+      - code [ref=e5]: scripts/textures.mjs
+      - text: . No generative model.
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "Gold leaf — the panel surface" [level=2] [ref=e8]
+        - paragraph [ref=e10]: 2048², procedural. 256px leaves with per-sheet tone variation, seams, and the CSS sheen over the top.
+      - generic [ref=e11]:
+        - heading "Sunago on urushi — the footer floor" [level=2] [ref=e12]
+        - paragraph [ref=e14]: Gold dust in horizontal drifts on black lacquer.
+    - heading "Pigments and grounds" [level=2] [ref=e15]
+    - generic [ref=e16]:
+      - generic [ref=e17]: washi
+      - generic [ref=e18]: bg-2
+      - generic [ref=e19]: kinpaku
+      - generic [ref=e20]: shu
+      - generic [ref=e21]: ai
+      - generic [ref=e22]: rokushō
+      - generic [ref=e23]: gunjō
+      - generic [ref=e24]: ōdo
+      - generic [ref=e25]: sumi
+      - generic [ref=e26]: urushi
+    - paragraph [ref=e27]: One pigment set, shared by both themes. Only the ground changes.
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - heading "Hanko — アンブド" [level=2] [ref=e30]
+        - generic [ref=e31]:
+          - figure "104px" [ref=e32]
+          - figure "44px" [ref=e35]
+          - figure "22px, dock" [ref=e38]
+          - figure "15px" [ref=e41]
+        - paragraph [ref=e44]: "Read down the right column first: ア ン, then ブ ド. Tilt is baked in."
+      - generic [ref=e45]:
+        - heading "Crest and marks" [level=2] [ref=e46]
+        - paragraph [ref=e62]: Crest, then home, about, projects, contact. One grid, one stroke weight.
+  - generic [ref=e63]:
+    - heading "On the night ground" [level=2] [ref=e64]
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - generic [ref=e68]:
+          - button [ref=e69] [cursor=pointer]
+          - button [ref=e71] [cursor=pointer]
+          - button [ref=e75] [cursor=pointer]
+          - button [ref=e79] [cursor=pointer]
+          - button [ref=e84] [cursor=pointer]
+        - paragraph [ref=e88]: The dock is a lacquer tray in both themes. The vermilion ring is the only "you are here".
+      - generic [ref=e89]:
+        - generic [ref=e91]:
+          - button [ref=e92] [cursor=pointer]
+          - button [ref=e94] [cursor=pointer]
+          - button [ref=e98] [cursor=pointer]
+          - button [ref=e102] [cursor=pointer]
+        - paragraph [ref=e106]: The same tray over a gold panel, which is where it actually sits.

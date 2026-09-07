@@ -1,0 +1,117 @@
+/* ==================================================================
+   THE DOOR
+
+   Fixed over everything, including the dock, because it is not part of
+   the page: it is what is in front of the page until the page is ready.
+   ================================================================== */
+
+.host {
+    position: fixed;
+    inset: 0;
+    /* Above the dock at 40 and the grain at 50, below the skip link at 100:
+       a keyboard visitor who tabs immediately should still reach the link
+       that gets them past all of this. */
+    z-index: 90;
+    /* Near-black rather than a token. Both worlds are still unknown at this
+       point, and the blade was shot in the dark; a ground that flipped with
+       the theme would put a dark blade on a cream field half the time. */
+    background: #06070a;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    cursor: wait;
+}
+
+.blade {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ---- the cut --------------------------------------------------------
+   One hairline of light travelling along the diagonal the blade lies on,
+   at the moment it finishes being drawn.
+
+   It is a gradient rather than a real split of the door into two halves.
+   A true slash would need the whole screen duplicated and clipped twice,
+   which is a full-viewport paint on a machine that is, by definition,
+   still finishing its work. This costs one composited layer and reads
+   the same at the speed it happens. */
+.slash {
+    position: absolute;
+    /* Oversized so the sweep never shows its own ends. */
+    inset: -40%;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(107deg,
+            transparent 0%,
+            transparent 46%,
+            rgb(255 255 255 / 0.06) 48%,
+            rgb(255 255 255 / 0.95) 50%,
+            rgb(255 255 255 / 0.06) 52%,
+            transparent 54%,
+            transparent 100%);
+    transform: translate3d(-58%, 0, 0);
+}
+
+.host[data-cutting] .slash {
+    animation: slash 420ms cubic-bezier(0.5, 0, 0.2, 1) forwards;
+}
+
+@keyframes slash {
+    0% {
+        opacity: 0;
+        transform: translate3d(-58%, 0, 0);
+    }
+
+    12% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(58%, 0, 0);
+    }
+}
+
+/* ---- the measure ----------------------------------------------------
+   Low and narrow. It is a progress bar on a cinematic frame, so it
+   should be the least of what is on screen: the blade is the thing
+   telling you how far along you are, and this only confirms it. */
+.meter {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(2.5rem, 8vh, 5rem);
+    translate: -50% 0;
+    width: min(240px, 42vw);
+    height: 1px;
+    background: rgb(255 255 255 / 0.16);
+    overflow: hidden;
+}
+
+.meterFill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* Vermilion: the site's one accent, and the only colour on the whole
+       door. It means "act" everywhere else, and here it means the door is
+       about to open. */
+    background: var(--seal);
+    transform-origin: 0 50%;
+}
+
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Reduced motion never mounts this component at all, so there is no
+   animation here to collapse. The check lives in KatanaLoader.tsx, where
+   it can skip the fetch of 64 frames as well as the animation. */

@@ -34,8 +34,15 @@ uniform vec4  uRipK;     // speed, ring width, decay, amplitude
 uniform vec4  uRipK2;    // facet depth, facet count, crest sharpness, emission
 uniform vec4  uPtr;      // xy trailing cursor, z strength, w normalised speed
 uniform vec4  uPtrK;     // radius, base amplitude, speed amplitude, rim lift
+uniform float uSat;      // 0 = luminance only (wet stone), 1 = full spectral chrome
 
 #define PI 3.14159265
+
+/* Rec.709 luminance. Both fragment stages end by mixing their colour toward
+   this so the Sumi theme can pull the rainbow dispersion down to a wet black
+   stone with a faint blue-white sheen, without touching the field itself. */
+const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+vec3 desat(vec3 c){ return mix(vec3(dot(c, LUMA)), c, uSat); }
 
 float sdPill(vec2 p, vec2 b, float r){
   vec2 q = abs(p) - b + r;
@@ -138,11 +145,12 @@ void main(){
   float lift = 1. + uPress * uE[6] + ripple(p, uT) * uE[7]
              + pointerW(p) * uPtrK.w;
 
-  o = vec4(vec3(
+  vec3 rim = vec3(
     rimBand(sd,  uE[2]) * rimHot(s + uE[3], uT),
     rimBand(sd,  0.   ) * rimHot(s,         uT),
     rimBand(sd, -uE[2]) * rimHot(s - uE[3], uT)
-  ) * uE[1] * top * lift, 1.);
+  ) * uE[1] * top * lift;
+  o = vec4(desat(rim), 1.);
 }`;
 
 export const FRAG_SCENE = HEAD + `
@@ -235,6 +243,7 @@ void main(){
     wsum += w;
   }
   col /= wsum;
+  col = desat(col);
   col = pow(col, vec3(uP[15]));
 
   // the ribbons only exist where the sheet is lit, and the dark upper region

@@ -1,13 +1,31 @@
+/* Taller than a viewport, because the figure turns as you pass it.
+
+   Not pinned: About is a pause, and pinning it would make it a second hero.
+   The section simply occupies enough scroll for the turn to have somewhere to
+   happen, and the copy beside it scrolls normally the whole time. */
+/* The room. It fills the whole track, so the copy passes across a fixed
+   place rather than the place scrolling away beneath the copy. */
+.room {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+}
+
 .about {
     position: relative;
-    min-height: 100svh;
+    min-height: 175svh;
     display: grid;
     place-items: center;
     padding: clamp(5rem, 12vh, 8rem) var(--gutter) clamp(8rem, 14vh, 10rem);
     scroll-margin-top: 2rem;
 }
 
+/* Sticky, so the panel and the copy hold in the middle of the viewport while
+   the section's extra height is spent turning the figure. */
 .inner {
+    position: sticky;
+    top: 50%;
+    translate: 0 -50%;
     width: 100%;
     max-width: 68rem;
     display: grid;
@@ -19,9 +37,14 @@
 /* ==================================================================
    REVEAL
 
-   Children are hidden by default and animated in when the section
-   picks up data-visible. The hidden state is gated behind html.js so
-   that if the script never runs, nothing is stuck invisible.
+   Children are hidden by default and animated in when .inner picks up
+   data-visible. The hidden state is gated behind html.js so that if the
+   script never runs, nothing is stuck invisible.
+
+   Keyed on .inner rather than on the section, because the section is now
+   a scroll track: it is tall, so it intersects the viewport long before
+   its contents are anywhere near readable, and observing it would fire
+   the reveal while the whole thing was still below the fold.
    ================================================================== */
 
 :global(html.js) .eyebrow,
@@ -33,17 +56,18 @@
     transform: translate3d(0, 22px, 0);
 }
 
-.about[data-visible] .eyebrow,
-.about[data-visible] .heading,
-.about[data-visible] .para,
-.about[data-visible] .actions {
+[data-visible] .eyebrow,
+[data-visible] .heading,
+[data-visible] .para,
+[data-visible] .actions {
     animation: rise 760ms var(--ease-out) both;
     animation-delay: var(--d, 0s);
 }
 
 /* The portrait gets its own curve — a slight scale-up reads as the image
    settling into its frame rather than sliding in like a text block. */
-.about[data-visible] .portraitCol {
+[data-visible] .portraitCol,
+[data-visible].portraitCol {
     animation: settle 900ms var(--ease-out) both;
     animation-delay: var(--d, 0s);
 }
@@ -61,21 +85,24 @@
     font-weight: 500;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ink-3);
+    color: var(--on-world-dim);
 }
 
 .eyebrowRule {
     width: 28px;
     height: 1px;
-    background: var(--rule);
+    background: color-mix(in srgb, var(--on-world) 40%, transparent);
 }
 
+/* One of the few display moments set in the Mincho. */
 .heading {
+    color: var(--on-world);
     margin-top: 1.25rem;
+    font-family: var(--font-mincho);
     font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3.1rem);
-    font-weight: 300;
-    line-height: 1.12;
-    letter-spacing: -0.025em;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 0;
     text-wrap: balance;
 }
 
@@ -85,7 +112,7 @@
     font-size: clamp(0.95rem, 0.9rem + 0.28vw, 1.075rem);
     font-weight: 300;
     line-height: 1.65;
-    color: var(--ink-2);
+    color: var(--on-world-dim);
     text-wrap: pretty;
 }
 
@@ -119,14 +146,21 @@
         opacity 200ms var(--ease);
 }
 
+/* These sit on a world, not on the page, so they take world ink like
+   everything else over footage. The solid one is near-black in both, because
+   both rooms are lit and a bone-filled pill would vanish into a sunlit
+   tatami floor; the ghost one is a bone outline, which reads on either. */
 .btnSolid {
-    background: var(--ink);
-    color: var(--bg);
+    background: rgb(12 14 20 / 0.92);
+    color: var(--on-world);
+    border-color: rgb(12 14 20 / 0.92);
+    backdrop-filter: blur(6px);
 }
 
 .btnGhost {
-    border-color: var(--rule);
-    color: var(--ink);
+    border-color: color-mix(in srgb, var(--on-world) 46%, transparent);
+    color: var(--on-world);
+    backdrop-filter: blur(6px);
 }
 
 .arrow {
@@ -149,9 +183,14 @@
 }
 
 .btnGhost:hover {
-    border-color: var(--ink);
-    background: var(--glass-hover);
+    border-color: var(--on-world);
+    background: rgb(255 255 255 / 0.1);
 }
+
+/* No per-theme override any more. The old one flipped the solid button to an
+   outline on the dark theme, which made sense when the ground behind it was
+   the page. The ground is a room now and both rooms are lit, so the same
+   pair works in both and the site has one button less to keep in step. */
 
 @media (hover: none) {
 
@@ -165,47 +204,78 @@
    PORTRAIT
    ================================================================== */
 
+/* Bottom-aligned, because he is standing on a floor rather than hanging in
+   a frame. Square-and-centred was right when the ground was a gold panel and
+   wrong the moment the ground became a room: it left him floating at chest
+   height in the middle of the air. */
 .portraitCol {
     display: grid;
-    place-items: center;
+    place-items: end center;
 }
 
+/* Tall rather than square, and considerably bigger. A person shares the
+   frame with the room now, so he has to be at a scale that reads as a person
+   in it rather than a cutout pasted on it. */
 .portrait {
     position: relative;
-    width: clamp(220px, 30vw, 340px);
-    aspect-ratio: 1;
+    width: clamp(260px, 36vw, 440px);
+    aspect-ratio: 3 / 4;
 }
 
-/* No frame at all — just the image. This element still exists only
-   because next/image with `fill` needs a positioned parent to size
-   against; it draws nothing itself. */
+/* No frame and no ground. The figure is keyed and he is standing in the
+   room itself, so anything drawn here would be a box around a person who
+   is supposed to be in the space rather than pasted onto it. This element
+   exists only to give the canvas a positioned parent to size against. */
 .frame {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
+/* The scrubbed panel. Same box as the still below it, so the two branches
+   are the same composition with and without the turn. */
+.canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* A figure standing in a room casts something, and without it he reads
+       as a sticker on a photograph. Tinted to the near-black both rooms
+       share underfoot rather than to either theme's ink. */
+    filter: drop-shadow(0 10px 26px rgb(6 8 14 / 0.55));
+}
+
+/* Zero-height marker near the top of the track, watched to start the preload
+   before the section is reached. The section itself is far too tall to
+   observe: it is already intersecting long before its frames are wanted. */
+.trigger {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* `contain`, not `cover`. The print is a keyed figure on alpha: cropping
+   it to fill would cut the shoulders off and leave him wedged into the
+   panel rather than standing on it. */
 .photo {
-    object-fit: cover;
-    /* Matches --dur-theme so the portrait swaps in step with the rest of
-     the page rather than lagging behind it. */
-    transition: opacity 480ms var(--ease-out);
-}
-
-.photoLight {
-    opacity: 1;
-}
-
-.photoDark {
-    opacity: 0;
-}
-
-:global(html[data-theme="dark"]) .photoLight {
-    opacity: 0;
-}
-
-:global(html[data-theme="dark"]) .photoDark {
-    opacity: 1;
+    object-fit: contain;
+    object-position: center bottom;
+    /* A figure standing in a room casts something, tinted to the near-black
+       both rooms share underfoot rather than to either theme's ink. */
+    filter: drop-shadow(0 10px 26px rgb(6 8 14 / 0.55));
 }
 
 /* ==================================================================

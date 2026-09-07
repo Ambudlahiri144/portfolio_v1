@@ -1,10 +1,10 @@
 /* ==================================================================
    FOOTER — 3D stage over drifting topography
 
-   Unlike the hero and the contact section, which are locked to
-   #010101 in both themes because their footage is, this section is
-   theme aware: every colour resolves from the site's own tokens, so
-   it turns over with the toggle the way About and Projects do.
+   Theme aware like every section now: every colour resolves from the
+   site's own tokens, so it turns over with the toggle. Under the Sumi
+   theme the topography reads as ink contour lines on washi or on sumi
+   without any change to the shader beyond reading --bg and --ink.
    ================================================================== */
 
 .footer {
@@ -15,7 +15,7 @@
     position: relative;
     isolation: isolate;
     background: var(--bg);
-    color: var(--ink);
+    color: var(--on-world);
 
     /* Tall enough that the scroll rise has real distance to play across and
        the footer reads as a destination rather than a strip tacked on. */
@@ -168,14 +168,20 @@
    Built from --ink mixed toward --bg rather than from literal whites, so the
    same recipe produces bright metal on the dark theme and dark metal on the
    light one. */
+/* Bone with a travelling highlight, not ink with one.
+
+   The gradient used to run between --ink and --bg, which put a near-black
+   wordmark over a sunset. The name sits on a valley now, so it takes the same
+   world ink as everything else laid over footage, and the sheen is a brighter
+   band moving through it rather than a darker one. */
 .wordmark {
     color: transparent;
     background-image: linear-gradient(105deg,
-            color-mix(in srgb, var(--ink) 58%, var(--bg)) 0%,
-            color-mix(in srgb, var(--ink) 82%, var(--bg)) 36%,
-            var(--ink) 50%,
-            color-mix(in srgb, var(--ink) 82%, var(--bg)) 64%,
-            color-mix(in srgb, var(--ink) 58%, var(--bg)) 100%);
+            color-mix(in srgb, var(--on-world) 62%, transparent) 0%,
+            color-mix(in srgb, var(--on-world) 86%, transparent) 36%,
+            var(--on-world) 50%,
+            color-mix(in srgb, var(--on-world) 86%, transparent) 64%,
+            color-mix(in srgb, var(--on-world) 62%, transparent) 100%);
     background-size: 240% 100%;
     background-position: 50% 50%;
     background-repeat: no-repeat;
@@ -201,7 +207,7 @@
 .reflection {
     transform: scaleY(-1);
     margin-top: -0.06em;
-    color: var(--ink);
+    color: var(--on-world);
     opacity: 0.26;
     filter: blur(1.5px);
     -webkit-mask-image: linear-gradient(to top, rgb(0 0 0 / 0.9) 0%, transparent 58%);
@@ -218,7 +224,7 @@
     font-size: clamp(1rem, 0.9rem + 0.5vw, 1.3rem);
     font-weight: 400;
     letter-spacing: -0.02em;
-    color: var(--ink);
+    color: var(--on-world);
 }
 
 .status {
@@ -226,7 +232,7 @@
     font-family: var(--font-mono);
     font-size: 0.75rem;
     letter-spacing: 0.06em;
-    color: var(--ink-3);
+    color: color-mix(in srgb, var(--on-world) 60%, transparent);
 }
 
 /* ---- Columns ------------------------------------------------------ */
@@ -246,7 +252,7 @@
     font-size: 0.8125rem;
     font-weight: 500;
     letter-spacing: -0.005em;
-    color: var(--ink);
+    color: var(--on-world);
 }
 
 .list {
@@ -269,13 +275,13 @@
     font-size: 0.9rem;
     font-weight: 300;
     letter-spacing: -0.005em;
-    color: var(--ink-2);
+    color: var(--on-world-dim);
 
     transition: color 220ms var(--ease-out);
 }
 
 .link:hover {
-    color: var(--ink);
+    color: var(--on-world);
 }
 
 .link:focus-visible {
@@ -287,7 +293,7 @@
 /* An entry whose URL has not been supplied yet. Listed so the column is
    complete, dimmed and inert so it never promises a page that is not there. */
 .pending {
-    color: var(--ink-3);
+    color: color-mix(in srgb, var(--on-world) 60%, transparent);
     /* Dimmed enough to read as inactive, not so far that the label stops being
        legible. Disabled controls are exempt from the WCAG contrast minimum,
        but a name nobody can make out communicates nothing at all. */
@@ -305,10 +311,41 @@
 
 .copy {
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.1em;
-    color: var(--ink-3);
+    color: color-mix(in srgb, var(--on-world) 60%, transparent);
+}
+
+/* The seal. Vermilion fill, the ground's colour for the initials, and a
+   slight rotation so it reads as pressed rather than placed. Its shadow is
+   the ink, not black, so on paper it sits in an indigo pool. */
+.seal {
+    display: inline-block;
+    width: 1.55rem;
+    height: 1.55rem;
+    rotate: -4deg;
+    filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--ink) 30%, transparent));
+}
+
+.seal svg {
+    width: 100%;
+    height: 100%;
+}
+
+.seal rect {
+    fill: var(--seal);
+}
+
+.seal text {
+    fill: var(--bg);
+    font-family: var(--font-mincho);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
 }
 
 /* A ghost pill, secondary to the contact form's solid submit above it. The
@@ -327,7 +364,7 @@
     font-family: var(--font-bricolage), var(--font-display);
     font-size: 0.85rem;
     font-weight: 400;
-    color: var(--ink-2);
+    color: var(--on-world-dim);
 
     transition:
         border-color 220ms var(--ease-out),
@@ -337,7 +374,7 @@
 
 .top:hover {
     border-color: color-mix(in srgb, var(--ink) 34%, transparent);
-    color: var(--ink);
+    color: var(--on-world);
 }
 
 .top:active {

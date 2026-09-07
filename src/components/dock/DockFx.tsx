@@ -125,9 +125,13 @@ const DIST = {
    theme that reads as molten metal; against a light theme's near-white glass
    there is very little headroom left to add to, so everything is pulled well
    down and the effect becomes a faint iridescence rather than a glow. */
+/* `sat` is how much of the spectral dispersion survives. The reference is a
+   rainbow chrome; under the Sumi theme the dock is an ink stone, so both
+   themes keep only a trace: enough that the sheen reads as wet rather than
+   grey, not enough that any hue is nameable. */
 const THEME = {
-    dark: { gain: 1.0, rim: 1.0, glow: 1.0 },
-    light: { gain: 0.55, rim: 0.42, glow: 0.34 },
+    dark: { gain: 1.0, rim: 1.0, glow: 1.0, sat: 0.22 },
+    light: { gain: 0.55, rim: 0.42, glow: 0.34, sat: 0.15 },
 };
 
 export default function DockFx({
@@ -556,6 +560,7 @@ export default function DockFx({
             gl!.useProgram(pScene!.p);
             setCommon(pScene!.u);
             gl!.uniform1f(pScene!.u.uHover, hover);
+            gl!.uniform1f(pScene!.u.uSat, tone.sat);
             gl!.uniform1fv(pScene!.u.uP, fieldArr);
             drawTo(T_core);
 
@@ -563,6 +568,7 @@ export default function DockFx({
             gl!.useProgram(pRim!.p);
             setCommon(pRim!.u);
             gl!.uniform1f(pRim!.u.uHover, hover);
+            gl!.uniform1f(pRim!.u.uSat, tone.sat);
             gl!.uniform1f(pRim!.u.uBw, bw);
             gl!.uniform1fv(pRim!.u.uE, rimArr);
             drawTo(T_rim);

@@ -1,11 +1,13 @@
 /* ==================================================================
-   CONTACT FORM — glass card
+   CONTACT FORM — paper card / ink-stone card
 
-   Sits over the last frame of the coffee sequence, so every colour
-   here is a white at some opacity rather than a theme token. The
-   section is locked to #010101 in both themes and the backdrop is
-   always the same photograph; tokens would only introduce a light
-   variant that never renders.
+   Every colour resolves from the theme tokens. On the light theme the
+   card is a sheet of heavier paper lying on the washi ground, with
+   the grain showing through; on the dark theme it is a slab of ink
+   stone with an outlined rim. One stylesheet, two materials, no
+   second rule set beyond the handful of "outline chrome" overrides at
+   the bottom that turn solid fills into outlines when the ground is
+   sumi.
    ================================================================== */
 
 .card {
@@ -29,59 +31,45 @@
     padding: clamp(1.1rem, 0.6rem + 2vw, 2.25rem);
     border-radius: 24px;
 
-    /* Glass, tinted dark — not light.
+    /* A tinted, blurred sheet of the ground colour rather than of black.
+       The blur is what makes it a material sitting on the footage instead of a
+       rectangle pasted over it; the tint comes from --bg-2, the card-weight
+       shade of whichever ground is current. */
+    background: color-mix(in srgb, var(--bg-2) 80%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    backdrop-filter: blur(24px) saturate(120%);
 
-       A white 5% fill is the usual glassmorphism starting point and it fails
-       badly here. The card lands on the final frame, which is a large, bright,
-       almost-white cup, so a lightening fill left white labels sitting on a
-       near-white ground: the field borders vanished and "NAME" was barely
-       there. Darkening instead guarantees the text has something to sit on
-       whatever the frame behind it happens to be doing, and it matches the
-       site's own dark --glass token, which is likewise a dark tint.
-
-       The blur is still what sells it — a flat translucent fill over busy
-       photography just looks like a smudge. saturate() pulls the crema's
-       warmth through, so the card picks up the colour behind it rather than
-       greying it out. */
-    background: rgb(8 8 9 / 0.46);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    backdrop-filter: blur(24px) saturate(150%);
-
-    border: 1px solid rgb(255 255 255 / 0.14);
+    border: 1px solid var(--rule);
     box-shadow:
-        /* The lit top edge of a pane of glass. */
-        inset 0 1px 0 0 rgb(255 255 255 / 0.18),
-        /* Its thickness, catching a little light from below. */
-        inset 0 -1px 0 0 rgb(255 255 255 / 0.05),
-        /* Lifts the card off the photograph. Wide and soft — a tight shadow
-           would read as a border, which the card already has. */
-        0 26px 80px -22px rgb(0 0 0 / 0.7);
+        /* The lit top edge of the sheet. */
+        inset 0 1px 0 0 var(--stone-sheen),
+        /* Lifts the card off the footage. Tinted with the ink rather than
+           pure black, so on paper it is an indigo shadow and on sumi it is
+           simply dark. Wide and soft — a tight shadow would read as a border,
+           which the card already has. */
+        0 26px 80px -22px color-mix(in srgb, var(--ink) 38%, transparent);
 }
 
 /* ---- Heading ------------------------------------------------------ */
 
+/* One of the few display moments set in the Mincho. Regular weight, not
+   bold: a Mincho's contrast is in its strokes, and heavier weights lose the
+   brush-cut terminals that make it read as what it is. */
 .heading {
     margin: 0;
-    font-family: var(--font-dancing), cursive;
-    /* A script face carries far less weight per pixel than Bricolage, so it has
-       to run larger than a sans heading would at the same rank to hold its
-       place at the top of the card. */
-    font-size: clamp(1.75rem, 1.1rem + 2.4vw, 2.9rem);
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: 0.005em;
-    color: rgb(255 255 255 / 0.95);
+    font-family: var(--font-mincho);
+    font-size: clamp(1.7rem, 1.1rem + 2.2vw, 2.8rem);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: 0.01em;
+    color: var(--ink);
     text-align: center;
 }
 
 /* ---- Tabs --------------------------------------------------------- */
 
-/* Bare labels in a row — no enclosing pill.
-
-   The container used to be a bordered, filled capsule spanning the card, which
-   read as a segmented control and drew far more attention than a three-item
-   switch deserves. The only thing that needs to be visible is which one is
-   selected, and the blob says that on its own. */
+/* Bare labels in a row — no enclosing pill. The only thing that needs to be
+   visible is which one is selected, and the blob says that on its own. */
 .tabs {
     position: relative;
     display: flex;
@@ -113,7 +101,7 @@
     font-size: 0.875rem;
     font-weight: 400;
     letter-spacing: -0.005em;
-    color: rgb(255 255 255 / 0.55);
+    color: var(--ink-3);
 
     /* Colour only. The blob owns every other visual change — a background
        transition here would cross-fade underneath a shape that is already
@@ -122,16 +110,16 @@
 }
 
 .tab:hover {
-    color: rgb(255 255 255 / 0.85);
+    color: var(--ink-2);
 }
 
 .tab[data-active] {
-    color: rgb(255 255 255 / 0.97);
+    color: var(--ink);
     font-weight: 500;
 }
 
 .tab:focus-visible {
-    outline: 2px solid rgb(255 255 255 / 0.8);
+    outline: 2px solid var(--seal);
     outline-offset: 2px;
 }
 
@@ -161,19 +149,17 @@
     border-radius: 999px;
     transform-origin: center;
 
-    /* Glass on glass: no nested blur — a second backdrop-filter inside an
-       already-blurred parent has nothing left to sample. A vertical gradient
-       and a rim highlight read as a raised lens instead.
-
-       Brighter than the dock's because this sits on a dark card over
-       photography rather than on the page's own background. */
+    /* A raised lens of the ground, in the same tokens the dock's blob uses so
+       the two read as one material. The rim carries a whisper of the seal:
+       this is the selected thing, and the seal is the site's one way of
+       marking that. */
     background: linear-gradient(to bottom,
-            rgb(255 255 255 / 0.24) 0%,
-            rgb(255 255 255 / 0.09) 100%);
+            var(--blob-top) 0%,
+            var(--blob-bottom) 100%);
     box-shadow:
-        inset 0 1px 0 0 rgb(255 255 255 / 0.3),
-        inset 0 0 0 1px rgb(255 255 255 / 0.13),
-        0 2px 8px -3px rgb(0 0 0 / 0.4);
+        inset 0 1px 0 0 var(--stone-sheen),
+        inset 0 0 0 1px color-mix(in srgb, var(--seal) 42%, var(--stone-rule)),
+        0 2px 8px -3px color-mix(in srgb, var(--ink) 40%, transparent);
 }
 
 .blobMoving {
@@ -226,14 +212,10 @@
        data-lenis-prevent attribute set from ContactForm.tsx — that one stops
        Lenis swallowing the wheel, this one stops the page stealing it back. */
     overscroll-behavior: contain;
-}
 
-/* A scrollbar that belongs to the card rather than the operating system.
-   Firefox takes the two-value shorthand; WebKit needs its own pseudo-elements,
-   and they are additive, so both are declared. */
-.panel {
+    /* A scrollbar that belongs to the card rather than the operating system. */
     scrollbar-width: thin;
-    scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+    scrollbar-color: color-mix(in srgb, var(--ink) 24%, transparent) transparent;
 }
 
 .panel::-webkit-scrollbar {
@@ -246,15 +228,15 @@
 
 .panel::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: rgb(255 255 255 / 0.18);
+    background: color-mix(in srgb, var(--ink) 20%, transparent);
 }
 
 .panel::-webkit-scrollbar-thumb:hover {
-    background: rgb(255 255 255 / 0.3);
+    background: color-mix(in srgb, var(--ink) 32%, transparent);
 }
 
 .panel:focus-visible {
-    outline: 2px solid rgb(255 255 255 / 0.35);
+    outline: 2px solid color-mix(in srgb, var(--seal) 60%, transparent);
     outline-offset: 4px;
     border-radius: 10px;
 }
@@ -265,7 +247,7 @@
     font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.4rem);
     font-weight: 500;
     letter-spacing: -0.02em;
-    color: rgb(255 255 255 / 0.92);
+    color: var(--ink);
 }
 
 .panelBody {
@@ -280,7 +262,7 @@
     font-size: 0.9rem;
     font-weight: 300;
     line-height: 1.55;
-    color: rgb(255 255 255 / 0.62);
+    color: var(--ink-2);
     text-wrap: pretty;
 }
 
@@ -288,16 +270,16 @@
     margin: 0;
     padding: 0.7rem 0.9rem;
     border-radius: 11px;
-    border: 1px solid rgb(255 255 255 / 0.12);
-    /* A hair warmer than the card so it reads as a highlighted aside rather
+    border: 1px solid var(--rule);
+    /* A shade heavier than the card so it reads as a highlighted aside rather
        than another input. */
-    background: rgb(255 255 255 / 0.05);
+    background: color-mix(in srgb, var(--ink) 5%, transparent);
 
     font-family: var(--font-bricolage), var(--font-display);
     font-size: 0.85rem;
     font-weight: 300;
     line-height: 1.5;
-    color: rgb(255 255 255 / 0.72);
+    color: var(--ink-2);
 }
 
 /* ---- Sub-tabs and chips ------------------------------------------- */
@@ -312,14 +294,14 @@
 .chip {
     padding: 0.45rem 0.95rem;
     border-radius: 999px;
-    border: 1px solid rgb(255 255 255 / 0.16);
-    background: rgb(255 255 255 / 0.05);
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--ink) 4%, transparent);
     cursor: pointer;
 
     font-family: var(--font-bricolage), var(--font-display);
     font-size: 0.8125rem;
     font-weight: 400;
-    color: rgb(255 255 255 / 0.72);
+    color: var(--ink-2);
 
     transition:
         background var(--dur-1) var(--ease-out),
@@ -329,21 +311,23 @@
 
 .subTab:hover,
 .chip:hover {
-    border-color: rgb(255 255 255 / 0.32);
-    color: rgb(255 255 255 / 0.95);
+    border-color: color-mix(in srgb, var(--ink) 40%, transparent);
+    color: var(--ink);
 }
 
+/* Selected: an ink fill on paper. Turned into an outline on sumi at the
+   bottom of this file. */
 .subTab[data-active],
 .chip[data-active] {
-    background: rgb(255 255 255 / 0.9);
-    border-color: transparent;
-    color: #0b0b0c;
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
     font-weight: 500;
 }
 
 .subTab:focus-visible,
 .chip:focus-visible {
-    outline: 2px solid rgb(255 255 255 / 0.8);
+    outline: 2px solid var(--seal);
     outline-offset: 2px;
 }
 
@@ -368,7 +352,7 @@
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgb(255 255 255 / 0.66);
+    color: var(--ink-3);
 }
 
 .chips {
@@ -385,16 +369,16 @@
     gap: 0.85rem;
     padding: 1rem;
     border-radius: 14px;
-    border: 1px solid rgb(255 255 255 / 0.1);
-    background: rgb(255 255 255 / 0.035);
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--ink) 3%, transparent);
 }
 
 .verified {
     margin: 0;
     font-family: var(--font-bricolage), var(--font-display);
     font-size: 0.95rem;
-    font-weight: 400;
-    color: var(--signal, #4ade80);
+    font-weight: 500;
+    color: var(--ink);
 }
 
 /* ---- Resume links ------------------------------------------------- */
@@ -406,14 +390,14 @@
     gap: 0.5rem;
     padding: 0.65rem 1.15rem;
     border-radius: 999px;
-    border: 1px solid rgb(255 255 255 / 0.28);
-    background: rgb(255 255 255 / 0.08);
+    border: 1px solid color-mix(in srgb, var(--ink) 40%, transparent);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
     text-decoration: none;
 
     font-family: var(--font-bricolage), var(--font-display);
     font-size: 0.875rem;
     font-weight: 500;
-    color: rgb(255 255 255 / 0.95);
+    color: var(--ink);
 
     transition:
         background var(--dur-1) var(--ease-out),
@@ -421,12 +405,12 @@
 }
 
 .resume:hover {
-    background: rgb(255 255 255 / 0.16);
-    border-color: rgb(255 255 255 / 0.45);
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
+    border-color: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 
 .resume:focus-visible {
-    outline: 2px solid rgb(255 255 255 / 0.8);
+    outline: 2px solid var(--seal);
     outline-offset: 3px;
 }
 
@@ -437,12 +421,12 @@
     margin: 0;
     padding: 0.6rem 1rem;
     border-radius: 999px;
-    border: 1px dashed rgb(255 255 255 / 0.22);
+    border: 1px dashed var(--rule);
 
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.08em;
-    color: rgb(255 255 255 / 0.45);
+    color: var(--ink-3);
 }
 
 /* ---- Fields ------------------------------------------------------- */
@@ -463,22 +447,25 @@
     gap: 0.35rem;
 }
 
+/* Real labels, not placeholders — a placeholder vanishes the moment someone
+   types, leaving no way to check what a half-filled field was for, and it is
+   not reliably announced by screen readers. */
 .label {
     font-family: var(--font-mono);
     font-size: 0.625rem;
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgb(255 255 255 / 0.66);
+    color: var(--ink-3);
 }
 
 .input {
     width: 100%;
     padding: 0.7rem 0.85rem;
     border-radius: 11px;
-    border: 1px solid rgb(255 255 255 / 0.18);
-    background: rgb(255 255 255 / 0.07);
-    color: rgb(255 255 255 / 0.95);
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--ink) 4%, transparent);
+    color: var(--ink);
 
     font-family: var(--font-bricolage), var(--font-display);
     font-size: 0.95rem;
@@ -492,29 +479,26 @@
 }
 
 .input::placeholder {
-    color: rgb(255 255 255 / 0.3);
+    color: var(--ink-3);
 }
 
 .input:hover {
-    border-color: rgb(255 255 255 / 0.3);
+    border-color: color-mix(in srgb, var(--ink) 40%, transparent);
 }
 
 /* :focus-visible, not :focus — a mouse click on a text field should not paint a
    ring, but a keyboard tab must. Browsers still match :focus-visible on text
-   inputs for pointer focus, so typing users keep the affordance either way. */
+   inputs for pointer focus, so typing users keep the affordance either way.
+   The ring is the seal: focus is the one interactive state the accent marks. */
 .input:focus-visible {
     outline: none;
-    border-color: rgb(255 255 255 / 0.45);
-    background: rgb(255 255 255 / 0.1);
-    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.09);
+    border-color: var(--seal);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--seal) 22%, transparent);
 }
 
-/* Scales with the viewport rather than sitting at a fixed few lines.
-
-   The card is deliberately close to full-height, so a 5.5rem textarea left a
-   third of it empty under the send button on the shorter tabs. Growing the one
-   field people actually write in is the natural way to spend that space — and
-   a bigger box quietly invites a longer message, which is the point. */
+/* Scales with the viewport rather than sitting at a fixed few lines, so the
+   one field people actually write in spends the card's height. */
 .textarea {
     resize: vertical;
     min-height: clamp(5.5rem, 26vh, 15rem);
@@ -540,6 +524,9 @@
      press  — a pop, answering the click immediately
      pending — the sweep speeds up and the label changes; the visual
               language of "loading" now means it
+
+   An ink fill on paper. Turned into an outline on sumi at the bottom
+   of this file.
    ================================================================== */
 
 .submit {
@@ -550,9 +537,9 @@
 
     padding: 0.75rem 1.6rem;
     border-radius: 999px;
-    border: 1px solid rgb(255 255 255 / 0.2);
-    background: rgb(255 255 255 / 0.92);
-    color: #0b0b0c;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--bg);
     cursor: pointer;
 
     font-family: var(--font-bricolage), var(--font-display);
@@ -562,21 +549,21 @@
 
     transition:
         background var(--dur-1) var(--ease-out),
+        color var(--dur-1) var(--ease-out),
         box-shadow var(--dur-1) var(--ease-out);
 }
 
 .submit:hover:not(:disabled) {
-    background: #fff;
-    box-shadow: 0 6px 22px -8px rgb(0 0 0 / 0.6);
+    box-shadow: 0 6px 22px -8px color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
 .submit:disabled {
     cursor: not-allowed;
-    opacity: 0.75;
+    opacity: 0.6;
 }
 
 .submit:focus-visible {
-    outline: 2px solid rgb(255 255 255 / 0.85);
+    outline: 2px solid var(--seal);
     outline-offset: 3px;
 }
 
@@ -589,7 +576,10 @@
 
 /* The travelling band. Idle at zero opacity and parked off to the left, so
    nothing animates until it is actually hovered — a loop running permanently
-   under every button is wasted compositing on every frame of the page. */
+   under every button is wasted compositing on every frame of the page.
+
+   Painted with the button's own text colour at low alpha, so it lightens an
+   ink fill and lightens an outline's transparent body the same way. */
 .sweep {
     position: absolute;
     inset: 0;
@@ -597,9 +587,9 @@
     opacity: 0;
     background: linear-gradient(100deg,
             transparent 0%,
-            rgb(0 0 0 / 0.06) 38%,
-            rgb(0 0 0 / 0.13) 50%,
-            rgb(0 0 0 / 0.06) 62%,
+            color-mix(in srgb, currentColor 10%, transparent) 38%,
+            color-mix(in srgb, currentColor 22%, transparent) 50%,
+            color-mix(in srgb, currentColor 10%, transparent) 62%,
             transparent 100%);
     /* A band wider than the button, so the light crosses rather than blinks. */
     background-size: 220% 100%;
@@ -654,14 +644,14 @@
 .ghost {
     padding: 0.7rem 1.1rem;
     border-radius: 999px;
-    border: 1px solid rgb(255 255 255 / 0.2);
+    border: 1px solid var(--rule);
     background: transparent;
     cursor: pointer;
 
     font-family: var(--font-bricolage), var(--font-display);
     font-size: 0.85rem;
     font-weight: 400;
-    color: rgb(255 255 255 / 0.75);
+    color: var(--ink-2);
 
     transition:
         border-color var(--dur-1) var(--ease-out),
@@ -669,12 +659,12 @@
 }
 
 .ghost:hover {
-    border-color: rgb(255 255 255 / 0.4);
-    color: rgb(255 255 255 / 0.95);
+    border-color: color-mix(in srgb, var(--ink) 45%, transparent);
+    color: var(--ink);
 }
 
 .ghost:focus-visible {
-    outline: 2px solid rgb(255 255 255 / 0.8);
+    outline: 2px solid var(--seal);
     outline-offset: 3px;
 }
 
@@ -683,14 +673,43 @@
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.08em;
-    color: rgb(255 255 255 / 0.62);
+    color: var(--ink-3);
     /* Reserves its line whether or not there is text, so confirming a send does
        not nudge the button as the message appears. */
     min-height: 1em;
 }
 
+/* An error is the one message that gets the seal's colour as text. Red for
+   an error is a convention older than this theme; the seal is simply the red
+   this site has. */
 .status[data-error] {
-    color: #fca5a5;
+    color: var(--seal);
+}
+
+/* ==================================================================
+   OUTLINE CHROME ON SUMI
+
+   On the dark theme the interactive fills become outlines: bone
+   ink drawn as a line around a transparent body, the way the
+   footage renders as white outline on black. Same components,
+   same behaviour, one material rule.
+   ================================================================== */
+
+:global(html[data-theme="dark"]) .submit {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--ink);
+}
+
+:global(html[data-theme="dark"]) .submit:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+:global(html[data-theme="dark"]) .subTab[data-active],
+:global(html[data-theme="dark"]) .chip[data-active] {
+    background: transparent;
+    border-color: var(--ink);
+    color: var(--ink);
 }
 
 /* ---- Responsive --------------------------------------------------- */

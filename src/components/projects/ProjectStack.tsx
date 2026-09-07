@@ -11,6 +11,8 @@ import { useReducedMotion } from "@/lib/useReducedMotion";
 import { useInView } from "@/lib/useinview";
 import FlipFadeText, { letterVariants } from "../hero/FlipFadeText";
 import ProjectLens from "./ProjectLens";
+import { useTheme } from "@/lib/useTheme";
+import scene from "../scene/scene.module.css";
 import styles from "./ProjectStack.module.css";
 
 /* The intro is the first card, not a heading above the deck — so it is part of
@@ -25,6 +27,7 @@ const slides: Slide[] = [
 ];
 
 export default function ProjectStack() {
+    const theme = useTheme();
     const reduced = useReducedMotion();
     const container = useRef<HTMLDivElement>(null);
     const cardRefs = useRef<(HTMLElement | null)[]>([]);
@@ -108,6 +111,7 @@ export default function ProjectStack() {
                     scale: 1,
                     rotation: 0,
                     borderRadius: 0,
+                    z: 0,
                 });
             }
 
@@ -153,8 +157,15 @@ export default function ProjectStack() {
                 timeline.to(
                     cards[i],
                     {
-                        scale: 0.92,
-                        rotation: 4,
+                        /* Depth, not a smaller copy. The stage carries a
+                           perspective, so an outgoing card travels away from
+                           the viewer into the same space the backdrop is in.
+
+                           No scale alongside it: perspective already shrinks
+                           a receding card, and doing both made it pull away
+                           twice as fast as it moved and leave the frame. */
+                        rotation: 3,
+                        z: -220,
                         /* Corners round off only as the card pulls back, so
                            "this is a card" is something the scroll reveals
                            rather than something the layout states upfront. */
@@ -194,9 +205,22 @@ export default function ProjectStack() {
         <section id="projects" className={styles.section}>
             <div
                 ref={container}
-                className={styles.stage}
+                className={`${styles.stage} ${scene.stage}`}
                 data-static={reduced || undefined}
             >
+                {/* The place the cards are standing in. Light is the path
+                    climbing through cedar with four markers along it; dark is
+                    a rooftop with four lit towers. It does not move: the
+                    cards travel past it, which is what makes them feel like
+                    things in a place rather than slides. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={`/scene/backdrop/projects-${theme}.webp`}
+                    alt=""
+                    aria-hidden="true"
+                    className={`${scene.plate} ${scene.far}`}
+                />
+                <span className={scene.air} aria-hidden="true" />
                 <div ref={deckRef} className={styles.deck}>
                     {slides.map((slide, i) => (
                         <article
@@ -305,11 +329,19 @@ function IntroCard({ active }: { active: boolean }) {
 
 /* Sits outside cardInner so it fills the whole card, not the measure. */
 function Media({ project }: { project: Project }) {
+    /* One print, from scripts/nishiki.mjs. There used to be two of these,
+       cross-fading on data-theme, because the old renders were tinted to each
+       theme's ground. These are woodblock prints instead, so there is one
+       artwork per project and it holds at any hour.
+
+       `data-pigment` hands the project's pigment to CSS, which uses it for the
+       leaf's edge and the card's rule: the four projects are four blocks cut in
+       the same workshop, and that is the only thing that distinguishes them. */
     return (
-        /* Decorative, so no alt text — the card's own heading and copy already
+        /* Decorative, so no alt text: the card's own heading and copy already
            say what this is, and a description of the artwork would just be
            noise between them. */
-        <div className={styles.media} aria-hidden="true">
+        <div className={styles.media} data-pigment={project.pigment} aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
                 src={project.image}

@@ -1,0 +1,1904 @@
+- generic [ref=f6e1]:
+  - link "Skip to content" [ref=f6e2] [cursor=pointer]:
+    - /url: "#main"
+  - main [ref=f6e3]:
+    - generic [ref=f6e5]:
+      - heading "Ambud Lahiri — Full-stack Engineer. I ship products end to end — schema to pixels, idea to uptime." [level=1] [ref=f6e8]
+      - generic:
+        - generic:
+          - heading "Full-stack engineer" [level=2]
+          - paragraph: Currently building AI pipelines at Dataflow Group.
+      - generic:
+        - generic:
+          - heading "Serverless, at scale" [level=2]
+          - paragraph: 80% of processing automated. Turnaround cut 45%, routing accuracy up 35%.
+      - generic:
+        - generic:
+          - heading "Shipped, not demoed" [level=2]
+          - paragraph: React Native crowdfunding at 90% payment success. Django latency down 60%.
+      - generic:
+        - generic:
+          - paragraph: Hi, I'm
+          - paragraph:
+            - generic "Ambud Lahiri":
+              - generic:
+                - generic: A
+                - generic: m
+                - generic: b
+                - generic: u
+                - generic: d
+              - generic:
+                - generic: L
+                - generic: a
+                - generic: h
+                - generic: i
+                - generic: r
+                - generic: i
+          - paragraph: I ship products end to end — schema to pixels, idea to uptime.
+      - generic: Scroll
+    - generic [ref=f6e14]:
+      - generic [ref=f6e15]:
+        - paragraph [ref=f6e16]: About
+        - heading "I build the whole thing, not just the part that shows." [level=2] [ref=f6e18]
+        - paragraph [ref=f6e19]: I work across the stack, from database schema to the last few pixels of a hover state. Most of what I build lives in TypeScript, React and Next.js, sitting on Node and Postgres.
+        - paragraph [ref=f6e20]: "What I care about is the part users feel: pages that load before they notice, interfaces that behave the way they expect, and systems that stay boring under load."
+        - generic [ref=f6e21]:
+          - link "Explore more" [ref=f6e22] [cursor=pointer]:
+            - /url: /experience
+          - link "My Contributions" [ref=f6e25] [cursor=pointer]:
+            - /url: "#projects"
+      - img "Portrait of Ambud Lahiri" [ref=f6e29]
+    - generic [ref=f6e33]:
+      - article [ref=f6e34]:
+        - generic [ref=f6e35]:
+          - generic "Selected work" [ref=f6e37]:
+            - generic [ref=f6e38]:
+              - generic [ref=f6e370]: S
+              - generic [ref=f6e371]: e
+              - generic [ref=f6e372]: l
+              - generic [ref=f6e373]: e
+              - generic [ref=f6e394]: c
+              - generic [ref=f6e395]: t
+              - generic [ref=f6e396]: e
+              - generic [ref=f6e397]: d
+            - generic [ref=f6e39]:
+              - generic [ref=f6e398]: w
+              - generic [ref=f6e399]: o
+              - generic [ref=f6e400]: r
+              - generic [ref=f6e401]: k
+          - generic [ref=f6e40]:
+            - heading [level=2] [ref=f6e41]:
+              - generic "Projects" [ref=f6e42]:
+                - generic [ref=f6e43]:
+                  - generic [ref=f6e374]: P
+                  - generic [ref=f6e375]: r
+                  - generic [ref=f6e376]: o
+                  - generic [ref=f6e402]: j
+                  - generic [ref=f6e403]: e
+                  - generic [ref=f6e404]: c
+                  - generic [ref=f6e405]: t
+                  - generic [ref=f6e406]: s
+            - generic [ref=f6e44]:
+              - paragraph [ref=f6e45]:
+                - generic "A few things worth showing in detail." [ref=f6e46]:
+                  - generic [ref=f6e47]: A
+                  - generic [ref=f6e48]:
+                    - generic [ref=f6e378]: f
+                    - generic [ref=f6e379]: e
+                    - generic [ref=f6e380]: w
+                  - generic [ref=f6e49]:
+                    - generic [ref=f6e381]: t
+                    - generic [ref=f6e382]: h
+                    - generic [ref=f6e383]: i
+                    - generic [ref=f6e407]: "n"
+                    - generic [ref=f6e408]: g
+                    - generic [ref=f6e409]: s
+                  - generic [ref=f6e50]:
+                    - generic [ref=f6e410]: w
+                    - generic [ref=f6e411]: o
+                    - generic [ref=f6e412]: r
+                    - generic [ref=f6e413]: t
+                    - generic [ref=f6e414]: h
+                  - generic [ref=f6e51]:
+                    - generic [ref=f6e415]: s
+                    - generic [ref=f6e416]: h
+                    - generic [ref=f6e417]: o
+                    - generic [ref=f6e418]: w
+                    - generic [ref=f6e419]: i
+                    - generic [ref=f6e420]: "n"
+                    - generic [ref=f6e421]: g
+                  - generic [ref=f6e52]:
+                    - generic [ref=f6e422]: i
+                    - generic [ref=f6e423]: "n"
+                  - generic [ref=f6e53]:
+                    - generic [ref=f6e424]: d
+                    - generic [ref=f6e425]: e
+                    - generic [ref=f6e426]: t
+                    - generic [ref=f6e427]: a
+                    - generic [ref=f6e428]: i
+                    - generic [ref=f6e429]: l
+                    - generic [ref=f6e430]: .
+              - paragraph [ref=f6e54]:
+                - generic "Scroll to step through them." [ref=f6e55]:
+                  - generic [ref=f6e56]:
+                    - generic [ref=f6e384]: S
+                    - generic [ref=f6e385]: c
+                    - generic [ref=f6e386]: r
+                    - generic [ref=f6e387]: o
+                    - generic [ref=f6e388]: l
+                    - generic [ref=f6e431]: l
+                  - generic [ref=f6e57]:
+                    - generic [ref=f6e432]: t
+                    - generic [ref=f6e433]: o
+                  - generic [ref=f6e58]:
+                    - generic [ref=f6e434]: s
+                    - generic [ref=f6e435]: t
+                    - generic [ref=f6e436]: e
+                    - generic [ref=f6e437]: p
+                  - generic [ref=f6e59]:
+                    - generic [ref=f6e438]: t
+                    - generic [ref=f6e439]: h
+                    - generic [ref=f6e440]: r
+                    - generic [ref=f6e441]: o
+                    - generic [ref=f6e442]: u
+                    - generic [ref=f6e443]: g
+                    - generic [ref=f6e444]: h
+                  - generic [ref=f6e60]:
+                    - generic [ref=f6e445]: t
+                    - generic [ref=f6e446]: h
+                    - generic [ref=f6e447]: e
+                    - generic [ref=f6e448]: m
+                    - generic [ref=f6e449]: .
+          - generic [ref=f6e63]:
+            - generic [ref=f6e64]: "4"
+            - generic [ref=f6e65]:
+              - generic [ref=f6e390]: p
+              - generic [ref=f6e391]: r
+              - generic [ref=f6e392]: o
+              - generic [ref=f6e450]: j
+              - generic [ref=f6e451]: e
+              - generic [ref=f6e452]: c
+              - generic [ref=f6e453]: t
+              - generic [ref=f6e454]: s
+      - article [ref=f6e66]:
+        - link "Murmur on GitHub" [ref=f6e67] [cursor=pointer]:
+          - /url: https://github.com/Ambudlahiri144/Murmur
+          - generic [ref=f6e68]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - paragraph:
+                        - generic:
+                          - generic:
+                            - generic: S
+                            - generic: o
+                            - generic: c
+                            - generic: i
+                            - generic: a
+                            - generic: l
+                          - generic:
+                            - generic: p
+                            - generic: l
+                            - generic: a
+                            - generic: t
+                            - generic: f
+                            - generic: o
+                            - generic: r
+                            - generic: m
+                      - heading [level=3]:
+                        - generic:
+                          - generic:
+                            - generic: M
+                            - generic: u
+                            - generic: r
+                            - generic: m
+                            - generic: u
+                            - generic: r
+                      - paragraph:
+                        - generic:
+                          - generic: A
+                          - generic:
+                            - generic: M
+                            - generic: E
+                            - generic: R
+                            - generic: "N"
+                          - generic:
+                            - generic: s
+                            - generic: o
+                            - generic: c
+                            - generic: i
+                            - generic: a
+                            - generic: l
+                          - generic:
+                            - generic: "n"
+                            - generic: e
+                            - generic: t
+                            - generic: w
+                            - generic: o
+                            - generic: r
+                            - generic: k
+                          - generic:
+                            - generic: w
+                            - generic: i
+                            - generic: t
+                            - generic: h
+                          - generic:
+                            - generic: J
+                            - generic: W
+                            - generic: T
+                            - generic: "-"
+                            - generic: s
+                            - generic: e
+                            - generic: c
+                            - generic: u
+                            - generic: r
+                            - generic: e
+                            - generic: d
+                          - generic:
+                            - generic: A
+                            - generic: P
+                            - generic: I
+                            - generic: s
+                            - generic: ","
+                          - generic:
+                            - generic: l
+                            - generic: i
+                            - generic: v
+                            - generic: e
+                          - generic:
+                            - generic: S
+                            - generic: o
+                            - generic: c
+                            - generic: k
+                            - generic: e
+                            - generic: t
+                            - generic: .
+                            - generic: I
+                            - generic: O
+                          - generic:
+                            - generic: m
+                            - generic: e
+                            - generic: s
+                            - generic: s
+                            - generic: a
+                            - generic: g
+                            - generic: i
+                            - generic: "n"
+                            - generic: g
+                          - generic:
+                            - generic: a
+                            - generic: "n"
+                            - generic: d
+                          - generic:
+                            - generic: "n"
+                            - generic: o
+                            - generic: t
+                            - generic: i
+                            - generic: f
+                            - generic: i
+                            - generic: c
+                            - generic: a
+                            - generic: t
+                            - generic: i
+                            - generic: o
+                            - generic: "n"
+                            - generic: s
+                            - generic: ","
+                          - generic:
+                            - generic: a
+                            - generic: "n"
+                            - generic: d
+                          - generic:
+                            - generic: i
+                            - generic: "n"
+                            - generic: "-"
+                            - generic: b
+                            - generic: r
+                            - generic: o
+                            - generic: w
+                            - generic: s
+                            - generic: e
+                            - generic: r
+                          - generic:
+                            - generic: v
+                            - generic: i
+                            - generic: d
+                            - generic: e
+                            - generic: o
+                          - generic:
+                            - generic: p
+                            - generic: r
+                            - generic: o
+                            - generic: c
+                            - generic: e
+                            - generic: s
+                            - generic: s
+                            - generic: i
+                            - generic: "n"
+                            - generic: g
+                          - generic:
+                            - generic: t
+                            - generic: h
+                            - generic: a
+                            - generic: t
+                          - generic:
+                            - generic: m
+                            - generic: a
+                            - generic: d
+                            - generic: e
+                          - generic:
+                            - generic: u
+                            - generic: p
+                            - generic: l
+                            - generic: o
+                            - generic: a
+                            - generic: d
+                            - generic: s
+                          - generic:
+                            - generic: "7"
+                            - generic: "5"
+                            - generic: "%"
+                          - generic:
+                            - generic: f
+                            - generic: a
+                            - generic: s
+                            - generic: t
+                            - generic: e
+                            - generic: r
+                            - generic: .
+                    - list:
+                      - listitem: React.js
+                      - listitem: Tailwind CSS
+                      - listitem: Node.js
+                      - listitem: Express.js
+                      - listitem: Socket.IO
+                      - listitem: MongoDB
+        - generic [ref=f6e69]:
+          - generic [ref=f6e70]:
+            - paragraph [ref=f6e71]:
+              - generic "Social platform" [ref=f6e72]:
+                - generic [ref=f6e73]:
+                  - generic [ref=f6e456]: S
+                  - generic [ref=f6e457]: o
+                  - generic [ref=f6e458]: c
+                  - generic [ref=f6e459]: i
+                  - generic [ref=f6e460]: a
+                  - generic [ref=f6e461]: l
+                - generic [ref=f6e74]:
+                  - generic [ref=f6e462]: p
+                  - generic [ref=f6e463]: l
+                  - generic [ref=f6e464]: a
+                  - generic [ref=f6e465]: t
+                  - generic [ref=f6e466]: f
+                  - generic [ref=f6e467]: o
+                  - generic [ref=f6e468]: r
+                  - generic [ref=f6e469]: m
+            - heading [level=3] [ref=f6e75]:
+              - generic "Murmur" [ref=f6e76]:
+                - generic [ref=f6e77]:
+                  - generic [ref=f6e470]: M
+                  - generic [ref=f6e471]: u
+                  - generic [ref=f6e472]: r
+                  - generic [ref=f6e473]: m
+                  - generic [ref=f6e474]: u
+                  - generic [ref=f6e475]: r
+            - paragraph [ref=f6e78]:
+              - generic "A MERN social network with JWT-secured APIs, live Socket.IO messaging and notifications, and in-browser video processing that made uploads 75% faster." [ref=f6e79]:
+                - generic [ref=f6e80]: A
+                - generic [ref=f6e81]:
+                  - generic [ref=f6e477]: M
+                  - generic [ref=f6e478]: E
+                  - generic [ref=f6e479]: R
+                  - generic [ref=f6e480]: "N"
+                - generic [ref=f6e82]:
+                  - generic [ref=f6e481]: s
+                  - generic [ref=f6e482]: o
+                  - generic [ref=f6e483]: c
+                  - generic [ref=f6e484]: i
+                  - generic [ref=f6e485]: a
+                  - generic [ref=f6e486]: l
+                - generic [ref=f6e83]:
+                  - generic [ref=f6e487]: "n"
+                  - generic [ref=f6e488]: e
+                  - generic [ref=f6e489]: t
+                  - generic [ref=f6e490]: w
+                  - generic [ref=f6e491]: o
+                  - generic [ref=f6e492]: r
+                  - generic [ref=f6e493]: k
+                - generic [ref=f6e84]:
+                  - generic [ref=f6e494]: w
+                  - generic [ref=f6e495]: i
+                  - generic [ref=f6e496]: t
+                  - generic [ref=f6e497]: h
+                - generic [ref=f6e85]:
+                  - generic [ref=f6e498]: J
+                  - generic [ref=f6e499]: W
+                  - generic [ref=f6e500]: T
+                  - generic [ref=f6e501]: "-"
+                  - generic [ref=f6e502]: s
+                  - generic [ref=f6e503]: e
+                  - generic [ref=f6e504]: c
+                  - generic [ref=f6e505]: u
+                  - generic [ref=f6e506]: r
+                  - generic [ref=f6e507]: e
+                  - generic [ref=f6e508]: d
+                - generic [ref=f6e86]:
+                  - generic [ref=f6e509]: A
+                  - generic [ref=f6e510]: P
+                  - generic [ref=f6e511]: I
+                  - generic [ref=f6e512]: s
+                  - generic [ref=f6e513]: ","
+                - generic [ref=f6e87]:
+                  - generic [ref=f6e514]: l
+                  - generic [ref=f6e515]: i
+                  - generic [ref=f6e516]: v
+                  - generic [ref=f6e517]: e
+                - generic [ref=f6e88]:
+                  - generic [ref=f6e518]: S
+                  - generic [ref=f6e519]: o
+                  - generic [ref=f6e520]: c
+                  - generic [ref=f6e521]: k
+                  - generic [ref=f6e522]: e
+                  - generic [ref=f6e523]: t
+                  - generic [ref=f6e524]: .
+                  - generic [ref=f6e525]: I
+                  - generic [ref=f6e526]: O
+                - generic [ref=f6e89]:
+                  - generic [ref=f6e527]: m
+                  - generic [ref=f6e528]: e
+                  - generic [ref=f6e529]: s
+                  - generic [ref=f6e530]: s
+                  - generic [ref=f6e531]: a
+                  - generic [ref=f6e532]: g
+                  - generic [ref=f6e533]: i
+                  - generic [ref=f6e534]: "n"
+                  - generic [ref=f6e535]: g
+                - generic [ref=f6e90]:
+                  - generic [ref=f6e536]: a
+                  - generic [ref=f6e537]: "n"
+                  - generic [ref=f6e538]: d
+                - generic [ref=f6e91]:
+                  - generic [ref=f6e539]: "n"
+                  - generic [ref=f6e540]: o
+                  - generic [ref=f6e541]: t
+                  - generic [ref=f6e542]: i
+                  - generic [ref=f6e543]: f
+                  - generic [ref=f6e544]: i
+                  - generic [ref=f6e545]: c
+                  - generic [ref=f6e546]: a
+                  - generic [ref=f6e547]: t
+                  - generic [ref=f6e548]: i
+                  - generic [ref=f6e549]: o
+                  - generic [ref=f6e550]: "n"
+                  - generic [ref=f6e551]: s
+                  - generic [ref=f6e552]: ","
+                - generic [ref=f6e92]:
+                  - generic [ref=f6e553]: a
+                  - generic [ref=f6e554]: "n"
+                  - generic [ref=f6e555]: d
+                - generic [ref=f6e93]:
+                  - generic [ref=f6e556]: i
+                  - generic [ref=f6e557]: "n"
+                  - generic [ref=f6e558]: "-"
+                  - generic [ref=f6e559]: b
+                  - generic [ref=f6e560]: r
+                  - generic [ref=f6e561]: o
+                  - generic [ref=f6e562]: w
+                  - generic [ref=f6e563]: s
+                  - generic [ref=f6e564]: e
+                  - generic [ref=f6e565]: r
+                - generic [ref=f6e94]:
+                  - generic [ref=f6e566]: v
+                  - generic [ref=f6e567]: i
+                  - generic [ref=f6e568]: d
+                  - generic [ref=f6e569]: e
+                  - generic [ref=f6e570]: o
+                - generic [ref=f6e95]:
+                  - generic [ref=f6e571]: p
+                  - generic [ref=f6e572]: r
+                  - generic [ref=f6e573]: o
+                  - generic [ref=f6e574]: c
+                  - generic [ref=f6e575]: e
+                  - generic [ref=f6e576]: s
+                  - generic [ref=f6e577]: s
+                  - generic [ref=f6e578]: i
+                  - generic [ref=f6e579]: "n"
+                  - generic [ref=f6e580]: g
+                - generic [ref=f6e96]:
+                  - generic [ref=f6e581]: t
+                  - generic [ref=f6e582]: h
+                  - generic [ref=f6e583]: a
+                  - generic [ref=f6e584]: t
+                - generic [ref=f6e97]:
+                  - generic [ref=f6e585]: m
+                  - generic [ref=f6e586]: a
+                  - generic [ref=f6e587]: d
+                  - generic [ref=f6e588]: e
+                - generic [ref=f6e98]:
+                  - generic [ref=f6e589]: u
+                  - generic [ref=f6e590]: p
+                  - generic [ref=f6e591]: l
+                  - generic [ref=f6e592]: o
+                  - generic [ref=f6e593]: a
+                  - generic [ref=f6e594]: d
+                  - generic [ref=f6e595]: s
+                - generic [ref=f6e99]:
+                  - generic [ref=f6e596]: "7"
+                  - generic [ref=f6e597]: "5"
+                  - generic [ref=f6e598]: "%"
+                - generic [ref=f6e100]:
+                  - generic [ref=f6e599]: f
+                  - generic [ref=f6e600]: a
+                  - generic [ref=f6e601]: s
+                  - generic [ref=f6e602]: t
+                  - generic [ref=f6e603]: e
+                  - generic [ref=f6e604]: r
+                  - generic [ref=f6e605]: .
+          - list [ref=f6e101]:
+            - listitem [ref=f6e102]: React.js
+            - listitem [ref=f6e103]: Tailwind CSS
+            - listitem [ref=f6e104]: Node.js
+            - listitem [ref=f6e105]: Express.js
+            - listitem [ref=f6e106]: Socket.IO
+            - listitem [ref=f6e107]: MongoDB
+      - article [ref=f6e108]:
+        - link "Bail Reckoner on GitHub" [ref=f6e109] [cursor=pointer]:
+          - /url: https://github.com/Ambudlahiri144/Sudo_bail
+          - generic [ref=f6e110]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - paragraph:
+                        - generic:
+                          - generic:
+                            - generic: L
+                            - generic: e
+                            - generic: g
+                            - generic: a
+                            - generic: l
+                          - generic:
+                            - generic: d
+                            - generic: e
+                            - generic: c
+                            - generic: i
+                            - generic: s
+                            - generic: i
+                            - generic: o
+                            - generic: "n"
+                          - generic:
+                            - generic: s
+                            - generic: u
+                            - generic: p
+                            - generic: p
+                            - generic: o
+                            - generic: r
+                            - generic: t
+                      - heading [level=3]:
+                        - generic:
+                          - generic:
+                            - generic: B
+                            - generic: a
+                            - generic: i
+                            - generic: l
+                          - generic:
+                            - generic: R
+                            - generic: e
+                            - generic: c
+                            - generic: k
+                            - generic: o
+                            - generic: "n"
+                            - generic: e
+                            - generic: r
+                      - paragraph:
+                        - generic:
+                          - generic:
+                            - generic: A
+                            - generic: u
+                            - generic: t
+                            - generic: o
+                            - generic: m
+                            - generic: a
+                            - generic: t
+                            - generic: e
+                            - generic: d
+                          - generic:
+                            - generic: c
+                            - generic: a
+                            - generic: s
+                            - generic: e
+                            - generic: "-"
+                            - generic: l
+                            - generic: a
+                            - generic: w
+                          - generic:
+                            - generic: r
+                            - generic: e
+                            - generic: t
+                            - generic: r
+                            - generic: i
+                            - generic: e
+                            - generic: v
+                            - generic: a
+                            - generic: l
+                          - generic:
+                            - generic: f
+                            - generic: o
+                            - generic: r
+                          - generic:
+                            - generic: l
+                            - generic: e
+                            - generic: g
+                            - generic: a
+                            - generic: l
+                          - generic:
+                            - generic: p
+                            - generic: r
+                            - generic: o
+                            - generic: f
+                            - generic: e
+                            - generic: s
+                            - generic: s
+                            - generic: i
+                            - generic: o
+                            - generic: "n"
+                            - generic: a
+                            - generic: l
+                            - generic: s
+                          - generic: —
+                          - generic: a
+                          - generic:
+                            - generic: "N"
+                            - generic: e
+                            - generic: x
+                            - generic: t
+                            - generic: .
+                            - generic: j
+                            - generic: s
+                          - generic:
+                            - generic: i
+                            - generic: "n"
+                            - generic: t
+                            - generic: e
+                            - generic: r
+                            - generic: f
+                            - generic: a
+                            - generic: c
+                            - generic: e
+                          - generic:
+                            - generic: o
+                            - generic: v
+                            - generic: e
+                            - generic: r
+                          - generic:
+                            - generic: F
+                            - generic: a
+                            - generic: s
+                            - generic: t
+                            - generic: A
+                            - generic: P
+                            - generic: I
+                          - generic:
+                            - generic: s
+                            - generic: e
+                            - generic: r
+                            - generic: v
+                            - generic: i
+                            - generic: c
+                            - generic: e
+                            - generic: s
+                            - generic: ","
+                          - generic:
+                            - generic: m
+                            - generic: a
+                            - generic: t
+                            - generic: c
+                            - generic: h
+                            - generic: i
+                            - generic: "n"
+                            - generic: g
+                          - generic:
+                            - generic: p
+                            - generic: r
+                            - generic: e
+                            - generic: c
+                            - generic: e
+                            - generic: d
+                            - generic: e
+                            - generic: "n"
+                            - generic: t
+                            - generic: s
+                          - generic:
+                            - generic: i
+                            - generic: "n"
+                          - generic:
+                            - generic: r
+                            - generic: e
+                            - generic: a
+                            - generic: l
+                          - generic:
+                            - generic: t
+                            - generic: i
+                            - generic: m
+                            - generic: e
+                          - generic:
+                            - generic: a
+                            - generic: g
+                            - generic: a
+                            - generic: i
+                            - generic: "n"
+                            - generic: s
+                            - generic: t
+                          - generic: a
+                          - generic:
+                            - generic: L
+                            - generic: l
+                            - generic: a
+                            - generic: m
+                            - generic: a
+                          - generic:
+                            - generic: "3"
+                            - generic: .
+                            - generic: "1"
+                          - generic:
+                            - generic: b
+                            - generic: a
+                            - generic: c
+                            - generic: k
+                            - generic: e
+                            - generic: d
+                          - generic:
+                            - generic: d
+                            - generic: a
+                            - generic: t
+                            - generic: a
+                            - generic: b
+                            - generic: a
+                            - generic: s
+                            - generic: e
+                            - generic: .
+                    - list:
+                      - listitem: Next.js
+                      - listitem: Django
+                      - listitem: Python
+                      - listitem: Llama 3.1
+                      - listitem: Fast API
+        - generic [ref=f6e111]:
+          - generic [ref=f6e112]:
+            - paragraph [ref=f6e113]:
+              - generic "Legal decision support" [ref=f6e114]:
+                - generic [ref=f6e115]:
+                  - generic [ref=f6e607]: L
+                  - generic [ref=f6e608]: e
+                  - generic [ref=f6e609]: g
+                  - generic [ref=f6e610]: a
+                  - generic [ref=f6e611]: l
+                - generic [ref=f6e116]:
+                  - generic [ref=f6e612]: d
+                  - generic [ref=f6e613]: e
+                  - generic [ref=f6e614]: c
+                  - generic [ref=f6e615]: i
+                  - generic [ref=f6e616]: s
+                  - generic [ref=f6e617]: i
+                  - generic [ref=f6e618]: o
+                  - generic [ref=f6e619]: "n"
+                - generic [ref=f6e117]:
+                  - generic [ref=f6e620]: s
+                  - generic [ref=f6e621]: u
+                  - generic [ref=f6e622]: p
+                  - generic [ref=f6e623]: p
+                  - generic [ref=f6e624]: o
+                  - generic [ref=f6e625]: r
+                  - generic [ref=f6e626]: t
+            - heading [level=3] [ref=f6e118]:
+              - generic "Bail Reckoner" [ref=f6e119]:
+                - generic [ref=f6e120]:
+                  - generic [ref=f6e627]: B
+                  - generic [ref=f6e628]: a
+                  - generic [ref=f6e629]: i
+                  - generic [ref=f6e630]: l
+                - generic [ref=f6e121]:
+                  - generic [ref=f6e631]: R
+                  - generic [ref=f6e632]: e
+                  - generic [ref=f6e633]: c
+                  - generic [ref=f6e634]: k
+                  - generic [ref=f6e635]: o
+                  - generic [ref=f6e636]: "n"
+                  - generic [ref=f6e637]: e
+                  - generic [ref=f6e638]: r
+            - paragraph [ref=f6e122]:
+              - generic "Automated case-law retrieval for legal professionals — a Next.js interface over FastAPI services, matching precedents in real time against a Llama 3.1 backed database." [ref=f6e123]:
+                - generic [ref=f6e124]:
+                  - generic [ref=f6e639]: A
+                  - generic [ref=f6e640]: u
+                  - generic [ref=f6e641]: t
+                  - generic [ref=f6e642]: o
+                  - generic [ref=f6e643]: m
+                  - generic [ref=f6e644]: a
+                  - generic [ref=f6e645]: t
+                  - generic [ref=f6e646]: e
+                  - generic [ref=f6e647]: d
+                - generic [ref=f6e125]:
+                  - generic [ref=f6e648]: c
+                  - generic [ref=f6e649]: a
+                  - generic [ref=f6e650]: s
+                  - generic [ref=f6e651]: e
+                  - generic [ref=f6e652]: "-"
+                  - generic [ref=f6e653]: l
+                  - generic [ref=f6e654]: a
+                  - generic [ref=f6e655]: w
+                - generic [ref=f6e126]:
+                  - generic [ref=f6e656]: r
+                  - generic [ref=f6e657]: e
+                  - generic [ref=f6e658]: t
+                  - generic [ref=f6e659]: r
+                  - generic [ref=f6e660]: i
+                  - generic [ref=f6e661]: e
+                  - generic [ref=f6e662]: v
+                  - generic [ref=f6e663]: a
+                  - generic [ref=f6e664]: l
+                - generic [ref=f6e127]:
+                  - generic [ref=f6e665]: f
+                  - generic [ref=f6e666]: o
+                  - generic [ref=f6e667]: r
+                - generic [ref=f6e128]:
+                  - generic [ref=f6e668]: l
+                  - generic [ref=f6e669]: e
+                  - generic [ref=f6e670]: g
+                  - generic [ref=f6e671]: a
+                  - generic [ref=f6e672]: l
+                - generic [ref=f6e129]:
+                  - generic [ref=f6e673]: p
+                  - generic [ref=f6e674]: r
+                  - generic [ref=f6e675]: o
+                  - generic [ref=f6e676]: f
+                  - generic [ref=f6e677]: e
+                  - generic [ref=f6e678]: s
+                  - generic [ref=f6e679]: s
+                  - generic [ref=f6e680]: i
+                  - generic [ref=f6e681]: o
+                  - generic [ref=f6e682]: "n"
+                  - generic [ref=f6e683]: a
+                  - generic [ref=f6e684]: l
+                  - generic [ref=f6e685]: s
+                - generic [ref=f6e130]: —
+                - generic [ref=f6e131]: a
+                - generic [ref=f6e132]:
+                  - generic [ref=f6e688]: "N"
+                  - generic [ref=f6e689]: e
+                  - generic [ref=f6e690]: x
+                  - generic [ref=f6e691]: t
+                  - generic [ref=f6e692]: .
+                  - generic [ref=f6e693]: j
+                  - generic [ref=f6e694]: s
+                - generic [ref=f6e133]:
+                  - generic [ref=f6e695]: i
+                  - generic [ref=f6e696]: "n"
+                  - generic [ref=f6e697]: t
+                  - generic [ref=f6e698]: e
+                  - generic [ref=f6e699]: r
+                  - generic [ref=f6e700]: f
+                  - generic [ref=f6e701]: a
+                  - generic [ref=f6e702]: c
+                  - generic [ref=f6e703]: e
+                - generic [ref=f6e134]:
+                  - generic [ref=f6e704]: o
+                  - generic [ref=f6e705]: v
+                  - generic [ref=f6e706]: e
+                  - generic [ref=f6e707]: r
+                - generic [ref=f6e135]:
+                  - generic [ref=f6e708]: F
+                  - generic [ref=f6e709]: a
+                  - generic [ref=f6e710]: s
+                  - generic [ref=f6e711]: t
+                  - generic [ref=f6e712]: A
+                  - generic [ref=f6e713]: P
+                  - generic [ref=f6e714]: I
+                - generic [ref=f6e136]:
+                  - generic [ref=f6e715]: s
+                  - generic [ref=f6e716]: e
+                  - generic [ref=f6e717]: r
+                  - generic [ref=f6e718]: v
+                  - generic [ref=f6e719]: i
+                  - generic [ref=f6e720]: c
+                  - generic [ref=f6e721]: e
+                  - generic [ref=f6e722]: s
+                  - generic [ref=f6e723]: ","
+                - generic [ref=f6e137]:
+                  - generic [ref=f6e724]: m
+                  - generic [ref=f6e725]: a
+                  - generic [ref=f6e726]: t
+                  - generic [ref=f6e727]: c
+                  - generic [ref=f6e728]: h
+                  - generic [ref=f6e729]: i
+                  - generic [ref=f6e730]: "n"
+                  - generic [ref=f6e731]: g
+                - generic [ref=f6e138]:
+                  - generic [ref=f6e732]: p
+                  - generic [ref=f6e733]: r
+                  - generic [ref=f6e734]: e
+                  - generic [ref=f6e735]: c
+                  - generic [ref=f6e736]: e
+                  - generic [ref=f6e737]: d
+                  - generic [ref=f6e738]: e
+                  - generic [ref=f6e739]: "n"
+                  - generic [ref=f6e740]: t
+                  - generic [ref=f6e741]: s
+                - generic [ref=f6e139]:
+                  - generic [ref=f6e742]: i
+                  - generic [ref=f6e743]: "n"
+                - generic [ref=f6e140]:
+                  - generic [ref=f6e744]: r
+                  - generic [ref=f6e745]: e
+                  - generic [ref=f6e746]: a
+                  - generic [ref=f6e747]: l
+                - generic [ref=f6e141]:
+                  - generic [ref=f6e748]: t
+                  - generic [ref=f6e749]: i
+                  - generic [ref=f6e750]: m
+                  - generic [ref=f6e751]: e
+                - generic [ref=f6e142]:
+                  - generic [ref=f6e752]: a
+                  - generic [ref=f6e753]: g
+                  - generic [ref=f6e754]: a
+                  - generic [ref=f6e755]: i
+                  - generic [ref=f6e756]: "n"
+                  - generic [ref=f6e757]: s
+                  - generic [ref=f6e758]: t
+                - generic [ref=f6e143]: a
+                - generic [ref=f6e144]:
+                  - generic [ref=f6e760]: L
+                  - generic [ref=f6e761]: l
+                  - generic [ref=f6e762]: a
+                  - generic [ref=f6e763]: m
+                  - generic [ref=f6e764]: a
+                - generic [ref=f6e145]:
+                  - generic [ref=f6e765]: "3"
+                  - generic [ref=f6e766]: .
+                  - generic [ref=f6e767]: "1"
+                - generic [ref=f6e146]:
+                  - generic [ref=f6e768]: b
+                  - generic [ref=f6e769]: a
+                  - generic [ref=f6e770]: c
+                  - generic [ref=f6e771]: k
+                  - generic [ref=f6e772]: e
+                  - generic [ref=f6e773]: d
+                - generic [ref=f6e147]:
+                  - generic [ref=f6e774]: d
+                  - generic [ref=f6e775]: a
+                  - generic [ref=f6e776]: t
+                  - generic [ref=f6e777]: a
+                  - generic [ref=f6e778]: b
+                  - generic [ref=f6e779]: a
+                  - generic [ref=f6e780]: s
+                  - generic [ref=f6e781]: e
+                  - generic [ref=f6e782]: .
+          - list [ref=f6e148]:
+            - listitem [ref=f6e149]: Next.js
+            - listitem [ref=f6e150]: Django
+            - listitem [ref=f6e151]: Python
+            - listitem [ref=f6e152]: Llama 3.1
+            - listitem [ref=f6e153]: Fast API
+      - article [ref=f6e154]:
+        - link "BU-GPT on GitHub" [ref=f6e155] [cursor=pointer]:
+          - /url: https://github.com/Ambudlahiri144/BU-GPT
+          - generic [ref=f6e156]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - paragraph:
+                        - generic:
+                          - generic:
+                            - generic: M
+                            - generic: o
+                            - generic: b
+                            - generic: i
+                            - generic: l
+                            - generic: e
+                          - generic:
+                            - generic: A
+                            - generic: I
+                          - generic:
+                            - generic: a
+                            - generic: s
+                            - generic: s
+                            - generic: i
+                            - generic: s
+                            - generic: t
+                            - generic: a
+                            - generic: "n"
+                            - generic: t
+                      - heading [level=3]:
+                        - generic:
+                          - generic:
+                            - generic: B
+                            - generic: U
+                            - generic: "-"
+                            - generic: G
+                            - generic: P
+                            - generic: T
+                      - paragraph:
+                        - generic:
+                          - generic: A
+                          - generic:
+                            - generic: F
+                            - generic: l
+                            - generic: u
+                            - generic: t
+                            - generic: t
+                            - generic: e
+                            - generic: r
+                          - generic:
+                            - generic: a
+                            - generic: s
+                            - generic: s
+                            - generic: i
+                            - generic: s
+                            - generic: t
+                            - generic: a
+                            - generic: "n"
+                            - generic: t
+                          - generic:
+                            - generic: t
+                            - generic: h
+                            - generic: a
+                            - generic: t
+                          - generic:
+                            - generic: a
+                            - generic: "n"
+                            - generic: s
+                            - generic: w
+                            - generic: e
+                            - generic: r
+                            - generic: s
+                          - generic:
+                            - generic: q
+                            - generic: u
+                            - generic: e
+                            - generic: s
+                            - generic: t
+                            - generic: i
+                            - generic: o
+                            - generic: "n"
+                            - generic: s
+                          - generic:
+                            - generic: a
+                            - generic: g
+                            - generic: a
+                            - generic: i
+                            - generic: "n"
+                            - generic: s
+                            - generic: t
+                          - generic:
+                            - generic: "y"
+                            - generic: o
+                            - generic: u
+                            - generic: r
+                          - generic:
+                            - generic: o
+                            - generic: w
+                            - generic: "n"
+                          - generic:
+                            - generic: d
+                            - generic: o
+                            - generic: c
+                            - generic: u
+                            - generic: m
+                            - generic: e
+                            - generic: "n"
+                            - generic: t
+                            - generic: s
+                            - generic: ","
+                          - generic:
+                            - generic: w
+                            - generic: i
+                            - generic: t
+                            - generic: h
+                          - generic:
+                            - generic: O
+                            - generic: p
+                            - generic: e
+                            - generic: "n"
+                            - generic: A
+                            - generic: I
+                            - generic: "-"
+                            - generic: p
+                            - generic: o
+                            - generic: w
+                            - generic: e
+                            - generic: r
+                            - generic: e
+                            - generic: d
+                          - generic:
+                            - generic: c
+                            - generic: o
+                            - generic: "n"
+                            - generic: v
+                            - generic: e
+                            - generic: r
+                            - generic: s
+                            - generic: a
+                            - generic: t
+                            - generic: i
+                            - generic: o
+                            - generic: "n"
+                          - generic:
+                            - generic: b
+                            - generic: e
+                            - generic: h
+                            - generic: i
+                            - generic: "n"
+                            - generic: d
+                          - generic:
+                            - generic: F
+                            - generic: i
+                            - generic: r
+                            - generic: e
+                            - generic: b
+                            - generic: a
+                            - generic: s
+                            - generic: e
+                          - generic:
+                            - generic: a
+                            - generic: u
+                            - generic: t
+                            - generic: h
+                            - generic: ","
+                          - generic:
+                            - generic: c
+                            - generic: u
+                            - generic: t
+                            - generic: t
+                            - generic: i
+                            - generic: "n"
+                            - generic: g
+                          - generic:
+                            - generic: m
+                            - generic: a
+                            - generic: "n"
+                            - generic: u
+                            - generic: a
+                            - generic: l
+                          - generic:
+                            - generic: d
+                            - generic: o
+                            - generic: c
+                            - generic: u
+                            - generic: m
+                            - generic: e
+                            - generic: "n"
+                            - generic: t
+                          - generic:
+                            - generic: a
+                            - generic: "n"
+                            - generic: a
+                            - generic: l
+                            - generic: "y"
+                            - generic: s
+                            - generic: i
+                            - generic: s
+                          - generic:
+                            - generic: b
+                            - generic: "y"
+                          - generic:
+                            - generic: "9"
+                            - generic: "0"
+                            - generic: "%"
+                            - generic: .
+                    - list:
+                      - listitem: Flutter
+                      - listitem: Dart
+                      - listitem: OpenAI API
+                      - listitem: Firebase
+        - generic [ref=f6e157]:
+          - generic [ref=f6e158]:
+            - paragraph [ref=f6e159]:
+              - generic "Mobile AI assistant" [ref=f6e160]:
+                - generic [ref=f6e161]:
+                  - generic [ref=f6e784]: M
+                  - generic [ref=f6e785]: o
+                  - generic [ref=f6e786]: b
+                  - generic [ref=f6e787]: i
+                  - generic [ref=f6e788]: l
+                  - generic [ref=f6e789]: e
+                - generic [ref=f6e162]:
+                  - generic [ref=f6e790]: A
+                  - generic [ref=f6e791]: I
+                - generic [ref=f6e163]:
+                  - generic [ref=f6e792]: a
+                  - generic [ref=f6e793]: s
+                  - generic [ref=f6e794]: s
+                  - generic [ref=f6e795]: i
+                  - generic [ref=f6e796]: s
+                  - generic [ref=f6e797]: t
+                  - generic [ref=f6e798]: a
+                  - generic [ref=f6e799]: "n"
+                  - generic [ref=f6e800]: t
+            - heading [level=3] [ref=f6e164]:
+              - generic "BU-GPT" [ref=f6e165]:
+                - generic [ref=f6e166]:
+                  - generic [ref=f6e801]: B
+                  - generic [ref=f6e802]: U
+                  - generic [ref=f6e803]: "-"
+                  - generic [ref=f6e804]: G
+                  - generic [ref=f6e805]: P
+                  - generic [ref=f6e806]: T
+            - paragraph [ref=f6e167]:
+              - generic "A Flutter assistant that answers questions against your own documents, with OpenAI-powered conversation behind Firebase auth, cutting manual document analysis by 90%." [ref=f6e168]:
+                - generic [ref=f6e169]: A
+                - generic [ref=f6e170]:
+                  - generic [ref=f6e808]: F
+                  - generic [ref=f6e809]: l
+                  - generic [ref=f6e810]: u
+                  - generic [ref=f6e811]: t
+                  - generic [ref=f6e812]: t
+                  - generic [ref=f6e813]: e
+                  - generic [ref=f6e814]: r
+                - generic [ref=f6e171]:
+                  - generic [ref=f6e815]: a
+                  - generic [ref=f6e816]: s
+                  - generic [ref=f6e817]: s
+                  - generic [ref=f6e818]: i
+                  - generic [ref=f6e819]: s
+                  - generic [ref=f6e820]: t
+                  - generic [ref=f6e821]: a
+                  - generic [ref=f6e822]: "n"
+                  - generic [ref=f6e823]: t
+                - generic [ref=f6e172]:
+                  - generic [ref=f6e824]: t
+                  - generic [ref=f6e825]: h
+                  - generic [ref=f6e826]: a
+                  - generic [ref=f6e827]: t
+                - generic [ref=f6e173]:
+                  - generic [ref=f6e828]: a
+                  - generic [ref=f6e829]: "n"
+                  - generic [ref=f6e830]: s
+                  - generic [ref=f6e831]: w
+                  - generic [ref=f6e832]: e
+                  - generic [ref=f6e833]: r
+                  - generic [ref=f6e834]: s
+                - generic [ref=f6e174]:
+                  - generic [ref=f6e835]: q
+                  - generic [ref=f6e836]: u
+                  - generic [ref=f6e837]: e
+                  - generic [ref=f6e838]: s
+                  - generic [ref=f6e839]: t
+                  - generic [ref=f6e840]: i
+                  - generic [ref=f6e841]: o
+                  - generic [ref=f6e842]: "n"
+                  - generic [ref=f6e843]: s
+                - generic [ref=f6e175]:
+                  - generic [ref=f6e844]: a
+                  - generic [ref=f6e845]: g
+                  - generic [ref=f6e846]: a
+                  - generic [ref=f6e847]: i
+                  - generic [ref=f6e848]: "n"
+                  - generic [ref=f6e849]: s
+                  - generic [ref=f6e850]: t
+                - generic [ref=f6e176]:
+                  - generic [ref=f6e851]: "y"
+                  - generic [ref=f6e852]: o
+                  - generic [ref=f6e853]: u
+                  - generic [ref=f6e854]: r
+                - generic [ref=f6e177]:
+                  - generic [ref=f6e855]: o
+                  - generic [ref=f6e856]: w
+                  - generic [ref=f6e857]: "n"
+                - generic [ref=f6e178]:
+                  - generic [ref=f6e858]: d
+                  - generic [ref=f6e859]: o
+                  - generic [ref=f6e860]: c
+                  - generic [ref=f6e861]: u
+                  - generic [ref=f6e862]: m
+                  - generic [ref=f6e863]: e
+                  - generic [ref=f6e864]: "n"
+                  - generic [ref=f6e865]: t
+                  - generic [ref=f6e866]: s
+                  - generic [ref=f6e867]: ","
+                - generic [ref=f6e179]:
+                  - generic [ref=f6e868]: w
+                  - generic [ref=f6e869]: i
+                  - generic [ref=f6e870]: t
+                  - generic [ref=f6e871]: h
+                - generic [ref=f6e180]:
+                  - generic [ref=f6e872]: O
+                  - generic [ref=f6e873]: p
+                  - generic [ref=f6e874]: e
+                  - generic [ref=f6e875]: "n"
+                  - generic [ref=f6e876]: A
+                  - generic [ref=f6e877]: I
+                  - generic [ref=f6e878]: "-"
+                  - generic [ref=f6e879]: p
+                  - generic [ref=f6e880]: o
+                  - generic [ref=f6e881]: w
+                  - generic [ref=f6e882]: e
+                  - generic [ref=f6e883]: r
+                  - generic [ref=f6e884]: e
+                  - generic [ref=f6e885]: d
+                - generic [ref=f6e181]:
+                  - generic [ref=f6e886]: c
+                  - generic [ref=f6e887]: o
+                  - generic [ref=f6e888]: "n"
+                  - generic [ref=f6e889]: v
+                  - generic [ref=f6e890]: e
+                  - generic [ref=f6e891]: r
+                  - generic [ref=f6e892]: s
+                  - generic [ref=f6e893]: a
+                  - generic [ref=f6e894]: t
+                  - generic [ref=f6e895]: i
+                  - generic [ref=f6e896]: o
+                  - generic [ref=f6e897]: "n"
+                - generic [ref=f6e182]:
+                  - generic [ref=f6e898]: b
+                  - generic [ref=f6e899]: e
+                  - generic [ref=f6e900]: h
+                  - generic [ref=f6e901]: i
+                  - generic [ref=f6e902]: "n"
+                  - generic [ref=f6e903]: d
+                - generic [ref=f6e183]:
+                  - generic [ref=f6e904]: F
+                  - generic [ref=f6e905]: i
+                  - generic [ref=f6e906]: r
+                  - generic [ref=f6e907]: e
+                  - generic [ref=f6e908]: b
+                  - generic [ref=f6e909]: a
+                  - generic [ref=f6e910]: s
+                  - generic [ref=f6e911]: e
+                - generic [ref=f6e184]:
+                  - generic [ref=f6e912]: a
+                  - generic [ref=f6e913]: u
+                  - generic [ref=f6e914]: t
+                  - generic [ref=f6e915]: h
+                  - generic [ref=f6e916]: ","
+                - generic [ref=f6e185]:
+                  - generic [ref=f6e917]: c
+                  - generic [ref=f6e918]: u
+                  - generic [ref=f6e919]: t
+                  - generic [ref=f6e920]: t
+                  - generic [ref=f6e921]: i
+                  - generic [ref=f6e922]: "n"
+                  - generic [ref=f6e923]: g
+                - generic [ref=f6e186]:
+                  - generic [ref=f6e924]: m
+                  - generic [ref=f6e925]: a
+                  - generic [ref=f6e926]: "n"
+                  - generic [ref=f6e927]: u
+                  - generic [ref=f6e928]: a
+                  - generic [ref=f6e929]: l
+                - generic [ref=f6e187]:
+                  - generic [ref=f6e930]: d
+                  - generic [ref=f6e931]: o
+                  - generic [ref=f6e932]: c
+                  - generic [ref=f6e933]: u
+                  - generic [ref=f6e934]: m
+                  - generic [ref=f6e935]: e
+                  - generic [ref=f6e936]: "n"
+                  - generic [ref=f6e937]: t
+                - generic [ref=f6e188]:
+                  - generic [ref=f6e938]: a
+                  - generic [ref=f6e939]: "n"
+                  - generic [ref=f6e940]: a
+                  - generic [ref=f6e941]: l
+                  - generic [ref=f6e942]: "y"
+                  - generic [ref=f6e943]: s
+                  - generic [ref=f6e944]: i
+                  - generic [ref=f6e945]: s
+                - generic [ref=f6e189]:
+                  - generic [ref=f6e946]: b
+                  - generic [ref=f6e947]: "y"
+                - generic [ref=f6e190]:
+                  - generic [ref=f6e948]: "9"
+                  - generic [ref=f6e949]: "0"
+                  - generic [ref=f6e950]: "%"
+                  - generic [ref=f6e951]: .
+          - list [ref=f6e191]:
+            - listitem [ref=f6e192]: Flutter
+            - listitem [ref=f6e193]: Dart
+            - listitem [ref=f6e194]: OpenAI API
+            - listitem [ref=f6e195]: Firebase
+      - article [ref=f6e196]:
+        - link "Kine-sense on GitHub" [ref=f6e197] [cursor=pointer]:
+          - /url: https://github.com/Ambudlahiri144/Kine-sense
+          - generic [ref=f6e198]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - paragraph:
+                        - generic:
+                          - generic:
+                            - generic: V
+                            - generic: i
+                            - generic: d
+                            - generic: e
+                            - generic: o
+                          - generic:
+                            - generic: a
+                            - generic: "n"
+                            - generic: a
+                            - generic: l
+                            - generic: "y"
+                            - generic: t
+                            - generic: i
+                            - generic: c
+                            - generic: s
+                      - heading [level=3]:
+                        - generic:
+                          - generic:
+                            - generic: K
+                            - generic: i
+                            - generic: "n"
+                            - generic: e
+                            - generic: "-"
+                            - generic: s
+                            - generic: e
+                            - generic: "n"
+                            - generic: s
+                            - generic: e
+                      - paragraph:
+                        - generic:
+                          - generic: A
+                          - generic:
+                            - generic: v
+                            - generic: i
+                            - generic: d
+                            - generic: e
+                            - generic: o
+                          - generic:
+                            - generic: a
+                            - generic: "n"
+                            - generic: a
+                            - generic: l
+                            - generic: "y"
+                            - generic: t
+                            - generic: i
+                            - generic: c
+                            - generic: s
+                          - generic:
+                            - generic: p
+                            - generic: l
+                            - generic: a
+                            - generic: t
+                            - generic: f
+                            - generic: o
+                            - generic: r
+                            - generic: m
+                          - generic:
+                            - generic: t
+                            - generic: h
+                            - generic: a
+                            - generic: t
+                          - generic:
+                            - generic: a
+                            - generic: u
+                            - generic: t
+                            - generic: o
+                            - generic: "-"
+                            - generic: c
+                            - generic: a
+                            - generic: t
+                            - generic: e
+                            - generic: g
+                            - generic: o
+                            - generic: r
+                            - generic: i
+                            - generic: s
+                            - generic: e
+                            - generic: s
+                          - generic:
+                            - generic: "9"
+                            - generic: "5"
+                            - generic: "%"
+                          - generic:
+                            - generic: o
+                            - generic: f
+                          - generic:
+                            - generic: i
+                            - generic: "n"
+                            - generic: g
+                            - generic: e
+                            - generic: s
+                            - generic: t
+                            - generic: e
+                            - generic: d
+                          - generic:
+                            - generic: "Y"
+                            - generic: o
+                            - generic: u
+                            - generic: T
+                            - generic: u
+                            - generic: b
+                            - generic: e
+                          - generic:
+                            - generic: c
+                            - generic: o
+                            - generic: "n"
+                            - generic: t
+                            - generic: e
+                            - generic: "n"
+                            - generic: t
+                            - generic: ","
+                          - generic:
+                            - generic: t
+                            - generic: h
+                            - generic: e
+                            - generic: "n"
+                          - generic:
+                            - generic: r
+                            - generic: u
+                            - generic: "n"
+                            - generic: s
+                          - generic:
+                            - generic: l
+                            - generic: i
+                            - generic: v
+                            - generic: e
+                          - generic:
+                            - generic: e
+                            - generic: "n"
+                            - generic: g
+                            - generic: a
+                            - generic: g
+                            - generic: e
+                            - generic: m
+                            - generic: e
+                            - generic: "n"
+                            - generic: t
+                          - generic:
+                            - generic: i
+                            - generic: "n"
+                            - generic: f
+                            - generic: e
+                            - generic: r
+                            - generic: e
+                            - generic: "n"
+                            - generic: c
+                            - generic: e
+                          - generic:
+                            - generic: t
+                            - generic: h
+                            - generic: r
+                            - generic: o
+                            - generic: u
+                            - generic: g
+                            - generic: h
+                          - generic:
+                            - generic: D
+                            - generic: j
+                            - generic: a
+                            - generic: "n"
+                            - generic: g
+                            - generic: o
+                          - generic:
+                            - generic: C
+                            - generic: h
+                            - generic: a
+                            - generic: "n"
+                            - generic: "n"
+                            - generic: e
+                            - generic: l
+                            - generic: s
+                            - generic: .
+                    - list:
+                      - listitem: Streamlit
+                      - listitem: Django
+                      - listitem: Python
+                      - listitem: SQLite
+                      - listitem: Daphne
+                      - listitem: Youtube API
+        - generic [ref=f6e199]:
+          - generic [ref=f6e200]:
+            - paragraph [ref=f6e201]:
+              - generic "Video analytics" [ref=f6e202]:
+                - generic [ref=f6e203]:
+                  - generic [ref=f6e952]: V
+                  - generic [ref=f6e953]: i
+                  - generic [ref=f6e954]: d
+                  - generic [ref=f6e955]: e
+                  - generic [ref=f6e956]: o
+                - generic [ref=f6e204]:
+                  - generic [ref=f6e957]: a
+                  - generic [ref=f6e958]: "n"
+                  - generic [ref=f6e959]: a
+                  - generic [ref=f6e960]: l
+                  - generic [ref=f6e961]: "y"
+                  - generic [ref=f6e962]: t
+                  - generic [ref=f6e963]: i
+                  - generic [ref=f6e964]: c
+                  - generic [ref=f6e965]: s
+            - heading [level=3] [ref=f6e205]:
+              - generic "Kine-sense" [ref=f6e206]:
+                - generic [ref=f6e207]:
+                  - generic [ref=f6e966]: K
+                  - generic [ref=f6e967]: i
+                  - generic [ref=f6e968]: "n"
+                  - generic [ref=f6e969]: e
+                  - generic [ref=f6e970]: "-"
+                  - generic [ref=f6e971]: s
+                  - generic [ref=f6e972]: e
+                  - generic [ref=f6e973]: "n"
+                  - generic [ref=f6e974]: s
+                  - generic [ref=f6e975]: e
+            - paragraph [ref=f6e208]:
+              - generic "A video analytics platform that auto-categorises 95% of ingested YouTube content, then runs live engagement inference through Django Channels." [ref=f6e209]:
+                - generic [ref=f6e210]: A
+                - generic [ref=f6e211]:
+                  - generic [ref=f6e977]: v
+                  - generic [ref=f6e978]: i
+                  - generic [ref=f6e979]: d
+                  - generic [ref=f6e980]: e
+                  - generic [ref=f6e981]: o
+                - generic [ref=f6e212]:
+                  - generic [ref=f6e982]: a
+                  - generic [ref=f6e983]: "n"
+                  - generic [ref=f6e984]: a
+                  - generic [ref=f6e985]: l
+                  - generic [ref=f6e986]: "y"
+                  - generic [ref=f6e987]: t
+                  - generic [ref=f6e988]: i
+                  - generic [ref=f6e989]: c
+                  - generic [ref=f6e990]: s
+                - generic [ref=f6e213]:
+                  - generic [ref=f6e991]: p
+                  - generic [ref=f6e992]: l
+                  - generic [ref=f6e993]: a
+                  - generic [ref=f6e994]: t
+                  - generic [ref=f6e995]: f
+                  - generic [ref=f6e996]: o
+                  - generic [ref=f6e997]: r
+                  - generic [ref=f6e998]: m
+                - generic [ref=f6e214]:
+                  - generic [ref=f6e999]: t
+                  - generic [ref=f6e1000]: h
+                  - generic [ref=f6e1001]: a
+                  - generic [ref=f6e1002]: t
+                - generic [ref=f6e215]:
+                  - generic [ref=f6e1003]: a
+                  - generic [ref=f6e1004]: u
+                  - generic [ref=f6e1005]: t
+                  - generic [ref=f6e1006]: o
+                  - generic [ref=f6e1007]: "-"
+                  - generic [ref=f6e1008]: c
+                  - generic [ref=f6e1009]: a
+                  - generic [ref=f6e1010]: t
+                  - generic [ref=f6e1011]: e
+                  - generic [ref=f6e1012]: g
+                  - generic [ref=f6e1013]: o
+                  - generic [ref=f6e1014]: r
+                  - generic [ref=f6e1015]: i
+                  - generic [ref=f6e1016]: s
+                  - generic [ref=f6e1017]: e
+                  - generic [ref=f6e1018]: s
+                - generic [ref=f6e216]:
+                  - generic [ref=f6e1019]: "9"
+                  - generic [ref=f6e1020]: "5"
+                  - generic [ref=f6e1021]: "%"
+                - generic [ref=f6e217]:
+                  - generic [ref=f6e1022]: o
+                  - generic [ref=f6e1023]: f
+                - generic [ref=f6e218]:
+                  - generic [ref=f6e1024]: i
+                  - generic [ref=f6e1025]: "n"
+                  - generic [ref=f6e1026]: g
+                  - generic [ref=f6e1027]: e
+                  - generic [ref=f6e1028]: s
+                  - generic [ref=f6e1029]: t
+                  - generic [ref=f6e1030]: e
+                  - generic [ref=f6e1031]: d
+                - generic [ref=f6e219]:
+                  - generic [ref=f6e1032]: "Y"
+                  - generic [ref=f6e1033]: o
+                  - generic [ref=f6e1034]: u
+                  - generic [ref=f6e1035]: T
+                  - generic [ref=f6e1036]: u
+                  - generic [ref=f6e1037]: b
+                  - generic [ref=f6e1038]: e
+                - generic [ref=f6e220]:
+                  - generic [ref=f6e1039]: c
+                  - generic [ref=f6e1040]: o
+                  - generic [ref=f6e1041]: "n"
+                  - generic [ref=f6e1042]: t
+                  - generic [ref=f6e1043]: e
+                  - generic [ref=f6e1044]: "n"
+                  - generic [ref=f6e1045]: t
+                  - generic [ref=f6e1046]: ","
+                - generic [ref=f6e221]:
+                  - generic [ref=f6e1047]: t
+                  - generic [ref=f6e1048]: h
+                  - generic [ref=f6e1049]: e
+                  - generic [ref=f6e1050]: "n"
+                - generic [ref=f6e222]:
+                  - generic [ref=f6e1051]: r
+                  - generic [ref=f6e1052]: u
+                  - generic [ref=f6e1053]: "n"
+                  - generic [ref=f6e1054]: s
+                - generic [ref=f6e223]:
+                  - generic [ref=f6e1055]: l
+                  - generic [ref=f6e1056]: i
+                  - generic [ref=f6e1057]: v
+                  - generic [ref=f6e1058]: e
+                - generic [ref=f6e224]:
+                  - generic [ref=f6e1059]: e
+                  - generic [ref=f6e1060]: "n"
+                  - generic [ref=f6e1061]: g
+                  - generic [ref=f6e1062]: a
+                  - generic [ref=f6e1063]: g
+                  - generic [ref=f6e1064]: e
+                  - generic [ref=f6e1065]: m
+                  - generic [ref=f6e1066]: e
+                  - generic [ref=f6e1067]: "n"
+                  - generic [ref=f6e1068]: t
+                - generic [ref=f6e225]:
+                  - generic [ref=f6e1069]: i
+                  - generic [ref=f6e1070]: "n"
+                  - generic [ref=f6e1071]: f
+                  - generic [ref=f6e1072]: e
+                  - generic [ref=f6e1073]: r
+                  - generic [ref=f6e1074]: e
+                  - generic [ref=f6e1075]: "n"
+                  - generic [ref=f6e1076]: c
+                  - generic [ref=f6e1077]: e
+                - generic [ref=f6e226]:
+                  - generic [ref=f6e1078]: t
+                  - generic [ref=f6e1079]: h
+                  - generic [ref=f6e1080]: r
+                  - generic [ref=f6e1081]: o
+                  - generic [ref=f6e1082]: u
+                  - generic [ref=f6e1083]: g
+                  - generic [ref=f6e1084]: h
+                - generic [ref=f6e227]:
+                  - generic [ref=f6e1085]: D
+                  - generic [ref=f6e1086]: j
+                  - generic [ref=f6e1087]: a
+                  - generic [ref=f6e1088]: "n"
+                  - generic [ref=f6e1089]: g
+                  - generic [ref=f6e1090]: o
+                - generic [ref=f6e228]:
+                  - generic [ref=f6e1091]: C
+                  - generic [ref=f6e1092]: h
+                  - generic [ref=f6e1093]: a
+                  - generic [ref=f6e1094]: "n"
+                  - generic [ref=f6e1095]: "n"
+                  - generic [ref=f6e1096]: e
+                  - generic [ref=f6e1097]: l
+                  - generic [ref=f6e1098]: s
+                  - generic [ref=f6e1099]: .
+          - list [ref=f6e229]:
+            - listitem [ref=f6e230]: Streamlit
+            - listitem [ref=f6e231]: Django
+            - listitem [ref=f6e232]: Python
+            - listitem [ref=f6e233]: SQLite
+            - listitem [ref=f6e234]: Daphne
+            - listitem [ref=f6e235]: Youtube API
+    - generic [ref=f6e237]:
+      - heading "Contact" [level=2] [ref=f6e240]
+      - generic:
+        - generic:
+          - heading "Still here?" [level=3]
+      - generic:
+        - generic:
+          - heading "Take a sip" [level=3]
+      - generic:
+        - generic:
+          - heading "Let's connect" [level=3]
+      - generic [ref=f6e242]:
+        - heading "Drop a message" [level=3] [ref=f6e1100]
+        - tablist "What brings you here" [ref=f6e1101]:
+          - tab "Feedback" [selected] [ref=f6e1102] [cursor=pointer]
+          - tab "Connect" [ref=f6e1103] [cursor=pointer]
+          - tab "Hire me" [ref=f6e1104] [cursor=pointer]
+        - tabpanel "Feedback" [ref=f6e1105]:
+          - generic [ref=f6e249]:
+            - heading "How did the site land?" [level=4] [ref=f6e1106]
+            - generic [ref=f6e251]:
+              - paragraph [ref=f6e252]: Anything that felt good, anything that broke, anything you would have done differently. Blunt is fine.
+              - generic [ref=f6e253]:
+                - generic [ref=f6e254]:
+                  - generic [ref=f6e255]:
+                    - generic [ref=f6e256]: Name
+                    - textbox "Name" [ref=f6e1107]
+                  - generic [ref=f6e258]:
+                    - generic [ref=f6e259]: Email
+                    - textbox "Email" [ref=f6e1108]
+                - generic [ref=f6e261]:
+                  - generic [ref=f6e262]: Your comment
+                  - textbox "Your comment" [ref=f6e1109]
+                - generic [ref=f6e264]:
+                  - button "Send message" [ref=f6e1110] [cursor=pointer]
+                  - status
+  - contentinfo [ref=f6e267]:
+    - generic [ref=f6e269]:
+      - generic [ref=f6e270]:
+        - paragraph [ref=f6e271]: Ambud Lahiri
+        - generic [ref=f6e272]:
+          - paragraph: Ambud Lahiri
+      - generic [ref=f6e273]:
+        - paragraph [ref=f6e274]: Full-stack Engineer
+        - paragraph [ref=f6e275]: Currently at Dataflow Group
+      - navigation "Footer" [ref=f6e276]:
+        - generic [ref=f6e277]:
+          - heading "Explore" [level=2] [ref=f6e278]
+          - list [ref=f6e279]:
+            - listitem [ref=f6e280]:
+              - link "Home" [ref=f6e281] [cursor=pointer]:
+                - /url: /#top
+            - listitem [ref=f6e282]:
+              - link "About" [ref=f6e283] [cursor=pointer]:
+                - /url: /#about
+            - listitem [ref=f6e284]:
+              - link "Projects" [ref=f6e285] [cursor=pointer]:
+                - /url: /#projects
+            - listitem [ref=f6e286]:
+              - link "Contact" [ref=f6e287] [cursor=pointer]:
+                - /url: /#contact
+            - listitem [ref=f6e288]:
+              - link "Experience" [ref=f6e289] [cursor=pointer]:
+                - /url: /experience
+        - generic [ref=f6e290]:
+          - heading "Work" [level=2] [ref=f6e291]
+          - list [ref=f6e292]:
+            - listitem [ref=f6e293]:
+              - link "Murmur" [ref=f6e294] [cursor=pointer]:
+                - /url: https://github.com/Ambudlahiri144/Murmur
+            - listitem [ref=f6e295]:
+              - link "Bail Reckoner" [ref=f6e296] [cursor=pointer]:
+                - /url: https://github.com/Ambudlahiri144/Sudo_bail
+            - listitem [ref=f6e297]:
+              - link "BU-GPT" [ref=f6e298] [cursor=pointer]:
+                - /url: https://github.com/Ambudlahiri144/BU-GPT
+            - listitem [ref=f6e299]:
+              - link "Kine-sense" [ref=f6e300] [cursor=pointer]:
+                - /url: https://github.com/Ambudlahiri144/Kine-sense
+        - generic [ref=f6e301]:
+          - heading "Connect" [level=2] [ref=f6e302]
+          - list [ref=f6e303]:
+            - listitem [ref=f6e304]:
+              - link "GitHub" [ref=f6e305] [cursor=pointer]:
+                - /url: https://github.com/Ambudlahiri144
+            - listitem [ref=f6e308]:
+              - link "LinkedIn" [ref=f6e309] [cursor=pointer]:
+                - /url: https://www.linkedin.com/in/ambud-lahiri/
+            - listitem [ref=f6e312]:
+              - link "Instagram" [ref=f6e313] [cursor=pointer]:
+                - /url: https://www.instagram.com/ambudlahiri_004/
+            - listitem [ref=f6e316]:
+              - link "LeetCode" [ref=f6e317] [cursor=pointer]:
+                - /url: https://leetcode.com/u/Ambudlahiri144/
+            - listitem [ref=f6e320]:
+              - link "Email" [ref=f6e321] [cursor=pointer]:
+                - /url: mailto:ambudlahiriofficial@outlook.com
+      - generic [ref=f6e324]:
+        - paragraph [ref=f6e325]:
+          - img [ref=f6e327]:
+            - generic [ref=f6e329]: AL
+          - text: ©
+          - generic [ref=f6e330]: "2026"
+          - text: Ambud Lahiri
+        - link "Back to top" [ref=f6e331] [cursor=pointer]:
+          - /url: /#top
+  - navigation "Sections" [ref=f6e335]:
+    - list [ref=f6e336]:
+      - listitem
+      - listitem [ref=f6e337]:
+        - link [ref=f6e338] [cursor=pointer]:
+          - /url: /#top
+      - listitem [ref=f6e344]:
+        - link [ref=f6e345] [cursor=pointer]:
+          - /url: /#about
+      - listitem [ref=f6e350]:
+        - link [ref=f6e351] [cursor=pointer]:
+          - /url: /#projects
+      - listitem [ref=f6e355]:
+        - link [ref=f6e356] [cursor=pointer]:
+          - /url: /#contact
+      - listitem [ref=f6e360]
+      - listitem [ref=f6e361]:
+        - button "Switch to dark theme" [active] [ref=f6e1111] [cursor=pointer]:
+          - generic [ref=f6e368]: Light
+  - alert [ref=f6e393]

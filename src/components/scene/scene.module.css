@@ -1,0 +1,221 @@
+/* ==================================================================
+   SCENE SURFACES
+
+   The shared pieces every section of the journey is built from. There
+   is no WebGL here and there is none anywhere in the journey.
+
+   WHY NOT. The site used to fold a screen in three.js, and that needed
+   a renderer because the geometry was real: six hinged panels turning
+   independently. Nothing here is that. Every section is one full-bleed
+   image with a camera move already rendered into it, so the only 3D
+   left to do in the browser is move flat planes through a perspective,
+   which CSS does natively, on the compositor, with correct perspective
+   division and no context to lose. Dropping three took 897 lines and a
+   520 KB chunk out of the site and changed nothing on screen.
+   ================================================================== */
+
+/* ---- the stage ------------------------------------------------------
+   A section's viewport. Everything inside sits in ONE perspective, so
+   the backdrop, the copy over it and the transition all share a camera
+   rather than each inventing their own vanishing point.
+
+   The origin sits a little above centre because that is where a
+   standing person's eye is, and it is where every one of the supplied
+   camera moves put its horizon. */
+.stage {
+    position: relative;
+    overflow: hidden;
+    perspective: 1400px;
+    perspective-origin: 50% 44%;
+    transform-style: preserve-3d;
+    background: var(--bg);
+}
+
+/* ---- the world ------------------------------------------------------
+   The full-bleed plate: a frame of the sequence, or a still backdrop.
+
+   `cover`, never `contain`. These are places, not pictures: a letterbox
+   would put the page's own colour inside the world and break the one
+   thing the whole revamp is for. Anything important is composed away
+   from the edges in the source. */
+.plate {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transform-origin: 50% 50%;
+    will-change: transform;
+}
+
+/* Held ready but never shown. The sequence canvas keeps painting because
+   something downstream reads it; nothing looks at it directly.
+   `visibility` rather than `display:none` so it keeps a layout box, which
+   the paint loop measures every frame. */
+.offscreen {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* ---- depth ----------------------------------------------------------
+   Layers that sit in front of the world at real z, so a scroll or a
+   pointer move parts them. The numbers are small on purpose: a plate at
+   -400px through a 1400px perspective is already a noticeable push, and
+   anything more starts to read as a zoom rather than as a room. */
+.far {
+    transform: translateZ(-260px) scale(1.24);
+}
+
+.mid {
+    transform: translateZ(-90px) scale(1.07);
+}
+
+.near {
+    position: relative;
+    z-index: 2;
+    transform: translateZ(40px);
+}
+
+/* ---- air ------------------------------------------------------------
+   One gradient over every world, and it does two jobs at once.
+
+   It darkens the bottom, where the dock floats and where copy usually
+   sits, so white text has somewhere to live on any frame regardless of
+   what the camera happens to be pointing at. And it fades the very top
+   into the page, so a section that is taller than its plate does not
+   show a hard horizon line where the image stops.
+
+   Tinted from --bg, so the mountain's haze is warm and the city's is
+   cold without a second rule. */
+.air {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(to bottom,
+            color-mix(in srgb, var(--bg) 55%, transparent) 0%,
+            transparent 22%,
+            transparent 46%,
+            color-mix(in srgb, var(--bg) 72%, transparent) 100%);
+}
+
+/* A heavier version for sections that carry a lot of text over the world. */
+.airDeep {
+    background:
+        linear-gradient(to bottom,
+            color-mix(in srgb, var(--bg) 62%, transparent) 0%,
+            transparent 26%,
+            color-mix(in srgb, var(--bg) 40%, transparent) 62%,
+            color-mix(in srgb, var(--bg) 88%, transparent) 100%);
+}
+
+/* ---- the scrim ------------------------------------------------------
+   A soft dark wash behind a block of copy, and the only reliable way to
+   put type on footage.
+
+   The air above is tinted from --bg, which is right for blending a
+   section's edges into the page and useless for legibility, because in
+   the light world --bg is nearly white: it brightens exactly the area
+   the text needs darkened. And the world underneath is not one value to
+   design against. The mountain runs from black cedar shadow to a blown
+   highlight looking straight into the sun, sometimes inside one frame.
+
+   So this is a fixed near-black, not a token, angled from whichever
+   side the copy sits on and falling away to nothing by the middle of
+   the frame. It is the lower-third gradient every piece of broadcast
+   television has used for fifty years, for exactly this reason. */
+.scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(100deg,
+            rgb(8 10 16 / 0.78) 0%,
+            rgb(8 10 16 / 0.62) 24%,
+            rgb(8 10 16 / 0.28) 48%,
+            transparent 68%);
+}
+
+.scrimRight {
+    background: linear-gradient(260deg,
+            rgb(8 10 16 / 0.78) 0%,
+            rgb(8 10 16 / 0.62) 24%,
+            rgb(8 10 16 / 0.28) 48%,
+            transparent 68%);
+}
+
+.scrimCentre {
+    background: radial-gradient(120% 78% at 50% 46%,
+            rgb(8 10 16 / 0.72) 0%,
+            rgb(8 10 16 / 0.5) 42%,
+            transparent 74%);
+}
+
+/* ---- type on a world ------------------------------------------------
+   Copy laid over footage cannot take the page's ink, because the page is
+   not what is behind it. Both worlds are dark where their copy sits, so
+   this is bone in both, with a shadow tuned to survive a lantern passing
+   underneath a word. */
+.onWorld {
+    color: var(--on-world);
+    text-shadow:
+        0 1px 3px rgb(6 8 14 / 0.62),
+        0 0 28px rgb(6 8 14 / 0.45);
+}
+
+.onWorldDim {
+    color: var(--on-world-dim);
+    text-shadow:
+        0 1px 3px rgb(6 8 14 / 0.58),
+        0 0 24px rgb(6 8 14 / 0.4);
+}
+
+/* ==================================================================
+   THE SEAM
+
+   How one place becomes the next.
+
+   Every section's camera is already moving forward when it ends, and
+   the next one's is already moving forward when it starts. So the
+   transition is not an effect laid over the join: it is the join
+   itself, made continuous. The outgoing world keeps travelling toward
+   the viewer and past the lens while the incoming one arrives out of
+   depth behind it.
+
+   It is one element per seam, sitting at the boundary, and it holds
+   nothing: the two sections either side are what is actually seen
+   through it. All this does is carry the near edge of the world above
+   and the far edge of the world below into the same perspective, so
+   they read as one continuous move rather than two shots butted
+   together.
+   ================================================================== */
+
+.seam {
+    position: relative;
+    /* Tall enough for the move to have somewhere to happen, short enough
+       that it is never a section in its own right. */
+    height: 46svh;
+    margin-block: -23svh;
+    z-index: 3;
+    pointer-events: none;
+    perspective: 1400px;
+    perspective-origin: 50% 44%;
+    transform-style: preserve-3d;
+}
+
+/* The haze the two worlds meet inside. Both of them have air in them,
+   so the join between them is air too, and the one place a hard cut
+   would be visible is exactly where this is thickest. */
+.seamAir {
+    position: absolute;
+    inset: -1px 0;
+    background: linear-gradient(to bottom,
+            transparent 0%,
+            color-mix(in srgb, var(--bg) 82%, transparent) 42%,
+            color-mix(in srgb, var(--bg) 82%, transparent) 58%,
+            transparent 100%);
+}

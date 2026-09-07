@@ -1,11 +1,13 @@
 /* ==================================================================
    PROJECT STACK
 
-   Cards, not images. The reference component stacked <img> elements;
-   there is no project artwork here, so each card is typographic — a
-   number, a title, a claim and the stack it was built on. That also
-   means the cards inherit the site's tokens and respond to the theme,
-   which a set of baked images could not.
+   Four project cards standing in a place: a path climbing through
+   cedar with markers along it by day, a rooftop over four lit towers
+   by night. The cards travel toward the viewer and recede past them.
+
+   The artwork on each card is the project's own image, graded and
+   otherwise untouched: it is the work, so it is the one thing here
+   that is shown rather than styled.
    ================================================================== */
 
 .section {
@@ -40,6 +42,9 @@
 .deck {
     position: absolute;
     inset: 0;
+    /* The cards travel on the z axis now, so the deck has to keep its
+       children in 3D rather than flattening them into its own plane. */
+    transform-style: preserve-3d;
 
     /* Clips the cards still waiting their turn.
 
@@ -57,21 +62,31 @@
     position: absolute;
     inset: 0;
     border-radius: 0;
-    /* The page background itself, not a lifted surface. The card is full-bleed,
-       so its colour IS the section's colour — anything else reintroduces the
-       shade step this change was meant to remove. */
-    background: var(--bg);
+    /* Transparent, so the place shows through.
+
+       This used to be var(--bg), which was right when the card was the
+       section and the section was a flat colour. The section is a path
+       through cedar now, and an opaque card over it would hide the one thing
+       the visitor is supposed to be standing in. Each project card gets its
+       opacity back from its own artwork; the intro card stays clear. */
+    background: transparent;
     /* A hairline rim instead of relying on the drop shadow. On a true black
        page a dark shadow is invisible, so a receded card would have had no
        edge at all. */
+    /* Tinted to the near-black both worlds share underfoot, not to the page,
+       because what a receding card casts its edge against is the world. */
     box-shadow:
-        0 0 0 1px var(--glass-rule),
-        0 24px 60px -24px rgba(0, 0, 0, 0.6);
+        0 0 0 1px rgb(255 255 255 / 0.1),
+        0 30px 70px -28px rgb(6 8 14 / 0.7);
     overflow: hidden;
-    /* Cards are translated from below and scaled as they stack, so the
-       transform origin has to be the top or the shrinking card appears to
-       drift away from the one landing on top of it. */
-    transform-origin: 50% 0%;
+    /* Centre, not the top edge.
+
+       A top origin was right when the card only scaled: it kept the shrinking
+       card pinned under the one arriving over it. It is wrong once the card
+       travels on z, because perspective shrinks it about the origin and a
+       top-anchored card pulls its own bottom edge up off the screen, opening
+       a band of bare world under it halfway through every transition. */
+    transform-origin: 50% 50%;
     will-change: transform;
 }
 
@@ -139,18 +154,40 @@
             rgba(0, 0, 0, 0.78) 36%,
             #000 50%);
 
-    /* LIGHT THEME. The artwork is dark, neon and high-contrast against a
-       near-white card, so it is desaturated and lifted rather than left to
-       punch a hole in the surface — but only lightly. */
-    opacity: 0.8;
-    filter: saturate(0.7) brightness(1.1) contrast(0.82);
+    /* One print, shown at full strength in both themes. There is nothing to
+       fade between and nothing to correct for: it is pigment on paper, and it
+       is the same picture whatever the light in the room. */
+    opacity: 1;
 }
 
-/* DARK THEME — the artwork already belongs here, so it only needs knocking
-   back far enough that white text sits comfortably on top of it. */
-:global(html[data-theme="dark"]) .mediaImg {
-    opacity: 0.7;
-    filter: saturate(0.95) brightness(0.8) contrast(1.02);
+/* The pigment each block is cut in. It appears twice per card and nowhere
+   else: a hairline down the leaf's leading edge, and the rule under the
+   title. Four projects, four pigments, one workshop. */
+.media[data-pigment="ai"] {
+    --pigment: var(--pig-ai);
+}
+
+.media[data-pigment="rokusho"] {
+    --pigment: var(--pig-rokusho);
+}
+
+.media[data-pigment="gunjo"] {
+    --pigment: var(--pig-gunjo);
+}
+
+.media[data-pigment="odo"] {
+    --pigment: var(--pig-odo);
+}
+
+/* The leading edge of the leaf, where the next one is hinged. */
+.media::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: var(--pigment, var(--rule));
+    opacity: 0.85;
+    z-index: 2;
 }
 
 /* A second pass over the top, in the card's own colour. The mask handles the
@@ -163,14 +200,20 @@
    opacity it was set to anywhere on the card. It now clears completely by
    about three-quarters across, and only covers the strip the copy actually
    occupies (roughly 8%-43% of the card's width). */
+/* Near-black, not var(--bg).
+
+   The card colour was the page colour when the card WAS the page. It floats
+   in a world now, so a wash tinted from --bg would brighten the copy column
+   on the mountain and only work at night. Fixed dark, like every other scrim
+   in the site, for the same reason. */
 .scrim {
     position: absolute;
     inset: 0;
     background: linear-gradient(100deg,
-            var(--bg) 0%,
-            color-mix(in srgb, var(--bg) 92%, transparent) 26%,
-            color-mix(in srgb, var(--bg) 62%, transparent) 42%,
-            color-mix(in srgb, var(--bg) 18%, transparent) 58%,
+            rgb(8 10 16 / 0.92) 0%,
+            rgb(8 10 16 / 0.84) 26%,
+            rgb(8 10 16 / 0.58) 42%,
+            rgb(8 10 16 / 0.2) 58%,
             transparent 78%);
 }
 
@@ -198,7 +241,7 @@
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--ink-3);
+    color: color-mix(in srgb, var(--on-world) 62%, transparent);
 }
 
 .cardBody {
@@ -228,14 +271,17 @@
     font-weight: 500;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ink-3);
+    color: color-mix(in srgb, var(--on-world) 62%, transparent);
 }
 
+/* One of the few display moments set in the Mincho. Regular weight: a
+   Mincho carries its character in stroke contrast, not in heaviness. */
 .introTitle {
+    font-family: var(--font-mincho);
     font-size: clamp(2.75rem, 1.5rem + 6vw, 6.5rem);
-    font-weight: 200;
-    line-height: 0.95;
-    letter-spacing: -0.045em;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0;
 }
 
 .introLines {
@@ -250,7 +296,7 @@
     font-size: clamp(0.95rem, 0.9rem + 0.35vw, 1.15rem);
     font-weight: 300;
     line-height: 1.55;
-    color: var(--ink-2);
+    color: var(--on-world-dim);
     text-wrap: pretty;
 }
 
@@ -263,7 +309,7 @@
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--ink-3);
+    color: color-mix(in srgb, var(--on-world) 62%, transparent);
 }
 
 .cardFootRule {
@@ -278,7 +324,7 @@
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--ink-3);
+    color: color-mix(in srgb, var(--on-world) 62%, transparent);
 }
 
 .title {
@@ -294,7 +340,7 @@
     font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.0625rem);
     font-weight: 300;
     line-height: 1.6;
-    color: var(--ink-2);
+    color: var(--on-world-dim);
     text-wrap: pretty;
 }
 
@@ -322,7 +368,7 @@
     font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--ink-2);
+    color: var(--on-world-dim);
     white-space: nowrap;
 }
 
