@@ -23,10 +23,67 @@ export const site = {
 } as const;
 
 /* ------------------------------------------------------------------
-   Scrollytelling hero
+   Video hero
+
+   The top of the page. One screen, one claim, one way forward — the
+   opposite of the scrubbed sequence below it, which asks for seven
+   viewports of scrolling before it says anything.
+
+   Deliberately theme-locked: the footage is a fixed grade on deep navy
+   and cannot follow a palette, so the type and the glass over it stay
+   the same in both themes. Same decision the sequence sections made
+   with #010101, for the same reason.
    ------------------------------------------------------------------ */
 
-export type HeroBeat = {
+export const videoHero = {
+    /* A two-tone heading, not two headings. The lead is white and the rest
+       is muted grey — one sentence whose second half recedes, which is what
+       the reference's <em class="not-italic"> was doing. It is a colour
+       split; the <em> never renders as an italic. */
+    titleLead: "Ambud Lahiri",
+    titleMuted: "builds things that ship.",
+
+    /* Deliberately shares no sentence with about.heading, about.body, or any
+       of the three beats in the sequence below — all of which are on the same
+       page and would be read within a minute of this. Names the stack and
+       stops; the sequence is where the detail lives. */
+    body: "Full-stack engineer with a bias for shipping. React and Next.js on the front, Node, Python and AWS behind it — and a real user at the end of every build.",
+
+    /* Points at the sequence directly below rather than skipping the page.
+       Root-relative so it still resolves from /experience. */
+    ctaLabel: "Begin",
+    ctaHref: "/#about",
+
+    /* Encoded from a supplied 13.4 MB source with ffmpeg — 1.9 MB of H.264
+       and 1.6 MB of VP9, which is the whole reason both exist.
+
+       WebM is listed first because a browser takes the first <source> it can
+       decode, and VP9 is the smaller of the two; the MP4 is the fallback that
+       plays everywhere. The poster is frame 1, and it doubles as the entire
+       hero under reduced motion. */
+    video: {
+        webm: "/hero/hero.webm",
+        mp4: "/hero/hero.mp4",
+        poster: "/hero/hero-poster.webp",
+    },
+
+    /* hsl(201 100% 13%), sampled off the footage. Painted under the video so
+       the section is already the right colour in the moment before the first
+       frame decodes, rather than flashing the page background through. */
+    background: "#002b42",
+} as const;
+
+/* ------------------------------------------------------------------
+   About — the scrollytelling sequence
+
+   This footage opened the page until the video hero above replaced it.
+   It is the About section now: the same three beats, but where it used
+   to end by announcing the name it now ends on what About actually has
+   to say. The name is the hero's job, and doing it twice was the point
+   of moving this.
+   ------------------------------------------------------------------ */
+
+export type AboutBeat = {
     /* Scroll range this beat owns, 0..1 through the sequence. */
     from: number;
     to: number;
@@ -48,14 +105,15 @@ export type HeroBeat = {
 /* Deliberately NOT reusing `about.heading` or `about.body` below.
 
    The first draft of these beats lifted its copy straight from About, which
-   sits one scroll further down the same page — so "I build the whole thing,
-   not just the part that shows" appeared twice within a few seconds of each
-   other, and "systems that stay boring" did too. The hero opens; About
-   explains. They should not say the same sentence.
+   was then a separate section one scroll further down — so "I build the whole
+   thing, not just the part that shows" appeared twice within a few seconds of
+   each other, and "systems that stay boring" did too.
 
-   These lead with the work instead, which leaves the card's identity reveal at
-   the end of the footage as the payoff. */
-export const heroBeats: HeroBeat[] = [
+   That constraint got tighter, not looser, when About moved onto this footage:
+   the copy these must not duplicate is now the closing block of the very same
+   section, forty percent of a scroll away rather than a section away. The
+   beats lead with the work; the outro explains. */
+export const aboutBeats: AboutBeat[] = [
     {
         from: 0.0,
         to: 0.2,
@@ -81,8 +139,11 @@ export const heroBeats: HeroBeat[] = [
 
 /* The converted sequence in /public/hero-motion. `sm` is a 1280-wide set used on
    narrow viewports — 145 frames decoded at 1920x1080 is far more bitmap than a
-   mid-range phone wants to hold. */
-export const heroSequence = {
+   mid-range phone wants to hold.
+
+   The directory is still called hero-motion. It is About's footage now, but
+   renaming it means renaming 290 files to change nothing a visitor can see. */
+export const aboutSequence = {
     count: 145,
     /* Matches the frames exactly, sampled across the sequence. The section
        background must be this value or the image's edges become visible. */
@@ -93,23 +154,13 @@ export const heroSequence = {
 
     /* Where the frame sequence finishes. The footage's own ending — where he
        slides left and a title card fades in — is not in this cut, so the slide
-       and the introduction are done here instead, as real text. */
+       and the closing block are done here instead, as real text. */
     seqEnd: 0.78,
-    /* How far the frame is pushed left to clear space for the introduction,
+    /* How far the frame is pushed left to clear space for the closing block,
        as a fraction of the viewport width. He sits centred at the last frame,
        so this moves him to roughly the left third. */
     slideTo: -0.2,
     slideEnd: 0.94,
-} as const;
-
-/* The closing introduction. Rendered as live text in the same style as the
-   beats above rather than baked into the footage, so it reflows, scales and can
-   be read by a screen reader. */
-export const heroIntro = {
-    eyebrow: "Hi, I'm",
-    name: "Ambud Lahiri",
-    body: "I ship products end to end — schema to pixels, idea to uptime.",
-    from: 0.82,
 } as const;
 
 export const about = {
@@ -121,11 +172,42 @@ export const about = {
         "I work across the stack, from database schema to the last few pixels of a hover state. Most of what I build lives in TypeScript, React and Next.js, sitting on Node and Postgres.",
         "What I care about is the part users feel: pages that load before they notice, interfaces that behave the way they expect, and systems that stay boring under load.",
     ],
-    /* Drop your two portraits into /public with these exact names. */
-    photoLight: "/light.png",
-    photoDark: "/dark.png",
-    photoAlt: "Portrait of Ambud Lahiri",
 } as const;
+
+/* What the footage says once it has played out.
+
+   This is the slot the "Hi, I'm Ambud Lahiri" reveal used to own. The name
+   moved to the video hero at the top of the page, where an introduction
+   belongs, and About's own copy took the space it left — which is the whole
+   point of the restructure: one About section instead of two that agreed with
+   each other.
+
+   `from` sits past seqEnd (0.78), so it fades up over the held final frame
+   rather than competing with moving footage, and holds to the end of the
+   scroll. */
+export const aboutOutro = {
+    eyebrow: about.eyebrow,
+    heading: about.heading,
+    body: about.body,
+    from: 0.82,
+
+    /* Kept as data rather than hardcoded in JSX, because these two are the
+       reason the old About block could not simply be deleted: they are the
+       only route to /experience and the only in-page link to the work that
+       is not the dock. Losing them was the one thing this move could not do.
+
+       `kind` picks the treatment, not the destination — see the buttons in
+       AboutSequence.module.css. */
+    actions: [
+        { id: "experience", label: "Explore more", href: "/experience", kind: "solid" },
+        /* Root-relative, unlike the bare "#projects" this replaces. Inside a
+           scroll-driven overlay a native hash jump fights Lenis outright, so
+           this goes through the same interceptor the dock and footer use. */
+        { id: "projects", label: "My Contributions", href: "/#projects", kind: "ghost" },
+    ],
+} as const;
+
+export type AboutAction = (typeof aboutOutro.actions)[number];
 
 export type NavItem = {
     id: string;

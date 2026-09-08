@@ -1,0 +1,241 @@
+/* ==================================================================
+   VIDEO HERO
+
+   The second place in this codebase that ignores the theme tokens, and
+   for the same reason as the first: the footage behind this type is a
+   fixed grade on deep navy. A palette cannot follow it, so nothing
+   here tries. Every colour below is a literal, and the section is
+   byte-identical in light and dark.
+
+   Do not wire --bg or --ink into this file. In the light theme --ink
+   is #121615, and this whole section sits on a near-black video.
+   ================================================================== */
+
+.hero {
+    position: relative;
+    /* Contains the video's absolute positioning and keeps the CTA's
+       backdrop-filter sampling this section rather than the page behind it. */
+    isolation: isolate;
+    overflow: hidden;
+
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    /* The bottom is heavier than the top on purpose: the dock is fixed across
+       the bottom of every viewport, and the CTA is the last thing in the
+       column. Same clearance reasoning as .beat in AboutSequence. */
+    padding: clamp(6rem, 14vh, 10rem) var(--gutter) clamp(9rem, 18vh, 12rem);
+
+    /* Set inline from videoHero.background so site.ts stays the source of
+       truth. The fallback is the same value, for the render before hydration. */
+    background: var(--hero-bg, #002b42);
+}
+
+/* Both the <video> and the reduced-motion <img> take this class — they are the
+   same picture at the same size, and only one of them is ever in the DOM. */
+.media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    /* cover, not contain. This is a background: a letterbox around it would
+       read as a broken embed rather than as a considered frame. */
+    object-fit: cover;
+}
+
+.inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ==================================================================
+   TYPE
+   ================================================================== */
+
+.title {
+    font-family: var(--font-instrument), ui-serif, Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(3rem, 1.6rem + 6.4vw, 8rem);
+    line-height: 0.95;
+
+    /* The reference specified this as a flat -2.46px. That is about -0.026em
+       at the largest size and a crushing -0.05em at the smallest, because the
+       type scales and a pixel does not. Expressed in em so the tracking holds
+       its proportion all the way down to a phone. */
+    letter-spacing: -0.026em;
+
+    max-width: 80rem;
+    color: #fff;
+    text-wrap: balance;
+}
+
+/* The <em> is upright. Its emphasis is the colour drop, not a slant — an
+   italic serif at 8rem beside an upright one reads as two typefaces. */
+.titleMuted {
+    font-style: normal;
+    color: #a5a5ac;
+}
+
+.sub {
+    margin-top: 2rem;
+    max-width: 42rem;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    font-weight: 400;
+    line-height: 1.625;
+    color: #a5a5ac;
+    text-wrap: pretty;
+}
+
+/* ==================================================================
+   LIQUID GLASS CTA
+   ================================================================== */
+
+.ctaWrap {
+    display: inline-flex;
+    margin-top: 3rem;
+}
+
+.cta {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 1.25rem 3.5rem;
+    border: none;
+    border-radius: 999px;
+
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    white-space: nowrap;
+
+    /* Almost nothing — the tint exists only to give the blend mode something
+       to work with. The glass is the blur and the inset highlight, not a fill. */
+    background: rgba(255, 255, 255, 0.01);
+    background-blend-mode: luminosity;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+
+    transition: transform 200ms var(--ease-out);
+}
+
+/* The rim.
+
+   A border cannot carry a gradient, so this is a 1.4px ring painted as a
+   padding-box inset and then masked hollow — bright at the top and bottom
+   edges, gone through the middle, which is how a curved glass edge catches
+   light. Same xor-mask technique as ProjectLens's conic rim. */
+.cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.45) 0%,
+            rgba(255, 255, 255, 0.15) 20%,
+            rgba(255, 255, 255, 0) 40%,
+            rgba(255, 255, 255, 0) 60%,
+            rgba(255, 255, 255, 0.15) 80%,
+            rgba(255, 255, 255, 0.45) 100%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.cta:hover {
+    transform: scale(1.03);
+}
+
+/* Without this the scale sticks after a tap on a touch screen, because there
+   is nothing to move the pointer away. Same opt-out the About buttons use. */
+@media (hover: none) {
+    .cta:hover {
+        transform: none;
+    }
+}
+
+/* ==================================================================
+   ENTRANCE
+
+   Declared here rather than in globals.css because CSS Modules hash
+   keyframe names — a rule in the global sheet named `fadeRise` would
+   never match this file's `animation: fadeRise` and would fail
+   silently, with no error. See the note in globals.css.
+   ================================================================== */
+
+@keyframes fadeRise {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.title {
+    animation: fadeRise 800ms var(--ease-out) both;
+}
+
+.sub {
+    animation: fadeRise 800ms var(--ease-out) 200ms both;
+}
+
+/* On the WRAPPER, never on .cta itself.
+
+   animation-fill-mode: both retains the final keyframe after the animation
+   ends, and declarations from the animation origin outrank ordinary author
+   declarations in the cascade. Put this on .cta and the retained
+   `transform: none` permanently beats `.cta:hover { transform: scale(1.03) }`
+   — the hover silently stops working, with nothing in the console to say why.
+   Two elements, two transform channels, no conflict. */
+.ctaWrap {
+    animation: fadeRise 800ms var(--ease-out) 400ms both;
+}
+
+/* No prefers-reduced-motion block: globals.css already clamps every animation
+   on the page to 1ms, which collapses all three of these to nothing. The video
+   itself is handled in the component, where the element can be swapped for a
+   still rather than merely stopped. */
+
+/* ==================================================================
+   RESPONSIVE
+   ================================================================== */
+
+@media (max-width: 48rem) {
+    .cta {
+        /* 3.5rem of side padding on a 375px screen leaves the label fighting
+           the gutter. */
+        padding: 1.1rem 2.5rem;
+    }
+
+    .sub {
+        margin-top: 1.5rem;
+    }
+
+    .ctaWrap {
+        margin-top: 2.25rem;
+    }
+}

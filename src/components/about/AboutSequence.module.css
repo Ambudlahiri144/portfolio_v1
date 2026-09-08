@@ -1,0 +1,556 @@
+/* ==================================================================
+   ABOUT — scrollytelling sequence
+
+   Ignores the theme tokens, along with the contact sequence and the
+   video hero. The frames are near-black JPEGs turned WebP, and the
+   section background has to match them exactly (#010101, sampled off
+   the footage) or the 2.29:1 image reads as a visible rectangle
+   floating on the page. A themed background cannot do that, so this
+   section is black in both themes and the projects deck below it
+   carries on as normal.
+
+   That constraint reaches further than it used to. This section now
+   carries the two buttons the old About block owned, and those were
+   written against --ink and --bg — which in the light theme would put
+   a near-black button on near-black footage. Everything below is a
+   literal. See the buttons.
+   ================================================================== */
+
+.wrap {
+    position: relative;
+
+    /* This is the scrub speed control.
+
+       The frame index is a fraction of the distance scrolled through this
+       element, so its height *is* how fast the sequence plays: taller means
+       more scrolling per frame, which means slower. At 4x viewport the 145
+       frames burned through in about 14px of travel each and the animation was
+       over before it could be read. At 7x that is roughly 29px per frame —
+       half the speed, and enough to actually watch. */
+    height: 700vh;
+    background: #010101;
+}
+
+/* No preload trigger element here, unlike the contact sequence.
+
+   A viewport marker cannot gate this section's download: it starts one
+   viewport below the top of the page, so the marker sits on the seam with the
+   hero and any rootMargin intersects it at scroll position zero. The gate is
+   the window load event instead — see subscribeToLoad in AboutSequence.tsx. */
+
+/* A band the exact shape of the frames (1920 x 1080), not a full-height box.
+
+   Previously this was 100svh with the frame contain-fitted inside it, which
+   left a letterbox of dead height above and below baked into the sticky
+   element itself. That was invisible mid-scroll — same black either side — but
+   it showed at the hand-off: the element kept its full viewport height after
+   unpinning, so a strip of empty black sat between the last frame and About.
+
+   Sizing the element to the footage removes that strip. --aspect is set inline
+   from heroSequence.aspect so the CSS and the encoded frames cannot drift. */
+.sticky {
+    --band: min(100svh, calc(100vw / var(--aspect, 1.7778)));
+
+    position: sticky;
+    /* Centred in the viewport while pinned, rather than jammed to the top. */
+    top: calc((100svh - var(--band)) / 2);
+    width: 100%;
+    height: var(--band);
+    overflow: hidden;
+    background: #010101;
+    /* Deliberately no z-index. The dock is position:fixed at z-index 40 and
+       must stay above this; creating a stacking context here with a raised
+       z-index is what would put a full-bleed canvas over the navigation. */
+}
+
+/* The layer that slides. Separate from the canvas so the canvas keeps a stable
+   size for the 2D context while only this wrapper is transformed — resizing the
+   backing buffer mid-animation would clear it every frame. */
+.shift {
+    position: absolute;
+    inset: 0;
+    will-change: transform;
+}
+
+.canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ==================================================================
+   CLOSING BLOCK
+
+   What the footage says once it has played out. This was the "Hi, I'm
+   Ambud Lahiri" reveal; it is About's own copy now, plus the two links
+   that were the whole reason the old About section could not simply be
+   deleted.
+   ================================================================== */
+
+.outro {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-inline: var(--gutter);
+    padding-bottom: 5rem;
+    /* The layer itself never intercepts a click meant for the page. Only the
+       button row opts back in — see .outroActions. */
+    pointer-events: none;
+}
+
+.outroInner {
+    /* Wider than the introduction this replaced (30rem / 42vw). That block was
+       a two-word name and one line; this is a heading, two paragraphs and a
+       button row, and the old measure broke the paragraphs into ribbons. */
+    max-width: min(34rem, 46vw);
+    text-align: right;
+}
+
+.outroEyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.45);
+}
+
+/* Sized for a sentence, not for a name.
+
+   The introduction here ran to clamp(…, 5.75rem) because "Ambud Lahiri" is two
+   words and wanted the stage. The About heading is nine words; at that size it
+   filled the frame and pushed everything under it off the bottom. */
+.outroHeading {
+    margin-top: 0.9rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(1.6rem, 1rem + 2.6vw, 3rem);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    color: rgb(255 255 255 / 0.92);
+    text-wrap: balance;
+}
+
+.outroBody {
+    margin-top: 1rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(0.9rem, 0.85rem + 0.3vw, 1.0625rem);
+    font-weight: 300;
+    line-height: 1.6;
+    color: rgb(255 255 255 / 0.6);
+    text-wrap: pretty;
+}
+
+/* ==================================================================
+   BUTTONS
+
+   Migrated from About.module.css with their box metrics intact and
+   every colour replaced.
+
+   The originals were `background: var(--ink); color: var(--bg)` and
+   `border-color: var(--rule); color: var(--ink)`. Those invert with
+   the theme, which was correct on a themed section and is broken here:
+   in the light theme --ink is #121615, so on this section's #010101
+   footage the solid button becomes a black box with black-on-black
+   text and the ghost button's label disappears entirely. This section
+   does not follow the theme, so neither can its buttons.
+   ================================================================== */
+
+.outroActions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+    /* The one part of this overlay that takes a click. The layer above is
+       pointer-events: none so the rest of the frame stays inert. */
+    pointer-events: auto;
+}
+
+.btnSolid,
+.btnGhost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    /* Transparent border on both so the two have identical box metrics and
+       the row does not shift by a pixel between them. */
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    transition:
+        transform 200ms var(--ease-out),
+        background-color 200ms var(--ease),
+        border-color 200ms var(--ease),
+        opacity 200ms var(--ease);
+}
+
+.btnSolid {
+    background: rgb(255 255 255 / 0.92);
+    color: #010101;
+}
+
+.btnGhost {
+    border-color: rgb(255 255 255 / 0.28);
+    color: rgb(255 255 255 / 0.9);
+}
+
+.arrow {
+    width: 15px;
+    height: 15px;
+    transition: transform 240ms var(--ease-out);
+}
+
+.btnSolid:hover,
+.btnGhost:hover {
+    transform: translate3d(0, -2px, 0);
+}
+
+.btnSolid:hover {
+    opacity: 0.9;
+}
+
+.btnSolid:hover .arrow {
+    transform: translate3d(3px, 0, 0);
+}
+
+.btnGhost:hover {
+    border-color: rgb(255 255 255 / 0.55);
+    background: rgb(255 255 255 / 0.07);
+}
+
+/* Nothing moves the pointer away on a touch screen, so the lift would stick
+   after a tap. */
+@media (hover: none) {
+
+    .btnSolid:hover,
+    .btnGhost:hover {
+        transform: none;
+    }
+}
+
+/* ==================================================================
+   BEATS
+   ================================================================== */
+
+/* Positioned with flexbox, never with a transform.
+
+   Framer Motion writes `transform` inline to animate `y`, which silently wins
+   over anything this stylesheet puts there — a `translate(-50%, -50%)` centring
+   trick gets wiped the moment the beat animates, and the block lands wherever
+   `left: 50%` alone put it. Flex alignment leaves the transform channel free
+   for motion to own. */
+.beat {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    padding-inline: var(--gutter);
+    /* Lifts the block off the dock, which is fixed across the bottom. */
+    padding-bottom: 5rem;
+    /* Never intercepts a drag or a click meant for the page. */
+    pointer-events: none;
+}
+
+.beatInner {
+    max-width: min(34rem, 44vw);
+}
+
+.center {
+    justify-content: center;
+    text-align: center;
+}
+
+.center .beatInner {
+    max-width: min(38rem, 60vw);
+}
+
+.left {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.right {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.beatTitle {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(2.25rem, 1.2rem + 4.4vw, 5.5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: rgb(255 255 255 / 0.9);
+    text-wrap: balance;
+}
+
+.beatBody {
+    margin-top: 1.1rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(0.95rem, 0.88rem + 0.4vw, 1.2rem);
+    font-weight: 300;
+    line-height: 1.55;
+    letter-spacing: -0.005em;
+    color: rgb(255 255 255 / 0.6);
+    text-wrap: pretty;
+}
+
+/* ==================================================================
+   SCROLL CUE
+   ================================================================== */
+
+.cue {
+    position: absolute;
+    z-index: 2;
+    left: var(--gutter);
+    bottom: 7.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.45);
+    pointer-events: none;
+}
+
+.cueRule {
+    display: block;
+    width: 34px;
+    height: 1px;
+    background: rgb(255 255 255 / 0.28);
+}
+
+/* ==================================================================
+   LOADER
+
+   A corner readout, not the full-screen black panel with a spinner
+   that used to be here.
+
+   That panel was right while this section opened the page: it had
+   nothing to show until the frames arrived, and blocking was honest.
+   The frames are deferred now — they do not start downloading until
+   the section is close — so a full-bleed opaque loader would flash
+   over the page as you scrolled in, which is worse than showing the
+   footage a beat late. This fills in the corner and lets the frames
+   paint underneath as they arrive.
+   ================================================================== */
+
+.loading {
+    position: absolute;
+    z-index: 3;
+    right: var(--gutter);
+    bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    pointer-events: none;
+}
+
+.loadingBar {
+    display: block;
+    width: 84px;
+    height: 2px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.14);
+    overflow: hidden;
+}
+
+.loadingFill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: rgb(255 255 255 / 0.7);
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 180ms linear;
+}
+
+.loadingText {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.16em;
+    color: rgb(255 255 255 / 0.42);
+    /* Tabular so the readout does not jitter as the digits change. */
+    font-variant-numeric: tabular-nums;
+}
+
+/* ==================================================================
+   REDUCED MOTION — no 700vh, no canvas, no frame loop.
+   ================================================================== */
+
+.static {
+    background: #010101;
+    /* Generous bottom padding so the last beat is not sitting under the dock,
+       which is fixed across the bottom of every viewport. */
+    padding: clamp(4rem, 10vh, 7rem) var(--gutter) clamp(9rem, 16vh, 12rem);
+    display: grid;
+    justify-items: center;
+    gap: clamp(2rem, 5vh, 3.5rem);
+}
+
+.staticImage {
+    width: min(100%, 60rem);
+    height: auto;
+    display: block;
+}
+
+.staticCopy {
+    display: grid;
+    gap: 2rem;
+    max-width: 44rem;
+    width: 100%;
+}
+
+.staticBeat {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.staticTitle {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: rgb(255 255 255 / 0.9);
+}
+
+.staticBody {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: rgb(255 255 255 / 0.6);
+}
+
+/* The closing block in normal flow, separated from the beats by a rule rather
+   than by the forty percent of scroll that separates them on the other branch. */
+.staticOutro {
+    margin-top: 1rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+}
+
+.staticHeading {
+    margin-top: 0.9rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    color: rgb(255 255 255 / 0.92);
+    text-wrap: balance;
+}
+
+/* Left-aligned here, unlike the right-aligned overlay: this branch is an
+   ordinary stacked document, and there is no frame to sit beside. */
+.staticOutro .outroActions {
+    justify-content: flex-start;
+}
+
+/* ==================================================================
+   RESPONSIVE
+
+   The footage is 2.29:1. Contain-fitting that into a portrait phone
+   leaves it a narrow band across the middle with a lot of black above
+   and below — so on narrow screens the beats stop trying to sit beside
+   the subject and move into the empty space under the band instead.
+   ================================================================== */
+
+@media (max-width: 48rem) {
+
+    /* The sticky element goes back to being the full viewport here.
+
+       It is normally sized to the footage exactly, so that no letterbox is
+       baked into the element and no dead strip shows where it hands off to the
+       projects deck. That works because on a wide screen the band is most of
+       the viewport. On a phone the band is about 219px tall, and 219px does
+       not hold a heading, two paragraphs and two buttons — the closing block
+       would be clipped by the overflow.
+
+       Giving it the whole viewport costs nothing visually: the canvas
+       contain-fits the same frame at the same size, and the space that opens
+       up around it is #010101 either way, which is what .wrap was already
+       painting there. */
+    .sticky {
+        top: 0;
+        height: 100svh;
+    }
+
+    .beat,
+    .center,
+    .left,
+    .right {
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 16vh;
+        margin-top: 0;
+        transform: none;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .beatTitle {
+        font-size: clamp(1.75rem, 1.2rem + 3.6vw, 2.75rem);
+    }
+
+    /* Centred over the held final frame rather than beside it. There is no
+       "beside" on a portrait screen, and the slide that clears the right of
+       the stage on a wide one moves the subject off-screen here anyway. */
+    .outro {
+        justify-content: center;
+        align-items: center;
+        padding-bottom: 7rem;
+    }
+
+    /* A scrim, only here.
+
+       On a wide screen the frame slides left and the copy sits in cleared
+       black beside it. There is nowhere to slide to on a phone, so two
+       paragraphs land directly on the subject's face — legible, because the
+       footage is near-black, but muddy where the text crosses him. This sinks
+       the middle of the frame far enough for the type to sit on its own
+       ground, and fades out before the edges so it never reads as a box. */
+    .outro::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center,
+                rgb(1 1 1 / 0.85) 0%,
+                rgb(1 1 1 / 0.62) 55%,
+                transparent 100%);
+        pointer-events: none;
+    }
+
+    .outroInner {
+        /* Above the scrim its own parent paints. */
+        position: relative;
+        z-index: 1;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .outroActions {
+        justify-content: center;
+    }
+
+    .cue {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 6rem;
+    }
+}

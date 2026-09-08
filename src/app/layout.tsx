@@ -4,6 +4,8 @@ import {
   Geist,
   Bricolage_Grotesque,
   Dancing_Script,
+  Instrument_Serif,
+  Inter,
 } from "next/font/google";
 import { site } from "@/lib/site";
 import DockNav from "@/components/Docknav";
@@ -40,6 +42,32 @@ const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-plex-mono",
+  display: "swap",
+});
+
+/* The video hero's headline face, and nothing else on the site.
+
+   Scoped the same way Dancing_Script is: a serif inside a page set entirely in
+   Bricolage is an accent, and it stops reading as one the moment it turns up
+   somewhere a second time. 400 is the only upright weight Google publishes for
+   this family, so there is nothing else to load.
+
+   NOTE the variable name. The reference this came from called it
+   --font-display, which already exists in globals.css and resolves to
+   Bricolage — taking that name would have silently re-faced the entire site. */
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-instrument",
+  display: "swap",
+});
+
+/* Body face for the video hero's subtext and its one button. Also scoped —
+   everything below the hero stays on Bricolage. */
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -98,6 +126,8 @@ export default function RootLayout({
         bricolage.variable,
         plexMono.variable,
         dancingScript.variable,
+        instrumentSerif.variable,
+        inter.variable,
       )}
     >
       <head>
