@@ -1,109 +1,31 @@
 /* ==================================================================
-   SCROLLYTELLING HERO
+   HERO
 
-   Themed like every other section now. It used to be the one place
-   that ignored the tokens, locked to #010101 because the footage was
-   black and the section had to match it or the frame's edges showed.
-   The frames are now rendered by scripts/ink.mjs onto each theme's
-   --bg, so the section simply uses var(--bg) and the edges stay
-   invisible in both themes by construction.
+   A single full-bleed clip, one viewport tall, with nothing over it
+   and no scroll of its own.
+
+   What was here before was a 500vh scrub track carrying three beats,
+   an introduction and a scrim that followed them across the frame,
+   then briefly a 180vh track that pushed the plate toward the viewer
+   as you left. All of it is gone. The section is now the window, and
+   nothing about it moves with the scrollbar.
    ================================================================== */
 
-.wrap {
+.hero {
     position: relative;
-
-    /* The scrub speed control: the frame index is a fraction of the distance
-   scrolled through this element, so its height IS how fast the camera moves.
-
-   500vh across 96 frames is 5.2vh each, which at a 900px viewport is 47
-   pixels of scroll per frame. That is the same feel the old 145-frame
-   sequence had on its 700vh track, at two thirds of the page height and two
-   thirds of the payload, which is what pays for the second world. */
-    height: 500vh;
-    background: var(--bg);
-}
-
-/* A full viewport window into the world.
-
-   This used to be a band the exact height of a 16:9 plate, floating on the
-   page's own colour, because the plate was a picture of something. It is a
-   place now, and a place fills the frame: letterboxing a room would put the
-   page back inside it and undo the point of the revamp. */
-.sticky {
-    position: sticky;
-    top: 0;
     width: 100%;
     height: 100svh;
+    background: var(--bg);
     /* Deliberately no z-index. The dock is position:fixed at z-index 40 and
        must stay above this; creating a stacking context here with a raised
        z-index is what would put a full-bleed plate over the navigation. */
 }
 
-/* The plate's own wrapper, transformed on the z axis as the camera keeps
-   pushing after the footage ends. Separate from the canvas so the canvas
-   keeps a stable backing-store size: resizing it mid-animation clears it. */
-.plateWrap {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    will-change: transform;
-}
-
-
-
-
-
 /* ==================================================================
-   CLOSING INTRODUCTION
+   Visually hidden, but it is the page's real <h1>. The video is
+   aria-hidden decoration, so this is the landing page's only heading.
    ================================================================== */
 
-.intro {
-    position: absolute;
-    transform-style: preserve-3d;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-inline: var(--gutter);
-    padding-bottom: 5rem;
-    pointer-events: none;
-}
-
-.introInner {
-    max-width: min(30rem, 42vw);
-    text-align: right;
-}
-
-.introEyebrow {
-    font-family: var(--font-bricolage), var(--font-display);
-    font-size: clamp(1.1rem, 0.9rem + 1vw, 1.75rem);
-    font-weight: 300;
-    line-height: 1;
-    letter-spacing: -0.02em;
-}
-
-.introName {
-    margin-top: 0.35rem;
-    font-family: var(--font-bricolage), var(--font-display);
-    font-size: clamp(2.4rem, 1.2rem + 4.8vw, 5.75rem);
-    font-weight: 500;
-    line-height: 0.98;
-    letter-spacing: -0.04em;
-    text-wrap: balance;
-}
-
-.introBody {
-    margin-top: 1.1rem;
-    font-family: var(--font-bricolage), var(--font-display);
-    font-size: clamp(0.95rem, 0.88rem + 0.4vw, 1.2rem);
-    font-weight: 300;
-    line-height: 1.55;
-    text-wrap: pretty;
-}
-
-/* Visually hidden, but it is the page's real <h1>. The canvas is aria-hidden
-   decoration, so without this the landing page has no heading at all. */
 .sr {
     position: absolute;
     width: 1px;
@@ -111,216 +33,4 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
-}
-
-/* ==================================================================
-   BEATS
-   ================================================================== */
-
-/* Positioned with flexbox, never with a transform.
-
-   Framer Motion writes `transform` inline to animate `y`, which silently wins
-   over anything this stylesheet puts there — a `translate(-50%, -50%)` centring
-   trick gets wiped the moment the beat animates, and the block lands wherever
-   `left: 50%` alone put it. Flex alignment leaves the transform channel free
-   for motion to own. */
-.beat {
-    position: absolute;
-    transform-style: preserve-3d;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    padding-inline: var(--gutter);
-    /* Lifts the block off the dock, which is fixed across the bottom. */
-    padding-bottom: 5rem;
-    /* Never intercepts a drag or a click meant for the page. */
-    pointer-events: none;
-}
-
-.beatInner {
-    max-width: min(34rem, 44vw);
-}
-
-.center {
-    justify-content: center;
-    text-align: center;
-}
-
-.center .beatInner {
-    max-width: min(38rem, 60vw);
-}
-
-.left {
-    justify-content: flex-start;
-    text-align: left;
-}
-
-.right {
-    justify-content: flex-end;
-    text-align: right;
-}
-
-.beatTitle {
-    font-family: var(--font-bricolage), var(--font-display);
-    font-size: clamp(2.25rem, 1.2rem + 4.4vw, 5.5rem);
-    font-weight: 500;
-    line-height: 0.98;
-    letter-spacing: -0.035em;
-    text-wrap: balance;
-}
-
-.beatBody {
-    margin-top: 1.1rem;
-    font-family: var(--font-bricolage), var(--font-display);
-    font-size: clamp(0.95rem, 0.88rem + 0.4vw, 1.2rem);
-    font-weight: 300;
-    line-height: 1.55;
-    letter-spacing: -0.005em;
-    text-wrap: pretty;
-}
-
-/* ==================================================================
-   LOADER
-   ================================================================== */
-
-.loader {
-    position: absolute;
-    z-index: 3;
-    inset: 0;
-    display: grid;
-    place-content: center;
-    justify-items: center;
-    gap: 1.1rem;
-    background: var(--bg);
-}
-
-.spinner {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 1.5px solid rgb(255 255 255 / 0.18);
-    border-top-color: var(--seal);
-    animation: spin 720ms linear infinite;
-}
-
-.loaderBar {
-    display: block;
-    width: min(210px, 46vw);
-    height: 2px;
-    border-radius: 999px;
-    background: var(--rule);
-    overflow: hidden;
-}
-
-.loaderFill {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: var(--ink);
-    transform-origin: left center;
-    transform: scaleX(0);
-    transition: transform 180ms linear;
-}
-
-.loaderText {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.16em;
-}
-
-/* ==================================================================
-   REDUCED MOTION — no 700vh, no canvas, no frame loop.
-   ================================================================== */
-
-.static {
-    position: relative;
-    background: var(--bg);
-    min-height: 100svh;
-    /* Generous bottom padding so the last beat is not sitting under the dock,
-       which is fixed across the bottom of every viewport. */
-    padding: clamp(4rem, 10vh, 7rem) var(--gutter) clamp(9rem, 16vh, 12rem);
-    display: grid;
-    justify-items: center;
-    gap: clamp(2rem, 5vh, 3.5rem);
-}
-
-/* The reduced-motion branch shows one print, and it is keyed, so it needs a
-   panel to stand on exactly as the scrubbed one does. Without this the figure
-   floats on the page with nothing behind him. */
-.staticImage {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.staticCopy {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    gap: 2rem;
-    max-width: 44rem;
-    width: 100%;
-}
-
-.staticBeat {
-    display: grid;
-    gap: 0.5rem;
-}
-
-.staticTitle {
-    font-family: var(--font-bricolage), var(--font-display);
-    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
-    font-weight: 500;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-    color: var(--ink);
-}
-
-.staticBody {
-    font-family: var(--font-bricolage), var(--font-display);
-    font-size: 1rem;
-    font-weight: 300;
-    line-height: 1.6;
-    color: var(--ink-2);
-}
-
-/* ==================================================================
-   RESPONSIVE
-
-   Contain-fitting 16:9 footage into a portrait phone leaves it a
-   band across the middle with a lot of ground above and below — so
-   on narrow screens the beats stop trying to sit beside the subject
-   and move into the empty space under the band instead.
-   ================================================================== */
-
-@media (max-width: 48rem) {
-
-    .beat,
-    .center,
-    .left,
-    .right {
-        left: 0;
-        right: 0;
-        top: auto;
-        bottom: 16vh;
-        margin-top: 0;
-        transform: none;
-        max-width: 100%;
-        text-align: center;
-    }
-
-    .beatTitle {
-        font-size: clamp(1.75rem, 1.2rem + 3.6vw, 2.75rem);
-    }
-
-    }
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
 }

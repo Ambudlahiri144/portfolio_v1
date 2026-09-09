@@ -1,286 +1,177 @@
 "use client";
 
-import { useRef } from "react";
-import {
-    useScroll,
-    useSpring,
-    useTransform,
-    useMotionValueEvent,
-    motion,
-} from "framer-motion";
-import { useState } from "react";
-import FlipFadeText from "./FlipFadeText";
-import SequenceCanvas from "../sequence/SequenceCanvas";
-import { useFrameSequence } from "../sequence/useFrameSequence";
-import {
-    heroBeats,
-    heroIntro,
-    heroSequence,
-    site,
-    type HeroBeat,
-} from "@/lib/site";
+import { useEffect, useRef } from "react";
+import { site } from "@/lib/site";
 import { useReducedMotion } from "@/lib/useReducedMotion";
-import { useTheme, type Theme } from "@/lib/useTheme";
 import scene from "../scene/scene.module.css";
 import styles from "./SequenceHero.module.css";
 
 /* ==================================================================
    HERO
 
-   The way in. A camera pushing along a path toward a torii gate, and
-   passing under it as the section ends.
+   One viewport, one looping clip, and nothing over it. No scroll track
+   and no scroll-driven motion of any kind: the section is exactly as
+   tall as the window, and scrolling simply leaves it.
 
-   TWO WORLDS. Light is a mountain path at sunrise; dark is a Tokyo back
-   alley in the rain. Both do the same move and arrive at the same gate,
-   so flipping the theme mid-scroll changes the place without changing
-   the shot. That is the whole reason the toggle exists now.
-
-   MOTIVATION, in one sentence: you are walking somewhere, and the site
-   begins by taking you through the entrance rather than showing you a
-   picture of one.
-
-   No WebGL. The camera move is rendered into the footage, so all the
-   browser does is scrub it and lay type over it in a shared perspective.
+   THE CLIP IS NOT THE SUPPLIED FILE. It is public/new_hero_dark.mp4
+   put through scripts/hero-loop.mjs, which closes the loop and evens
+   out the grade. The reasoning and the measurements are in that
+   script. The original is untouched and still on disk.
    ================================================================== */
 
-const { count: FRAME_COUNT, seqEnd: SEQ_END } = heroSequence;
+const SRC = "/new_hero_dark_loop.mp4";
 
-/* One set per world, rendered by scripts/scene.mjs. The theme is part of
-   the path, so a toggle is a different directory rather than a filter over
-   the same pixels. */
-function framePath(i: number, small: boolean, theme: Theme) {
-    const n = String(i + 1).padStart(3, "0");
-    return `/scene/hero/${theme}/${small ? "sm/" : ""}frame-${n}.webp`;
-}
+/* How far before the end the swap happens, in seconds. Two frames at
+   30fps. Long enough that a 60Hz rAF cannot overshoot the end, short
+   enough that the frames it skips are deep inside the dissolve, where
+   the picture is already the one the next pass opens on. */
+const SWAP_LEAD = 0.08;
 
-/* Split into two components on purpose. `useScroll` needs a mounted target
-   and the static branch has no scroll track to measure, so the branch is on
-   the component rather than inside one. */
 export default function SequenceHero() {
-    return useReducedMotion() ? <StaticHero /> : <ScrollHero />;
+    const reduced = useReducedMotion();
+
+    return (
+        <section id="top" className={`${styles.hero} ${scene.stage}`}>
+            {reduced ? <Held /> : <Loop />}
+
+            {/* Never seen, but it is the page's real <h1>. The footage is
+                decorative, so without this the landing page has no heading
+                at all for a screen reader or a crawler. */}
+            <h1 className={styles.sr}>
+                {site.name}. {site.role}. {site.tagline}
+            </h1>
+        </section>
+    );
 }
 
 /* ------------------------------------------------------------------
-   Reduced motion: the arrival, held. The last frame is the moment
-   under the gate, which is the one frame worth keeping if you only
-   keep one.
+   TWO ELEMENTS, NOT ONE WITH loop.
+
+   The `loop` attribute is the obvious way to do this and it is the
+   reason the clip visibly hitched. Watching the media events across
+   three wraps, every single one fired `seeking` AND `waiting` —
+   `waiting` being the element telling you outright that it has run out
+   of data and stopped. The file is 5 MB and fully buffered; it stalls
+   anyway, because looping is implemented as a seek and a seek discards
+   the decode pipeline.
+
+   So playback never seeks. Two elements hold the same clip: one plays
+   while the other sits paused at its first frame, already decoded and
+   already painting that frame. Two frames before the end they trade
+   places. The retired one then rewinds, which is still a seek, but it
+   is off screen with five seconds of slack instead of in front of the
+   viewer with none.
+
+   This only works because the clip's last frame and first frame are
+   now the same picture. On the supplied file the swap would be just as
+   smooth mechanically and just as ugly to look at, which is why the
+   ffmpeg pass and this component are two halves of one fix.
    ------------------------------------------------------------------ */
-function StaticHero() {
-    const theme = useTheme();
-    return (
-        <section id="top" className={styles.static}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                src={framePath(FRAME_COUNT - 1, false, theme)}
-                alt=""
-                aria-hidden="true"
-                className={styles.staticImage}
-            />
-            <div className={styles.staticCopy}>
-                <h1 className={styles.sr}>
-                    {site.name}. {site.role}. {site.tagline}
-                </h1>
-                {heroBeats.map((beat) => (
-                    <div key={beat.title} className={styles.staticBeat}>
-                        <h2 className={styles.staticTitle}>{beat.title}</h2>
-                        <p className={styles.staticBody}>{beat.body}</p>
-                    </div>
-                ))}
-                <div className={styles.staticBeat}>
-                    <p className={styles.introEyebrow}>{heroIntro.eyebrow}</p>
-                    <h2 className={styles.staticTitle}>{heroIntro.name}</h2>
-                    <p className={styles.staticBody}>{heroIntro.body}</p>
-                </div>
-            </div>
-        </section>
-    );
-}
+function Loop() {
+    const aRef = useRef<HTMLVideoElement>(null);
+    const bRef = useRef<HTMLVideoElement>(null);
 
-/* ------------------------------------------------------------------ */
+    /* Which element is showing. A ref rather than state: this flips on an
+       animation frame and must never cause a render — re-rendering two
+       <video> elements mid-playback is how you get a flash. */
+    const front = useRef<"a" | "b">("a");
 
-function ScrollHero() {
-    const wrapRef = useRef<HTMLElement>(null);
-    const theme = useTheme();
+    useEffect(() => {
+        const a = aRef.current;
+        const b = bRef.current;
+        if (!a || !b) return;
 
-    /* Above the fold, so it starts immediately and reports progress. The
-       other world follows on its own once this one is complete. */
-    const { imagesRef, progress, ready, revision } = useFrameSequence({
-        count: FRAME_COUNT,
-        path: framePath,
-        theme,
-    });
+        /* Autoplay can be refused, and that is not an error worth throwing.
+           A muted, inline video is allowed everywhere current, but a browser
+           in a strict data-saver mode may still decline; the section then
+           shows a held first frame, which is a fair outcome. */
+        const start = (v: HTMLVideoElement) => {
+            const p = v.play();
+            if (p) void p.catch(() => { });
+        };
 
-    const { scrollYProgress } = useScroll({
-        target: wrapRef,
-        offset: ["start start", "end end"],
-    });
+        a.style.opacity = "1";
+        b.style.opacity = "0";
+        start(a);
 
-    /* Softer than the usual 100/30. A lower stiffness lets the frame index
-       trail the scrollbar slightly and glide into place instead of snapping
-       to it, which is what makes a scrubbed camera read as a camera rather
-       than as a flipbook being dragged. */
-    const smooth = useSpring(scrollYProgress, { stiffness: 70, damping: 28 });
+        let raf = 0;
+        const tick = () => {
+            raf = requestAnimationFrame(tick);
 
-    /* The last stretch, after the footage has played out, pushes the whole
-       plate toward the viewer: the camera keeps travelling after the gate,
-       which is what carries you into the section below rather than stopping
-       dead at the last frame. */
-    const pushZ = useTransform(smooth, [SEQ_END, 1], [0, 220]);
-    const pushScale = useTransform(smooth, [SEQ_END, 1], [1, 1.14]);
+            const showing = front.current === "a" ? a : b;
+            const waiting = front.current === "a" ? b : a;
 
-    return (
-        <section id="top" ref={wrapRef} className={styles.wrap}>
-            <div className={`${styles.sticky} ${scene.stage}`}>
-                <motion.div
-                    className={styles.plateWrap}
-                    style={{ z: pushZ, scale: pushScale }}
-                >
-                    <SequenceCanvas
-                        className={scene.plate}
-                        imagesRef={imagesRef}
-                        progress={smooth}
-                        count={FRAME_COUNT}
-                        /* Frames run out before the end of the track. The
-                           remaining scroll is the push through the gate. */
-                        seqEnd={SEQ_END}
-                        fit="cover"
-                        revision={revision}
-                    />
-                </motion.div>
+            /* duration is NaN until metadata lands. */
+            if (!showing.duration) return;
+            if (showing.currentTime < showing.duration - SWAP_LEAD) return;
 
-                <span className={scene.air} aria-hidden="true" />
-                {/* The scrim follows the beat that is showing: each one sits on
-                    a different side of the frame, so a fixed wash would darken
-                    the half the copy is not on. */}
-                <BeatScrim progress={smooth} />
+            /* Reveal before concealing, so there is never a frame with
+               neither of them visible. They are showing the same picture at
+               this instant, so the overlap is not visible either. */
+            waiting.style.opacity = "1";
+            start(waiting);
+            showing.style.opacity = "0";
+            showing.pause();
+            /* The seek, now that nobody is looking at it. */
+            showing.currentTime = 0;
 
-                {/* The footage is decorative; this carries the meaning for
-                    anyone who cannot see it, and for crawlers. */}
-                <h1 className={styles.sr}>
-                    {site.name}. {site.role}. {site.tagline}
-                </h1>
+            front.current = front.current === "a" ? "b" : "a";
+        };
+        raf = requestAnimationFrame(tick);
 
-                {heroBeats.map((beat) => (
-                    <Beat key={beat.title} beat={beat} progress={smooth} />
-                ))}
+        /* Backstop. requestAnimationFrame does not run in a hidden tab, so a
+           visitor who switches away mid-clip comes back to an element that
+           reached its end with nobody to retire it. This is the old looping
+           behaviour, firing only when the swap was missed. */
+        const onEnded = (e: Event) => {
+            const v = e.currentTarget as HTMLVideoElement;
+            const isFront = (front.current === "a" ? a : b) === v;
+            v.currentTime = 0;
+            if (isFront) start(v);
+        };
+        a.addEventListener("ended", onEnded);
+        b.addEventListener("ended", onEnded);
 
-                <Intro progress={smooth} />
+        return () => {
+            cancelAnimationFrame(raf);
+            a.removeEventListener("ended", onEnded);
+            b.removeEventListener("ended", onEnded);
+        };
+    }, []);
 
-                {!ready && (
-                    <div className={styles.loader} role="status" aria-live="polite">
-                        <span className={styles.loaderBar} aria-hidden="true">
-                            <span
-                                className={styles.loaderFill}
-                                style={{ transform: `scaleX(${progress})` }}
-                            />
-                        </span>
-                        <span className={styles.loaderText}>
-                            {Math.round(progress * 100)}%
-                        </span>
-                    </div>
-                )}
-            </div>
-        </section>
-    );
-}
+    /* muted + playsInline is what makes autoplay legal on every current
+       browser, and the file carries no audio track, so nothing is being
+       silenced. No `loop` on either, deliberately — see above. */
+    const shared = {
+        className: scene.plate,
+        src: SRC,
+        muted: true,
+        playsInline: true,
+        preload: "auto" as const,
+        "aria-hidden": true,
+    };
 
-/* The wash under whichever beat is currently up. Three stacked gradients,
-   each faded by its own beat's range, so the dark side of the frame tracks
-   the copy across the section instead of sitting in one place. */
-function BeatScrim({ progress }: { progress: ReturnType<typeof useSpring> }) {
     return (
         <>
-            {heroBeats.map((beat) => (
-                <ScrimFor key={beat.title} beat={beat} progress={progress} />
-            ))}
-            <ScrimFor
-                beat={{ from: heroIntro.from, to: 1, align: "right" }}
-                progress={progress}
-            />
+            <video ref={aRef} {...shared} autoPlay />
+            <video ref={bRef} {...shared} />
         </>
     );
 }
 
-function ScrimFor({
-    beat,
-    progress,
-}: {
-    beat: { from: number; to: number; align: HeroBeat["align"] };
-    progress: ReturnType<typeof useSpring>;
-}) {
-    const opacity = useTransform(
-        progress,
-        [beat.from - 0.03, beat.from + 0.04, beat.to - 0.04, beat.to + 0.03],
-        [0, 1, 1, 0],
-    );
-    const side =
-        beat.align === "right" ? scene.scrimRight : beat.align === "center" ? scene.scrimCentre : "";
+/* Reduced motion gets controls and no autoplay. The controls are the one
+   thing here that is not the video, and they earn their place: without
+   them this branch is a frozen first frame with no way to ever see the
+   shot. */
+function Held() {
     return (
-        <motion.span
-            className={`${scene.scrim} ${side}`}
-            style={{ opacity }}
-            aria-hidden="true"
+        <video
+            className={scene.plate}
+            src={SRC}
+            controls
+            muted
+            playsInline
+            preload="metadata"
         />
-    );
-}
-
-/* ------------------------------------------------------------------
-   One beat. Fades in, holds, fades out across its own slice of the
-   scroll, and drifts toward the viewer while it does, so it sits in
-   the world rather than on a pane of glass in front of it.
-   ------------------------------------------------------------------ */
-function Beat({
-    beat,
-    progress,
-}: {
-    beat: HeroBeat;
-    progress: ReturnType<typeof useSpring>;
-}) {
-    const { from, to } = beat;
-    const opacity = useTransform(progress, [from, from + 0.04, to - 0.04, to], [0, 1, 1, 0]);
-    const z = useTransform(progress, [from, to], [-90, 60]);
-
-    /* Mounting is gated separately from opacity so a beat that is fully
-       transparent is also not in the accessibility tree, and a screen reader
-       does not read all three at once. */
-    const [live, setLive] = useState(false);
-    useMotionValueEvent(progress, "change", (v) => {
-        const on = v >= from - 0.02 && v <= to + 0.02;
-        setLive((was) => (was === on ? was : on));
-    });
-
-    return (
-        <motion.div
-            className={`${styles.beat} ${styles[beat.align]}`}
-            style={{ opacity, z }}
-            aria-hidden={!live}
-        >
-            <div className={styles.beatInner}>
-                <h2 className={`${styles.beatTitle} ${scene.onWorld}`}>
-                    <FlipFadeText text={beat.title} active={live} />
-                </h2>
-                <p className={`${styles.beatBody} ${scene.onWorldDim}`}>{beat.body}</p>
-            </div>
-        </motion.div>
-    );
-}
-
-/* The arrival. Holds from its cue to the end of the track, so it is still
-   on screen while the camera pushes through the gate. */
-function Intro({ progress }: { progress: ReturnType<typeof useSpring> }) {
-    const { from } = heroIntro;
-    const opacity = useTransform(progress, [from, from + 0.06], [0, 1]);
-    const z = useTransform(progress, [from, 1], [-120, 90]);
-
-    return (
-        <motion.div className={styles.intro} style={{ opacity, z }}>
-            <div className={styles.introInner}>
-                <p className={`${styles.introEyebrow} ${scene.onWorldDim}`}>
-                    {heroIntro.eyebrow}
-                </p>
-                <p className={`${styles.introName} ${scene.onWorld}`}>{heroIntro.name}</p>
-                <p className={`${styles.introBody} ${scene.onWorldDim}`}>{heroIntro.body}</p>
-            </div>
-        </motion.div>
     );
 }
