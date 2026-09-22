@@ -1,53 +1,71 @@
 /* ==================================================================
-   CONTACT FORM — paper card / ink-stone card
+   CONTACT FORM — a writing surface set down in the night garden
 
-   Every colour resolves from the theme tokens. On the light theme the
-   card is a sheet of heavier paper lying on the washi ground, with
-   the grain showing through; on the dark theme it is a slab of ink
-   stone with an outlined rim. One stylesheet, two materials, no
-   second rule set beyond the handful of "outline chrome" overrides at
-   the bottom that turn solid fills into outlines when the ground is
-   sumi.
+   Every colour still resolves from the theme tokens, but the card
+   declares its own values for them: it always sits on the temple
+   scene, which is dark in both themes, so it is one plum-and-ivory
+   material in both. Interactive fills are outlines, for the same
+   reason. Sizes are compact on purpose — the panel shares the frame
+   with the gate, the stairs and the moon rather than covering them.
    ================================================================== */
 
 .card {
-    /* Fills the layer it is given, which is the viewport minus the gutters and
-       the space the dock occupies — so it reads as almost-full-bleed without
-       ever touching an edge. */
+    /* ONE PALETTE, IN BOTH THEMES. The panel always sits on the night
+       garden, which is dark in both themes, so the site's light tokens —
+       ink on paper — would put dark text on a cream sheet in front of a
+       night scene. The palette is re-declared here, on the card, so every
+       tab and every component inside it (sub-tabs, chips, the verification
+       box, the buttons) resolves to it without a second rule set.
+
+       Plum and warm ivory, with a muted rose rim and a rose accent: the
+       blossom and the lantern amber, not the site's red seal. */
+    --ink: #f4e8df;
+    --ink-2: #cbbdcb;
+    --ink-3: #a99bb0;
+    --bg: #1c1626;
+    --bg-2: #20192b;
+    --rule: rgba(214, 164, 188, 0.22);
+    --stone-rule: rgba(214, 164, 188, 0.3);
+    --stone-sheen: rgba(244, 232, 223, 0.1);
+    --seal: #ee8e9e;
+    --blob-top: rgba(214, 164, 188, 0.26);
+    --blob-bottom: rgba(214, 164, 188, 0.08);
+    /* A field reads as a slightly deeper well in the panel, which keeps
+       typed text legible over the brightest frame of the scene. */
+    --field: rgba(16, 11, 24, 0.5);
+
+    /* Its own height. The document scrolls; the card never does. An inner
+       scroller hid a tab's lower half behind a second scrollbar, and the
+       section now grows to fit whatever the card needs. */
     width: 100%;
-    max-width: 72rem;
-    height: 100%;
-    /* Overrides the automatic minimum a grid item gets from its own content.
-       Without it the card refuses to shrink below its natural height and
-       overflows the layer rather than letting the panel scroll. */
-    min-height: 0;
+    container-type: inline-size;
 
     display: grid;
-    /* Heading and tabs take what they need; the panel absorbs the rest and
-        scrolls internally. Without the `minmax(0, 1fr)` the panel would size to
-        its content and push the card past the viewport instead of scrolling. */
-    grid-template-rows: auto auto minmax(0, 1fr);
-    gap: 1rem;
-    padding: clamp(1.1rem, 0.6rem + 2vw, 2.25rem);
-    border-radius: 24px;
+    gap: 0.9rem;
+    /* The bottom padding is the DECORATIVE BASE: empty ground below the last
+       control, which is the only part of the card the near grass is allowed
+       to cross. 48px is load-bearing — Contact.tsx places the card so the
+       tallest blade reaches 24px into it and stops 24px short of the
+       controls; shrink this and that clearance goes with it. */
+    padding: 26px 26px 48px;
+    border-radius: 20px;
 
-    /* A tinted, blurred sheet of the ground colour rather than of black.
-       The blur is what makes it a material sitting on the footage instead of a
-       rectangle pasted over it; the tint comes from --bg-2, the card-weight
-       shade of whichever ground is current. */
-    background: color-mix(in srgb, var(--bg-2) 80%, transparent);
-    -webkit-backdrop-filter: blur(24px) saturate(120%);
-    backdrop-filter: blur(24px) saturate(120%);
+    background: rgba(32, 25, 43, 0.84);
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
 
     border: 1px solid var(--rule);
     box-shadow:
-        /* The lit top edge of the sheet. */
         inset 0 1px 0 0 var(--stone-sheen),
-        /* Lifts the card off the footage. Tinted with the ink rather than
-           pure black, so on paper it is an indigo shadow and on sumi it is
-           simply dark. Wide and soft — a tight shadow would read as a border,
-           which the card already has. */
-        0 26px 80px -22px color-mix(in srgb, var(--ink) 38%, transparent);
+        0 22px 48px -24px rgba(8, 5, 14, 0.8);
+}
+
+/* Without backdrop filtering the translucent sheet would let the scene's
+   brightest pixels straight through the text, so it goes near-opaque. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .card {
+        background: rgba(32, 25, 43, 0.96);
+    }
 }
 
 /* ---- Heading ------------------------------------------------------ */
@@ -58,7 +76,9 @@
 .heading {
     margin: 0;
     font-family: var(--font-mincho);
-    font-size: clamp(1.7rem, 1.1rem + 2.2vw, 2.8rem);
+    /* 28px on a phone to 36px on a desktop: the display moment stays, but
+       at a size that belongs to a small panel rather than to a page. */
+    font-size: clamp(1.75rem, 1.35rem + 1.1vw, 2.25rem);
     font-weight: 500;
     line-height: 1.15;
     letter-spacing: 0.01em;
@@ -90,7 +110,10 @@
     /* Above the blob, which sits at z-index 0 in this row. */
     z-index: 1;
     flex: 0 0 auto;
-    padding: 0.5rem 1.1rem;
+    /* 44px: the minimum comfortable touch target. The blob (34px) sits
+       inside it with room to spare. */
+    min-height: 44px;
+    padding: 0.5rem 1.05rem;
     border: 0;
     border-radius: 999px;
     background: transparent;
@@ -203,9 +226,13 @@
     /* min-height:0 lets a grid item actually shrink; without it the row's
        implicit `auto` minimum keeps the panel at its content height and the
        overflow never engages. */
+    /* No inner scroller any more. The card is its content's height and the
+       document scrolls; a second scrollbar inside a small panel hid the
+       lower half of the longer tabs. ContactForm still watches for overflow
+       and would add data-lenis-prevent if there were any — with nothing to
+       overflow, it never does. */
     min-height: 0;
-    overflow-y: auto;
-    padding-right: 0.4rem;
+    overflow: visible;
 
     /* Keeps the wheel inside the panel once it is scrolling, rather than
        handing the overscroll to the page mid-gesture. Pairs with the
@@ -244,7 +271,7 @@
 .panelTitle {
     margin: 0 0 0.3rem;
     font-family: var(--font-bricolage), var(--font-display);
-    font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.4rem);
+    font-size: 1.3rem;
     font-weight: 500;
     letter-spacing: -0.02em;
     color: var(--ink);
@@ -259,8 +286,11 @@
     margin: 0;
     max-width: 46rem;
     font-family: var(--font-bricolage), var(--font-display);
-    font-size: 0.9rem;
-    font-weight: 300;
+    font-size: 0.9375rem;
+    /* 400, not the 300 it was on paper: a hairline weight in light text on
+       a translucent dark sheet breaks up over the brighter parts of the
+       scene. */
+    font-weight: 400;
     line-height: 1.55;
     color: var(--ink-2);
     text-wrap: pretty;
@@ -348,7 +378,7 @@
     margin-bottom: 0.15rem;
 
     font-family: var(--font-mono);
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -424,7 +454,7 @@
     border: 1px dashed var(--rule);
 
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
     color: var(--ink-3);
 }
@@ -452,7 +482,7 @@
    not reliably announced by screen readers. */
 .label {
     font-family: var(--font-mono);
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -464,12 +494,12 @@
     padding: 0.7rem 0.85rem;
     border-radius: 11px;
     border: 1px solid var(--rule);
-    background: color-mix(in srgb, var(--ink) 4%, transparent);
+    background: var(--field);
     color: var(--ink);
 
     font-family: var(--font-bricolage), var(--font-display);
     font-size: 0.95rem;
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.5;
 
     transition:
@@ -493,15 +523,19 @@
 .input:focus-visible {
     outline: none;
     border-color: var(--seal);
-    background: color-mix(in srgb, var(--ink) 6%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--seal) 22%, transparent);
+    background: var(--field);
+    /* Solid enough to survive the scene behind the panel. */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--seal) 42%, transparent);
 }
 
 /* Scales with the viewport rather than sitting at a fixed few lines, so the
    one field people actually write in spends the card's height. */
 .textarea {
+    /* A modest starting height the writer can drag taller; the card grows
+       with it, and so does the section. */
     resize: vertical;
-    min-height: clamp(5.5rem, 26vh, 15rem);
+    height: 7.75rem;
+    min-height: 7rem;
 }
 
 /* ---- Actions ------------------------------------------------------ */
@@ -535,7 +569,8 @@
     overflow: hidden;
     isolation: isolate;
 
-    padding: 0.75rem 1.6rem;
+    min-height: 46px;
+    padding: 0.7rem 1.6rem;
     border-radius: 999px;
     border: 1px solid var(--ink);
     background: var(--ink);
@@ -671,7 +706,8 @@
 .status {
     margin: 0;
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
+    /* 12px floor: this line carries the outcome of a send, errors included. */
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
     color: var(--ink-3);
     /* Reserves its line whether or not there is text, so confirming a send does
@@ -687,32 +723,48 @@
 }
 
 /* ==================================================================
-   OUTLINE CHROME ON SUMI
+   OUTLINE CHROME
 
-   On the dark theme the interactive fills become outlines: bone
-   ink drawn as a line around a transparent body, the way the
-   footage renders as white outline on black. Same components,
-   same behaviour, one material rule.
+   The interactive fills are outlines: ivory drawn as a line around a
+   transparent body. This used to apply on the dark theme only; the
+   card is dark in both themes now, so it applies always.
    ================================================================== */
 
-:global(html[data-theme="dark"]) .submit {
+.card .submit {
     background: transparent;
     color: var(--ink);
     border-color: var(--ink);
 }
 
-:global(html[data-theme="dark"]) .submit:hover:not(:disabled) {
+.card .submit:hover:not(:disabled) {
     background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
-:global(html[data-theme="dark"]) .subTab[data-active],
-:global(html[data-theme="dark"]) .chip[data-active] {
+.card .subTab[data-active],
+.card .chip[data-active] {
     background: transparent;
     border-color: var(--ink);
     color: var(--ink);
 }
 
 /* ---- Responsive --------------------------------------------------- */
+
+/* Name and email side by side only while each can hold a real address.
+   The card is narrow at every viewport now, so this follows the CARD's
+   width rather than the window's. The query measures the card's CONTENT
+   box — about 408px on a desktop, where two ~200px fields are fine — so
+   the two stack below 360px of content, which is every phone. */
+@container (max-width: 360px) {
+    .row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 20px 20px 36px;
+    }
+}
 
 @media (max-width: 44rem) {
     .row {

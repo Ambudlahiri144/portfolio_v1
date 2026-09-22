@@ -1,0 +1,112 @@
+/* ==================================================================
+   CONTACT
+
+   The section owns the box and the stacking. Everything inside the two
+   canvases is drawn by the renderer; everything inside the card is
+   ContactForm's.
+   ================================================================== */
+
+.section {
+    position: relative;
+    width: 100%;
+    /* Tall enough for the panel plus its clearances on a short desktop
+       window, and never a fixed height: a longer tab, an error or a
+       resized textarea grows the section instead of being cropped. */
+    min-height: max(820px, 100svh);
+    display: grid;
+    overflow: hidden;
+    /* Contains the depth ladder, so the world, the form and the near
+       garden cannot interleave with anything outside the section.
+       `isolation` rather than a z-index, so the fixed dock at z-index 40
+       still paints above all of it. */
+    isolation: isolate;
+    /* The colour behind the canvas before it decodes, matched to
+       THEME.air.clear so the handoff is invisible. */
+    background: #1e1936;
+}
+
+/* ---- the world, behind everything --------------------------------- */
+.scene {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+/* ---- the near garden, in front of the form -------------------------
+   Same box as the world — the renderer sizes both canvases from the
+   scene's own box, so they must cover exactly the same area or the
+   grass would float free of the ground it grows from. Decorative: the
+   host marks it aria-hidden and pointer-transparent. */
+.foreground {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+}
+
+/* ---- the form, between them ----------------------------------------
+
+   THE BOTTOM GAP IS WHERE THE GRASS IS. It is not a spacing choice:
+   the panel's bottom edge has to land just below the crest of the near
+   grass, so the blades cross the card's empty decorative base and stop
+   short of the submit row. The crest's height on screen is fixed by
+   the world's camera, so this was measured against the rendered frame
+   rather than picked. See the verification notes in the commit. */
+.layout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    /* The left third. The gate, the flight and the moon keep the rest. */
+    grid-template-columns: minmax(0, min(34vw, 480px)) minmax(0, 1fr);
+    align-content: end;
+    min-height: inherit;
+    box-sizing: border-box;
+    padding-block: 112px var(--grass-gap, 236px);
+    padding-inline: 5.5vw;
+}
+
+.layout > * {
+    grid-column: 1;
+    min-width: 0;
+    max-width: 520px;
+}
+
+/* A narrower panel and a tighter inset, which is what keeps the stairs
+   clear at these widths. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    .layout {
+        grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+        padding-inline: 32px;
+    }
+}
+
+/* ---- stacked --------------------------------------------------------
+   Below this the left third is too narrow for the form and the temple
+   both, so the panel moves into normal flow, centred, with a band of
+   the scene left visible above it. Bottom padding clears the dock. The
+   near garden is kept, but the panel sits far enough above the ground
+   that the grass does not reach it — on a phone, a smaller overlap is
+   not worth the risk of a blade across a control. */
+@media (max-width: 1023px) {
+    .layout {
+        grid-template-columns: minmax(0, 460px);
+        justify-content: center;
+        align-content: start;
+        padding: 240px 20px max(128px, env(safe-area-inset-bottom));
+    }
+}
+
+@media (max-width: 480px) {
+    .layout {
+        padding-inline: 16px;
+        padding-top: 200px;
+    }
+}
+
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

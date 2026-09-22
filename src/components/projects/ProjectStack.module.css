@@ -1,465 +1,659 @@
 /* ==================================================================
-   PROJECT STACK
+   PROJECTS — cards composed into a blossoming bough
 
-   Four project cards standing in a place: a path climbing through
-   cedar with markers along it by day, a rooftop over four lit towers
-   by night. The cards travel toward the viewer and recede past them.
+   Three layouts, chosen by container width in ProjectStack.tsx:
 
-   The artwork on each card is the project's own image, graded and
-   otherwise untouched: it is the work, so it is the one thing here
-   that is shown rather than styled.
+     perched   four authored positions, composed against the scene
+     columns   two columns in normal flow, reading order preserved
+     stack     one column
+
+   Nothing here is positioned by script. `perched` is an authored
+   composition; the other two are ordinary flow, so the section grows
+   with its content and nothing is clipped on a short screen.
    ================================================================== */
 
 .section {
     position: relative;
-    scroll-margin-top: 2rem;
-}
-
-/* ==================================================================
-   STAGE
-
-   GSAP pins this element and translates the cards through it. Its
-   height is the viewport, and pinSpacing adds the scroll room.
-   ================================================================== */
-
-/* No padding and no centring box. The stage IS the card — a visitor scrolling
-   in should see a full-screen panel, not a card sitting on a page. The deck
-   only starts reading as cards once the first one pulls back. */
-.stage {
-    position: relative;
-    height: 100svh;
     width: 100%;
+    /* min-height, never a fixed viewport height: the stacked layouts are
+       taller than the window and must be allowed to grow. */
+    min-height: 100svh;
     overflow: hidden;
-}
+    /* THE GROUND IS NOT HERE ANY MORE, AND THAT IS THE POINT.
 
-/* The deck fills the stage exactly — no aspect-ratio box any more.
+       This section used to paint the valley itself, with
+       url("/project_bg.png") center / cover. The camera move above it now
+       comes to rest on that same valley — its last frame is the centred
+       16:9 crop of that very PNG — and a second copy underneath meant the
+       picture appeared twice, at two different crops, with a band of haze
+       between them.
 
-   The cards were previously a fixed 16:9 panel floating in a padded stage,
-   which meant the section announced "deck of cards" before you had scrolled a
-   pixel. Filling the viewport instead lets the first card read as a plain
-   full-screen panel; GSAP rounds its corners and scales it back only as the
-   next one arrives, so the card shape is something the scroll reveals. */
-.deck {
-    position: absolute;
-    inset: 0;
-    /* The cards travel on the z axis now, so the deck has to keep its
-       children in 3D rather than flattening them into its own plane. */
-    transform-style: preserve-3d;
+       So there is no background at all. Journey keeps its surface pinned
+       through this whole section, and what you see behind these cards is
+       that held frame, still exactly where the camera left it. Which is
+       also why an EMPTY section can rise into place unnoticed: there is
+       nothing in it to see until it has landed.
 
-    /* Clips the cards still waiting their turn.
+       The two radial pools that used to sit over the photograph are the
+       scene's own lighting — they came out of the iframe when the scene
+       was stacked above the cards — and they have moved down onto
+       ::before with the floor pool, so all of the lighting can wait for
+       the section to arrive together. */
+    /* THE TREE GOES FIRST, and this is what buys it the gap.
 
-       Every pending card sits at yPercent 100 in the same absolutely
-       positioned box, so they all overlap exactly and the LAST one in DOM
-       order paints on top — with four projects that meant card 04 was the one
-       visible below the deck while 03 was the one actually coming next. */
-    overflow: hidden;
-}
+       The scene's entrance used to finish below the fold, so by the time
+       the section arrived the tree was simply there and the cards were
+       the only thing that moved. Now the whole reveal starts on arrival,
+       and measured on the page the cards were landing within a tenth of a
+       second of the heading — all three at once, which is not what the
+       section is trying to say.
 
-/* border-radius is 0 here and animated by GSAP — the card only looks like a
-   card once it starts receding. No border either, for the same reason: a
-   hairline outline on a full-bleed panel just draws a box around the viewport. */
-.card {
-    position: absolute;
-    inset: 0;
-    border-radius: 0;
-    /* Transparent, so the place shows through.
-
-       This used to be var(--bg), which was right when the card was the
-       section and the section was a flat colour. The section is a path
-       through cedar now, and an opaque card over it would hide the one thing
-       the visitor is supposed to be standing in. Each project card gets its
-       opacity back from its own artwork; the intro card stays clear. */
-    background: transparent;
-    /* A hairline rim instead of relying on the drop shadow. On a true black
-       page a dark shadow is invisible, so a receded card would have had no
-       edge at all. */
-    /* Tinted to the near-black both worlds share underfoot, not to the page,
-       because what a receding card casts its edge against is the world. */
-    box-shadow:
-        0 0 0 1px rgb(255 255 255 / 0.1),
-        0 30px 70px -28px rgb(6 8 14 / 0.7);
-    overflow: hidden;
-    /* Centre, not the top edge.
-
-       A top origin was right when the card only scaled: it kept the shrinking
-       card pinned under the one arriving over it. It is wrong once the card
-       travels on z, because perspective shrinks it about the origin and a
-       top-anchored card pulls its own bottom edge up off the screen, opening
-       a band of bare world under it halfway through every transition. */
-    transform-origin: 50% 50%;
-    will-change: transform;
-}
-
-/* The measure. Full-bleed cards still need a column the copy can live in —
-   without this the number and the period sit at opposite edges of the screen. */
-.cardInner {
-    position: relative;
-    z-index: 1;
-    height: 100%;
-    max-width: 92rem;
-    margin-inline: auto;
+       One lead, in front of every card's own stagger, and it is the
+       scene's fade-in time so the two are the same beat rather than two
+       numbers that happen to be close. */
+    --tree-lead: 700ms;
+    scroll-margin-top: 2rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 2rem;
-    padding: clamp(2rem, 5vh, 4.5rem) var(--gutter) clamp(5rem, 9vh, 7rem);
+    /* A stacking context, so the depth ladder below is self-contained and
+       cannot be interleaved with `.seam`, which also uses z-index 3.
+
+       `isolation` rather than a z-index, deliberately: it forms the
+       context while leaving this element at z-index auto, so the
+       position:fixed dock at z-index 40 still paints above the whole
+       section exactly as before. */
+    isolation: isolate;
 }
 
-/* ==================================================================
-   CARD BACKGROUND
+/* ALL of the section's lighting: the floor pool that moved out of
+   `.hero::after`, and the two pools that used to sit on `.section` over
+   the photograph — the warm one at lower left and the shadow at upper
+   right the renderer was lit for. They tie the 3D boughs to whatever is
+   behind them, which is now the held frame rather than a picture of
+   this section's own.
 
-   Every one of these images has its subject dead centre and sits at
-   roughly 16:9 — the same shape as the card. So object-position has
-   almost nothing to work with: cover shows the whole image and there
-   is no crop margin to slide around in.
-
-   Rather than zoom in and lop the right edge off (which is where the
-   detail lives in three of the four), the image is masked so it fades
-   out toward the left. Its visual weight lands on the right, the copy
-   column on the left stays clean, and nothing is cropped away.
-   ================================================================== */
-
-.media {
+   IT WAITS FOR THE SECTION TO LAND. Faint as these washes are, in a
+   section with no background they are the only thing that would be
+   visible while it rises, and a wash drifting up a held photograph is
+   exactly the movement this arrangement exists to remove. */
+.section::before {
+    content: "";
     position: absolute;
     inset: 0;
     z-index: 0;
-    border-radius: inherit;
-    overflow: hidden;
     pointer-events: none;
+    background:
+        radial-gradient(64% 52% at 27% 84%, rgba(236, 208, 214, .085) 0%, rgba(236, 208, 214, 0) 72%),
+        radial-gradient(70% 60% at 92% 8%, rgba(26, 18, 24, .14) 0%, rgba(26, 18, 24, 0) 68%),
+        radial-gradient(72% 44% at 50% 117%, rgba(243, 226, 231, .24) 0%, rgba(243, 226, 231, .10) 42%, rgba(243, 226, 231, .02) 72%, rgba(243, 226, 231, 0) 88%),
+        linear-gradient(180deg, rgba(243, 226, 231, 0) 54%, rgba(243, 226, 231, .028) 78%, rgba(243, 226, 231, .075) 100%);
+    opacity: 0;
+    transition: opacity 700ms var(--ease);
+    /* IT MUST NOT END IN A LINE. These washes were drawn for a section
+       that owned its ground and could stop at its own edge; against one
+       continuous photograph, the floor pool and the bottom wash cut off
+       at the section's boundary and draw a hard horizontal seam straight
+       across the valley — visible from the first screenshot of this
+       arrangement. Feathering both ends of the overlay means the lighting
+       can only ever fade into the picture. */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 68%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 68%, transparent 100%);
 }
 
-.mediaImg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 60% center;
-
-    /* Fades out to the left, full strength across the whole right half.
-
-       This used to only reach 85% by 58% across and 100% at the very edge, so
-       even the right side of the card never showed the image at the opacity it
-       was set to. Reaching full by the halfway point keeps the weight on the
-       right — the left is still where it disappears — while letting the right
-       actually be the image. */
-    -webkit-mask-image: linear-gradient(to right,
-            transparent 0%,
-            rgba(0, 0, 0, 0.18) 16%,
-            rgba(0, 0, 0, 0.78) 36%,
-            #000 50%);
-    mask-image: linear-gradient(to right,
-            transparent 0%,
-            rgba(0, 0, 0, 0.18) 16%,
-            rgba(0, 0, 0, 0.78) 36%,
-            #000 50%);
-
-    /* One print, shown at full strength in both themes. There is nothing to
-       fade between and nothing to correct for: it is pigment on paper, and it
-       is the same picture whatever the light in the room. */
+.section[data-arrived]::before {
     opacity: 1;
 }
 
-/* The pigment each block is cut in. It appears twice per card and nowhere
-   else: a hairline down the leaf's leading edge, and the rule under the
-   title. Four projects, four pigments, one workshop. */
-.media[data-pigment="ai"] {
-    --pigment: var(--pig-ai);
-}
+/* ---- the scene, ABOVE the cards -------------------------------------
+   This is what makes a card look like it is sitting IN the tree rather
+   than pasted on it: the branches are real pixels drawn over the card,
+   because the renderer clears transparent and every opaque layer in the
+   document has been moved to the section behind.
 
-.media[data-pigment="rokusho"] {
-    --pigment: var(--pig-rokusho);
-}
-
-.media[data-pigment="gunjo"] {
-    --pigment: var(--pig-gunjo);
-}
-
-.media[data-pigment="odo"] {
-    --pigment: var(--pig-odo);
-}
-
-/* The leading edge of the leaf, where the next one is hinged. */
-.media::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 2px;
-    background: var(--pigment, var(--rule));
-    opacity: 0.85;
-    z-index: 2;
-}
-
-/* A second pass over the top, in the card's own colour. The mask handles the
-   far left; this keeps the middle — where the title and the sentence sit —
-   from ever competing with whatever is behind it. */
-/* This was the real reason the artwork looked washed out — not the opacity.
-
-   It used to still be laying 34% of the card colour over the image at 72%
-   across and 12% at the very right edge, so the image could never reach the
-   opacity it was set to anywhere on the card. It now clears completely by
-   about three-quarters across, and only covers the strip the copy actually
-   occupies (roughly 8%-43% of the card's width). */
-/* Near-black, not var(--bg).
-
-   The card colour was the page colour when the card WAS the page. It floats
-   in a world now, so a wash tinted from --bg would brighten the copy column
-   on the mountain and only work at night. Fixed dark, like every other scrim
-   in the site, for the same reason. */
-.scrim {
+   It must not take pointer input, or it would swallow every click meant
+   for a card. The scene is fed instead — SakuraScene forwards pointer
+   position into it by postMessage, which is what keeps the foliage
+   parting, the spray trails and the camera parallax alive. */
+.scene {
     position: absolute;
     inset: 0;
-    background: linear-gradient(100deg,
-            rgb(8 10 16 / 0.92) 0%,
-            rgb(8 10 16 / 0.84) 26%,
-            rgb(8 10 16 / 0.58) 42%,
-            rgb(8 10 16 / 0.2) 58%,
-            transparent 78%);
+    z-index: 3;
+    overflow: hidden;
+    pointer-events: none;
+    /* THE TREE APPEARS AFTER THE CAMERA STOPS, and this is the only lever
+       for that: the scene is an iframe with no way to delay its entrance
+       from out here, and its host is on screen a screen early — which it
+       has to be, because it needs that time to parse ~800 KB of inlined
+       three.js and compile its shaders before the 3.4s bough scan even
+       starts. So it boots unseen and fades up on arrival. Usually the
+       scan is still running and the boughs are watched growing in; at
+       worst a finished tree fades in, which is a far better trade than
+       paying the boot cost at the moment of arrival and leaving a hole
+       where the tree should be. */
+    opacity: 0;
+    transition: opacity 700ms var(--ease);
+    /* AND ITS WORLD MUST NOT END IN A LINE EITHER. The scene draws its own
+       mist and far hills out to the edges of its box, and its box is this
+       section — so once the section stopped painting a ground of its own,
+       the scene's bottom edge became a hard horizontal cut straight across
+       the held valley, visible the moment you scroll past the resting
+       position. Verified by hiding the iframe: with it gone the picture is
+       continuous, with it there the line is exactly the section's bottom.
+
+       The last tenth is the scene's own ground haze, and the valley below
+       is more blossom, so fading one into the other joins two pink
+       thickets rather than cutting between them. */
+    -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
 }
 
-/* ---- Card content ------------------------------------------------ */
+.section[data-arrived] .scene {
+    opacity: 1;
+}
 
-/* The media layer is absolutely positioned with z-index 0, and within a
-   stacking context that paints ABOVE non-positioned block children — so
-   without this the artwork would sit on top of the copy rather than behind
-   it. Positioning the content puts it back on top. */
-.cardTop,
-.cardBody,
-.tech,
-.cardFoot {
+/* ---- the section's name --------------------------------------------
+   In normal flow and centred, so its box reserves real space and the
+   cards can never ride over it.
+
+   A LABEL, NOT A DISPLAY LINE. At 4.25rem the word sat in the frame at
+   the same weight as the boughs and competed with them, which in a
+   section whose whole subject is the picture is the wrong order. It now
+   reads as the section's caption: a mono eyebrow over a smaller serif
+   line, so the tree is the loudest thing on screen and the heading only
+   has to name what you are looking at.
+
+   The eyebrow uses exactly the treatment `.kind` already uses on the
+   cards — same family, same tracking, same uppercase — so the two kinds
+   of label in this section are visibly the same device rather than two
+   near-misses. */
+.head {
     position: relative;
-    z-index: 1;
-}
-
-.cardTop {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: color-mix(in srgb, var(--on-world) 62%, transparent);
-}
-
-.cardBody {
-    display: grid;
-    gap: 0.6rem;
-}
-
-/* ---- Intro card -------------------------------------------------- */
-
-/* The opening card reads as a title page, so it is centred and carries the
-   signal accent — the project cards that follow stay left-aligned and quiet. */
-.card[data-intro] .cardInner {
-    justify-content: center;
+    /* Above the scene AND above the front cards. A card half-behind a
+       branch reads as depth; a section title half-swallowed by bark just
+       reads as broken. */
+    z-index: 5;
+    padding-top: clamp(2rem, 5.5svh, 3.5rem);
+    padding-bottom: clamp(0.75rem, 2.5svh, 1.5rem);
     text-align: center;
-    align-items: center;
-}
-
-.card[data-intro] .cardTop,
-.card[data-intro] .cardFoot {
-    width: 100%;
-    justify-content: center;
+    pointer-events: none;
 }
 
 .eyebrow {
+    display: block;
+    margin-bottom: clamp(0.5rem, 1.2svh, 0.875rem);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: color-mix(in srgb, var(--on-world) 62%, transparent);
+    color: #c9a3aa;
+    text-shadow: 0 1px 14px rgb(28 18 26 / 0.6);
+    /* The one piece of this section with no reveal of its own — the title
+       beside it is animated per letter by FlipFadeText. Left alone it
+       would be the single thing visible while the section rises, which is
+       precisely what must not be seen moving. Gated behind html.js so a
+       scriptless load is never stuck with an invisible label. */
+    opacity: 1;
 }
 
-/* One of the few display moments set in the Mincho. Regular weight: a
-   Mincho carries its character in stroke contrast, not in heaviness. */
-.introTitle {
-    font-family: var(--font-mincho);
-    font-size: clamp(2.75rem, 1.5rem + 6vw, 6.5rem);
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: 0;
+:global(html.js) .eyebrow {
+    opacity: 0;
+    transition: opacity 600ms var(--ease);
 }
 
-.introLines {
-    display: grid;
-    gap: 0.35rem;
-    margin-top: 1.5rem;
-    justify-items: center;
-}
-
-.introLine {
-    max-width: 34ch;
-    font-size: clamp(0.95rem, 0.9rem + 0.35vw, 1.15rem);
-    font-weight: 300;
-    line-height: 1.55;
-    color: var(--on-world-dim);
-    text-wrap: pretty;
-}
-
-.cardFoot {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    font-weight: 500;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: color-mix(in srgb, var(--on-world) 62%, transparent);
-}
-
-.cardFootRule {
-    width: 28px;
-    height: 1px;
-    background: var(--rule);
-}
-
-.kind {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: color-mix(in srgb, var(--on-world) 62%, transparent);
+:global(html.js) .section[data-arrived] .eyebrow {
+    opacity: 1;
 }
 
 .title {
-    font-size: clamp(2rem, 1.2rem + 3.4vw, 4rem);
-    font-weight: 300;
-    line-height: 1;
-    letter-spacing: -0.035em;
-}
-
-.detail {
-    max-width: 46ch;
-    margin-top: 0.4rem;
-    font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.0625rem);
-    font-weight: 300;
-    line-height: 1.6;
-    color: var(--on-world-dim);
-    text-wrap: pretty;
-}
-
-/* ---- Tech chips -------------------------------------------------- */
-
-.tech {
-    /* The chips rotate in 3D, so they need a perspective to rotate within —
-       without one the flip flattens into a vertical squash. FlipFadeText sets
-       its own; this list is animated directly so it needs its own. */
-    perspective: 900px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
     margin: 0;
-    padding: 0;
-    list-style: none;
+    font-family: var(--font-mincho), var(--font-display);
+    font-size: clamp(1.75rem, 1.1rem + 2.2vw, 3rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #f5dedc;
+    text-shadow: 0 2px 30px rgb(28 18 26 / 0.55);
+    /* FlipFadeText turns each letter in 3D. */
+    perspective: 900px;
 }
 
-.chip {
-    padding: 0.35rem 0.7rem;
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--on-world-dim);
-    white-space: nowrap;
-}
+/* ---- the card layer -------------------------------------------------
+   Transparent to the pointer so the scene keeps its own parting, trails
+   and parallax. Only the cards themselves take input.
 
-/* ==================================================================
-   REDUCED MOTION / NO-GSAP FALLBACK
-
-   data-static is set by the component when motion is reduced, before
-   any ScrollTrigger is created. The deck stops being an absolutely
-   positioned pile and becomes an ordinary column, so the same markup
-   reads as a plain list with no pinning and no transforms.
-   ================================================================== */
-
-.stage[data-static] {
-    height: auto;
-    overflow: visible;
-    padding-bottom: clamp(4rem, 10vh, 7rem);
-}
-
-.stage[data-static] .deck {
+   NO z-index HERE, and that is the point. A z-index would make this a
+   stacking context and trap every card on one side of the scene — which
+   is what used to happen: all four sat below the bough and every one of
+   them was veiled. With this at `auto` each card sets its own depth
+   against the scene, so some can sit in front of the branch and some
+   behind it. */
+.overlay {
     position: relative;
-    inset: auto;
-    height: auto;
+    flex: 1;
+    pointer-events: none;
+}
+
+.slot {
+    pointer-events: none;
+}
+
+/* ---- the card, and which side of the branch it is on ----------------
+
+   THE DEPTH LADDER, all of it, in one place:
+
+     0  .section::before   the floor pool
+     2  .card              behind the branch: bark crosses it
+     3  .scene             the boughs
+     4  .card[data-depth="front"]   in front of the branch: crisp, and it
+                           overlaps the bough instead of the other way round
+     5  .head              the title is never crossed by bark
+
+   Which card takes which side is authored per card, in the markup, and
+   the composition seats the two "behind" cards so the bough crosses
+   their RIGHT edge — where the arrow is, not where the name is. Four
+   cards on the same side is what made them read as one flat sheet. */
+.card {
+    position: absolute;
+    z-index: 2;
+    pointer-events: auto;
+}
+
+.card[data-depth="front"] {
+    z-index: 4;
+}
+
+.link {
+    display: block;
+    border-radius: 26px;
+    background: #f6eeea;
+    color: #392d35;
+    text-decoration: none;
+    box-shadow:
+        0 1px 0 rgb(255 255 255 / 0.5) inset,
+        0 18px 40px -18px rgb(14 8 12 / 0.75),
+        0 2px 8px -2px rgb(14 8 12 / 0.4);
+    /* The lift is applied to the inner wrapper, not here. A perched card
+       carries its seating in `transform`, so animating this element's
+       transform on hover would fight the placement. */
+    outline-offset: 4px;
+}
+
+.link:focus-visible {
+    outline: 2px solid #f5dedc;
+}
+
+.lift {
+    display: block;
+    padding: 14px 14px 16px;
+    border-radius: inherit;
+    position: relative;
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease);
+    will-change: transform;
+}
+
+.link:hover .lift,
+.link:focus-visible .lift {
+    transform: translate3d(0, -4px, 0);
+}
+
+.link:hover,
+.link:focus-visible {
+    box-shadow:
+        0 1px 0 rgb(255 255 255 / 0.5) inset,
+        0 26px 52px -20px rgb(14 8 12 / 0.85),
+        0 3px 10px -2px rgb(14 8 12 / 0.45);
+}
+
+/* ---- the preview ---------------------------------------------------- */
+.preview {
+    display: block;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #e9d6dc;
+}
+
+.preview img {
+    width: 100%;
+    height: 100%;
+    /* `cover` on a 16:10 frame, which these project plates are close to
+       already — enough to fill without cutting an interface in half. */
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.previewEmpty {
+    position: absolute;
+    inset: 0;
     display: grid;
-    gap: 1.5rem;
+    place-items: center;
+    padding: 0 12px;
+    text-align: center;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.875rem;
+    color: #775e6b;
 }
 
-.stage[data-static] .card {
-    position: relative;
-    inset: auto;
-    /* GSAP never runs in this branch, so nothing would clear an inline
-       transform — but the cards also never receive one. */
-    transform: none;
-    border-radius: 20px;
-    min-height: 26rem;
+/* ---- the text ------------------------------------------------------- */
+.text {
+    display: block;
+    padding: 12px 4px 0;
+    /* Room for a two-line title, so "Bail Reckoner" wrapping does not
+       change this card's height or push into the arrow. */
+    min-height: 76px;
+    padding-right: 46px;
 }
 
-.stage[data-static] .cardInner {
-    padding: clamp(1.5rem, 4vw, 2.5rem);
+.kind {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #775e6b;
+}
+
+.name {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 1.3125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: #392d35;
+}
+
+/* ---- the arrow ------------------------------------------------------ */
+.arrow {
+    position: absolute;
+    right: 16px;
+    bottom: 18px;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #e9d6dc;
+    color: #392d35;
+    transition: background-color 200ms var(--ease), color 200ms var(--ease);
+}
+
+.arrow svg {
+    width: 15px;
+    height: 15px;
+}
+
+.link:hover .arrow,
+.link:focus-visible .arrow {
+    background: #dca5b7;
+    color: #2b1f27;
+}
+
+/* ---- the blossom ---------------------------------------------------- */
+/* Bottom-LEFT, not bottom-right, and that is a deliberate deviation.
+
+   The brief asks for the blossom at the bottom-right edge and also for
+   it to stay clear of the arrow — but the arrow is itself bottom-right,
+   inset 16px, and a cluster at 15-20% of the card width reaches about
+   56px in from that corner. The two cannot both sit there without
+   touching. "Clear of the arrow" is the explicit requirement and the
+   corner is the softer one, so the cluster moves to the opposite corner
+   and is mirrored so it still grows inward across the card edge. */
+.blossom {
+    position: absolute;
+    left: -14px;
+    bottom: -14px;
+    width: 18%;
+    min-width: 44px;
+    transform: scaleX(-1);
+    pointer-events: none;
+    filter: drop-shadow(0 3px 6px rgb(14 8 12 / 0.3));
+}
+
+.blossom svg {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 /* ==================================================================
-   PHONES
+   THE COMPOSITION
 
-   16:9 stops working well below roughly a tablet. At 375px wide a
-   true 1920x1080 card is 211px tall — not enough room for a title and
-   a sentence at a readable size, and the type would have to shrink to
-   fit rather than the box growing to hold it. The card turns portrait
-   instead: same design, aspect flipped to suit the device.
+   Four authored positions, and this block is the only thing that decides
+   where a card sits. There is no runtime layout any more.
+
+   That matters beyond tidiness. There used to be two arrangements — one
+   written by script from the scene's branch points, and a CSS fallback
+   for when the scene never reported — and they did not agree, so a
+   visitor with WebGL disabled got a visibly different section. One
+   layout cannot disagree with itself; both paths now measure identical.
+
+   The numbers are percentages because the scene's composition is stable
+   in PROPORTION rather than in pixels: the camera holds a fixed
+   horizontal fov, so the left arch crests near a third across and the
+   right limb bends near four fifths at every width. `left` is the card's
+   centre, hence the -50% translate; `top` is derived from the intended
+   BOTTOM edge, because what each card is composed against is the bough
+   beneath it, not the space above it.
    ================================================================== */
 
-@media (max-width: 48rem) {
-    .cardInner {
-        gap: 1.25rem;
-        padding-bottom: clamp(6rem, 12vh, 8rem);
+.section[data-mode="perched"] .slot {
+    position: absolute;
+    inset: 0;
+}
+
+.section[data-mode="perched"] .card {
+    --w: clamp(220px, 18%, 270px);
+    width: var(--w);
+    /* The card's own height is unknown here — it depends on whether a
+       title wraps — so the bottom edge is placed with a translate rather
+       than by subtracting a height this stylesheet cannot know. */
+    transform: translate(-50%, -100%) translate3d(0, 12px, 0);
+    opacity: 0;
+}
+
+/* Murmur — leftmost, seated on the left arch as it rises. In FRONT, so
+   the bough runs behind it and out the other side. */
+.section[data-mode="perched"] .slot:nth-child(1) .card {
+    left: 11%;
+    top: 70%;
+}
+
+/* Bail Reckoner — behind the bough, placed so the arch's crest crosses
+   its RIGHT side. The name sits bottom-left and stays clear; what the
+   bark takes is the arrow corner. */
+.section[data-mode="perched"] .slot:nth-child(2) .card {
+    left: 31%;
+    top: 46%;
+}
+
+/* BU-GPT — slid DOWN the same limb to sit just below Kine-sense, on the
+   limb's left flank, right edge still tucked behind it.
+
+   Down means left. That limb leans right as it climbs, so a card holding
+   station against its left flank has to travel left as it descends or it
+   ends up out in open sky with nothing behind its right edge.
+
+   66% IS A CEILING IMPOSED BY THE SCENE, not a preference, and it is why
+   this card does not sit lower than Kine-sense.
+
+   The scene's haze thickens toward the bottom of the frame, and this card
+   is BEHIND the scene, so everything drawn down there washes over it —
+   not just the bough it is meant to tuck behind. Swept down the limb, the
+   card stays crisp to 75% at a 1832x861 frame but is greyed out by 76%.
+   And the safe depth is not a constant: a 1280x900 frame is taller and
+   its camera shows more ground, so the same 75% lands deep in the haze
+   and fades the name there while looking fine at 1832. 66% is the lowest
+   value that survives BOTH.
+
+   Going lower means giving up one of two things the card cannot spare:
+   its legibility, or the tuck behind the branch that requires it to stay
+   on the far side of the scene. */
+.section[data-mode="perched"] .slot:nth-child(3) .card {
+    left: 57%;
+    top: 66%;
+}
+
+/* Kine-sense — rightmost and the lowest of the four, in front of the
+   limb past the bend where the moss shows through. */
+.section[data-mode="perched"] .slot:nth-child(4) .card {
+    left: 86%;
+    top: 76%;
+}
+
+/* Its OWN keyframe, not the one the flow layouts use.
+
+   A perched card carries `translate(-50%, -100%)` to seat its centre and
+   bottom edge on the authored point, and `transform` is one property: a
+   keyframe animating a bare translate3d would replace that seating for
+   the length of the animation and drop every card half a card down and
+   right before snapping back. The entrance has to carry the seating
+   with it. */
+.section[data-mode="perched"] .overlay[data-revealed] .card {
+    animation: perchSeated 440ms var(--ease-out) both;
+    animation-delay: calc(var(--tree-lead) + var(--d, 0s));
+}
+
+@keyframes perchSeated {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -100%) translate3d(0, 12px, 0);
     }
 
-    /* The whole treatment rotates 90 degrees on a phone.
-
-       Fading the image out to the LEFT only protects the copy when the card is
-       wide and the text occupies a narrow column of it. Once the card is the
-       full width of a 375px screen the text spans nearly all of it, so the
-       left-fade does nothing and the description ends up sitting on the
-       brightest part of the artwork. Vertically instead: image at the top,
-       copy reading down into an increasingly solid base. */
-    .mediaImg {
-        -webkit-mask-image: linear-gradient(to bottom,
-                #000 0%,
-                rgba(0, 0, 0, 0.92) 34%,
-                rgba(0, 0, 0, 0.55) 62%,
-                rgba(0, 0, 0, 0.28) 100%);
-        mask-image: linear-gradient(to bottom,
-                #000 0%,
-                rgba(0, 0, 0, 0.92) 34%,
-                rgba(0, 0, 0, 0.55) 62%,
-                rgba(0, 0, 0, 0.28) 100%);
-    }
-
-    .scrim {
-        background: linear-gradient(to bottom,
-                color-mix(in srgb, var(--bg) 10%, transparent) 0%,
-                color-mix(in srgb, var(--bg) 42%, transparent) 30%,
-                color-mix(in srgb, var(--bg) 82%, transparent) 58%,
-                color-mix(in srgb, var(--bg) 94%, transparent) 100%);
+    to {
+        opacity: 1;
+        transform: translate(-50%, -100%) translate3d(0, 0, 0);
     }
 }
 
-/* Short landscape windows — a phone on its side, or a small laptop. Height is
-   the binding constraint there, so let the card use the full width it can. */
-@media (max-height: 34rem) and (orientation: landscape) {
-    .cardInner {
-        padding-block: 1.1rem 3.5rem;
-        gap: 0.75rem;
+/* ==================================================================
+   COLUMNS AND STACK
+
+   Ordinary flow. The script does not position anything in these modes,
+   so the section simply grows and the page scrolls.
+   ================================================================== */
+
+/* Every card clears the scene here. Front-and-behind is a statement about
+   a card and the branch it perches on, and in a grid there is no branch
+   under it — a bough crossing a column card would just be an obstruction.
+   The z-index on the overlay makes it one stacking context above the
+   scene, which also makes the per-card depth attribute inert, as it
+   should be in a layout that has no depth. */
+.section[data-mode="columns"] .overlay,
+.section[data-mode="stack"] .overlay {
+    z-index: 4;
+    display: grid;
+    gap: 28px;
+    padding: 0 var(--gutter) clamp(3rem, 8svh, 5rem);
+    width: 100%;
+    max-width: 62rem;
+    margin-inline: auto;
+}
+
+.section[data-mode="columns"] .overlay {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.section[data-mode="stack"] .overlay {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 30rem;
+}
+
+.section[data-mode="columns"] .card,
+.section[data-mode="stack"] .card {
+    position: relative;
+    width: auto !important;
+    left: auto !important;
+    top: auto !important;
+}
+
+
+.section[data-mode="columns"] .card,
+.section[data-mode="stack"] .card {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+}
+
+.section[data-mode="columns"] .overlay[data-revealed] .card,
+.section[data-mode="stack"] .overlay[data-revealed] .card {
+    animation: perch 440ms var(--ease-out) both;
+    animation-delay: calc(var(--tree-lead) + var(--d, 0s));
+}
+
+/* ==================================================================
+   REDUCED MOTION
+
+   Final positions, no entrance travel, no hover lift. Focus feedback
+   and navigation are untouched.
+   ================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    /* IT PAINTS ITS OWN GROUND AGAIN HERE, because there is nothing
+       pinned behind it to borrow. Journey's reduced-motion branch is two
+       ordinary viewports with no track and no sticky at all — it never
+       downloads a frame — so this section goes back to being an ordinary
+       section over an ordinary picture.
+
+       The descent's last frame rather than the project_bg.png it used to
+       carry: the same picture, 48 KB against 2.3 MB, and the one this
+       section's neighbours are already composed against. */
+    .section {
+        background:
+            url("/scene/descent/frame-240.webp") center / cover no-repeat,
+            #3a2d36;
+        /* Nothing is being staged here, so nothing waits for anything. */
+        --tree-lead: 0s;
+    }
+
+    /* Nothing is waiting for an arrival here — there is no camera to
+       settle and nothing rises over anything. */
+    .section::before,
+    .section .scene,
+    :global(html.js) .eyebrow {
+        opacity: 1;
+        transition: none;
+    }
+
+    .card {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+    }
+
+    /* The seating is NOT motion and must survive this block.
+
+       `transform: none` above exists to cancel the 12px entrance rise,
+       but a perched card uses the same property to place itself — its
+       translate puts its centre and bottom edge on the authored point.
+       Cancelling that does not remove an animation, it moves the card
+       half its own width right and a full card height down. */
+    .section[data-mode="perched"] .card {
+        transform: translate(-50%, -100%) !important;
+    }
+
+    .link:hover .lift,
+    .link:focus-visible .lift {
+        transform: none;
+    }
+
+    .lift {
+        transition: none;
+    }
+}
+
+@keyframes perch {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 12px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
     }
 }

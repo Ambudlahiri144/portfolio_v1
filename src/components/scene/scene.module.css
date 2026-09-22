@@ -196,6 +196,14 @@
 
 .seam {
     position: relative;
+    /* The haze inside is pushed on the z axis through this perspective,
+       and a positive translateZ scales an element up — enough that it
+       spilled ~38px past the viewport and gave the whole document a
+       horizontal scroll. Clip on x only: `overflow-x: hidden` would
+       force a scroll container on y, and `.seamAir` is deliberately
+       `inset: -1px 0` so its 1px of vertical bleed keeps a hairline
+       from showing at the join. */
+    overflow-x: clip;
     /* Tall enough for the move to have somewhere to happen, short enough
        that it is never a section in its own right. */
     height: 46svh;
@@ -210,12 +218,21 @@
 /* The haze the two worlds meet inside. Both of them have air in them,
    so the join between them is air too, and the one place a hard cut
    would be visible is exactly where this is thickest. */
+/* Tinted from --bg by default, which is right when both neighbours are
+   sections standing on the page's own colour.
+
+   It is wrong when a neighbour is a fixed-palette world. The projects
+   section is a dark plum 3D scene in BOTH themes, so a --bg haze paints
+   a cream band between two dark pictures in the light theme — the only
+   light thing on screen, exactly where the join was supposed to soften.
+   Hence --seam-tint: pass the world's own colour and the band blends
+   into it instead. */
 .seamAir {
     position: absolute;
     inset: -1px 0;
     background: linear-gradient(to bottom,
             transparent 0%,
-            color-mix(in srgb, var(--bg) 82%, transparent) 42%,
-            color-mix(in srgb, var(--bg) 82%, transparent) 58%,
+            color-mix(in srgb, var(--seam-tint, var(--bg)) 82%, transparent) 42%,
+            color-mix(in srgb, var(--seam-tint, var(--bg)) 82%, transparent) 58%,
             transparent 100%);
 }

@@ -29,9 +29,37 @@ import styles from "./scene.module.css";
    is not visible.
    ================================================================== */
 
-export default function Seam() {
+/* Split into two components, the same way ContactSequence and Footer are and
+   for the same reason they document: hooks cannot be called conditionally, so
+   a single component has to run useScroll on the reduced-motion path too —
+   where its target ref is never attached and Motion throws "Target ref is
+   defined but not hydrated" into the console. Three seams on the page meant
+   three of those. */
+export default function Seam({
+    /**
+     * The colour the haze is made of. Defaults to the page's own --bg,
+     * which is right between two ordinary sections and wrong next to a
+     * fixed-palette world — see the note on .seamAir.
+     */
+    tint,
+}: { tint?: string } = {}) {
+    /* Under reduced motion the seam still exists, because the two sections
+       still need something between them, but it holds still. */
+    return useReducedMotion() ? (
+        <div
+            className={styles.seam}
+            style={tint ? ({ "--seam-tint": tint } as React.CSSProperties) : undefined}
+            aria-hidden="true"
+        >
+            <span className={styles.seamAir} />
+        </div>
+    ) : (
+        <MovingSeam tint={tint} />
+    );
+}
+
+function MovingSeam({ tint }: { tint?: string }) {
     const ref = useRef<HTMLDivElement>(null);
-    const reduced = useReducedMotion();
 
     const { scrollYProgress } = useScroll({
         target: ref,
@@ -46,18 +74,13 @@ export default function Seam() {
        enough never to read as a zoom. */
     const z = useTransform(smooth, [0, 1], [-120, 120]);
 
-    /* Under reduced motion the seam still exists, because the two sections
-       still need something between them, but it holds still. */
-    if (reduced) {
-        return (
-            <div className={styles.seam} aria-hidden="true">
-                <span className={styles.seamAir} />
-            </div>
-        );
-    }
-
     return (
-        <div ref={ref} className={styles.seam} aria-hidden="true">
+        <div
+            ref={ref}
+            className={styles.seam}
+            style={tint ? ({ "--seam-tint": tint } as React.CSSProperties) : undefined}
+            aria-hidden="true"
+        >
             <motion.span className={styles.seamAir} style={{ opacity, z }} />
         </div>
     );

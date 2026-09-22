@@ -1,439 +1,315 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useLenis } from "lenis/react";
-import { projects, projectsIntro, type Project } from "@/lib/site";
-import { useReducedMotion } from "@/lib/useReducedMotion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import SakuraScene, { type AnchorMessage } from "./SakuraScene";
+import FlipFadeText from "../hero/FlipFadeText";
 import { useInView } from "@/lib/useinview";
-import FlipFadeText, { letterVariants } from "../hero/FlipFadeText";
-import ProjectLens from "./ProjectLens";
-import { useTheme } from "@/lib/useTheme";
-import scene from "../scene/scene.module.css";
+import { projects, projectsIntro, type Project } from "@/lib/site";
 import styles from "./ProjectStack.module.css";
 
-/* The intro is the first card, not a heading above the deck — so it is part of
-   the same slide list and animates exactly like the rest. */
-type Slide =
-    | { kind: "intro" }
-    | { kind: "project"; project: Project };
+/* ==================================================================
+   PROJECTS — four cards composed into a blossoming bough
 
-const slides: Slide[] = [
-    { kind: "intro" },
-    ...projects.map((project) => ({ kind: "project" as const, project })),
-];
+   The cards are ordinary DOM in the host page; the bough is an authored
+   Three.js scene inside a sandboxed iframe. Neither knows about the
+   other's internals, and the sandbox is `allow-scripts` with no
+   `allow-same-origin`, deliberately.
+
+   THE ARRANGEMENT IS COMPOSED, NOT DERIVED. An earlier version read four
+   branch points out of the scene each frame and hung a card off each
+   one. That welded the cards to real bark, but it also meant the
+   arrangement was whatever the geometry happened to do at a given
+   viewport width, and a derived arrangement cannot be made to match a
+   drawn one. LAYOUT below is the composition; the scene is what it is
+   composed against.
+
+   What still comes from the scene is one bit: whether its entrance has
+   finished, so the cards can arrive as the boughs finish growing rather
+   than before them.
+
+   Which side of the bough a card is on is CSS — see the depth ladder in
+   ProjectStack.module.css. The scene sits between the two card layers,
+   so a "behind" card is genuinely covered by bark pixels.
+   ================================================================== */
+
+/* THE COMPOSITION IS AUTHORED, and that is a deliberate reversal.
+
+   Placement used to be derived at runtime from branch points the scene
+   picked out of its own geometry. That kept every card welded to real
+   bark, but it meant the arrangement was whatever the boughs happened to
+   do at that viewport width — and no amount of tuning makes a derived
+   arrangement match a drawn one.
+
+   The sketch asks for a composition: a named spot and a named depth for
+   each card, with the branch threading between them. So the four
+   positions are authored here, in the one place, and the scene is what
+   they are composed AGAINST rather than what dictates them.
+
+   The trade is real and worth naming: these do not track the boughs
+   automatically any more. What makes it safe is that the composition is
+   stable in PROPORTION — the camera holds a fixed horizontal fov, so the
+   left arch crests near a third across and the right limb bends near
+   four fifths at every width measured. The positions are percentages for
+   exactly that reason.
+
+   `depth` is the other half of the sketch. "behind" means the bough is
+   drawn over the card; the two behind cards are placed so it crosses
+   their RIGHT side, where the arrow is, because the project name sits
+   bottom-left and has to survive. */
+const LAYOUT = [
+    /* Murmur — leftmost, in front, seated on the left arch's rise. */
+    { cx: 11, bottom: 70, depth: "front" },
+    /* Bail Reckoner — right portion over the arch's crest, behind it. */
+    { cx: 38, bottom: 68, depth: "behind" },
+    /* BU-GPT — level with the right limb's bend, right edge into it. */
+    { cx: 68, bottom: 50, depth: "behind" },
+    /* Kine-sense — rightmost and lowest, in front, over the limb past
+       the bend where the moss shows through. */
+    { cx: 86, bottom: 76, depth: "front" },
+] as const;
+
+type Mode = "perched" | "columns" | "stack";
 
 export default function ProjectStack() {
-    const theme = useTheme();
-    const reduced = useReducedMotion();
-    const container = useRef<HTMLDivElement>(null);
-    const cardRefs = useRef<(HTMLElement | null)[]>([]);
+    /* Two pieces of state, and no DOM writes at all any more: the
+       composition is CSS, so there is nothing for script to position. */
+    const [mode, setMode] = useState<Mode>("stack");
+    const [grown, setGrown] = useState(false);
 
-    /* -1 means "not reached yet", so the first card still gets its entrance
-       when the section arrives rather than having played it off screen.
-       Under reduced motion every card is simply on. */
-    const [activeIndex, setActiveIndex] = useState(reduced ? Infinity : -1);
+    /* Guards the one-way latch below so the handler does not call
+       setState on every frame the scene publishes. */
+    const grownRef = useRef(false);
 
-    /* The first card's reveal is driven by the DECK filling the viewport, not
-       by the pin and not by the section.
+    /* ---- HAS THIS SECTION ARRIVED? ---------------------------------
+       Not "is it on screen", which is what this observer used to ask
+       (threshold 0.2) and which is now a whole screen too early.
 
-       Not the pin: ScrollTrigger's start is "top top", but the dock link
-       honours scroll-padding-top and lands 32px above that, so the trigger
-       never activated and anyone arriving from the nav got a full-screen card
-       with every letter still at opacity 0.
+       Projects is carried by the pinned surface in Journey: the camera
+       comes to rest on the valley, and this section then rises over that
+       held picture with no background of its own, which means that while
+       it is moving there is nothing in it to see. Everything it contains
+       is revealed only once it has LANDED, so nothing is ever watched
+       sliding into place.
 
-       Not the section either: with pinSpacing the section's box is about five
-       viewports tall, so at threshold 0 it counted as "in view" the moment its
-       top edge appeared below About — a whole screen before the card was
-       visible. The flip played out off screen and was over by the time anyone
-       scrolled to it.
+       That is a rule about this section's own position and nothing else.
+       It is not told anything by Journey, and it still reads correctly
+       when this is an ordinary section — which it is under reduced
+       motion, where there is no pinned surface at all.
 
-       The deck is exactly one viewport, so a majority threshold on it means
-       "the card is actually on screen now". */
-    const { ref: deckRef, inView } = useInView<HTMLDivElement>({
+       HOW THE MARGIN SAYS "LANDED". Pulling the root's bottom edge up by
+       92% leaves a band across the top of the window, and the test
+       becomes `top <= 8% of the window AND bottom >= 0`. Because this
+       section is always at least a windowful tall, that is a RANGE and
+       not a threshold: it holds from the moment the section lands until
+       its last pixel leaves, so no scroll — however fast — can step over
+       it, and it still releases on the way out the way the old gate did.
+
+       The 8% is not slack for its own sake. An anchor jump to #projects
+       lands short by the page's 2rem scroll-padding, and a scroll that
+       stops exactly on the boundary pixel is a real thing under Lenis;
+       both must count as arrived. Measured the exact way first — progress
+       through the section, treating anything above zero as arrival — and
+       it failed both: on a phone the dock's jump landed 64px short and
+       the section stayed blank. */
+    const { ref, inView: arrived } = useInView<HTMLElement>({
+        threshold: 0,
+        rootMargin: "0px 0px -92% 0px",
         once: false,
-        threshold: 0.55,
-        rootMargin: "0px",
     });
 
-    /* Derived during render rather than pushed into state from an effect.
-
-       Mirroring `inView` into activeIndex with a setState would be a second
-       source of truth for the same fact, and a cascading render every time the
-       observer fires. The floor is simply "is the section on screen"; the
-       timeline raises it from there. */
-    const revealed = Math.max(activeIndex, inView ? 0 : -1);
-
-    /* ScrollTrigger listens to native scroll events. Lenis animates the real
-       document scroll, so they mostly agree — but Lenis drives it from its own
-       rAF loop, and without this the pin can lag a frame behind the cards.
-       Undefined under reduced motion, where Lenis is never constructed. */
-    const lenis = useLenis();
+    /* Layout mode from the container, not from a device guess. Four
+       readable cards need roughly 4 x 220 plus gaps and padding. */
     useEffect(() => {
-        if (!lenis) return;
-        const update = () => ScrollTrigger.update();
-        lenis.on("scroll", update);
+        const wide = window.matchMedia("(min-width: 64rem)");
+        const mid = window.matchMedia("(min-width: 40rem)");
+        const pick = () =>
+            setMode(wide.matches ? "perched" : mid.matches ? "columns" : "stack");
+        pick();
+        wide.addEventListener("change", pick);
+        mid.addEventListener("change", pick);
         return () => {
-            lenis.off("scroll", update);
+            wide.removeEventListener("change", pick);
+            mid.removeEventListener("change", pick);
         };
-    }, [lenis]);
+    }, []);
 
-    useGSAP(
-        () => {
-            /* No pin, no timeline, no ScrollTrigger at all — the cards fall back
-               to an ordinary stacked list in CSS. Pinning a section is the most
-               disorienting thing on this page for someone who asked for less
-               motion. */
-            if (reduced) return;
+    /* The one thing still read from the scene: its entrance finishing.
 
-            gsap.registerPlugin(ScrollTrigger);
+       Everything positional is authored now, so there is nothing per
+       frame to apply. This stays a callback rather than becoming state
+       plumbing because the scene publishes on every animation frame and
+       only the FIRST message that reports a finished entrance matters —
+       the ref latch is what stops the other few hundred calling
+       setState. */
+    const onAnchors = useCallback((msg: AnchorMessage) => {
+        if (msg.entranceDone && !grownRef.current) {
+            grownRef.current = true;
+            setGrown(true);
+        }
+    }, []);
 
-            const cards = cardRefs.current.filter(Boolean) as HTMLElement[];
-            const total = cards.length;
-            if (total < 2) return;
+    /* The scene's entrance signal is preferred, but it cannot be the only
+       way in.
 
-            /* Every card starts full-bleed with square corners. The section
-               should not announce itself as a deck of cards — it reads as a
-               full-screen panel until the first scroll, and the card shape only
-               emerges as one recedes behind the next. */
-            gsap.set(cards[0], {
-                yPercent: 0,
-                scale: 1,
-                rotation: 0,
-                borderRadius: 0,
-            });
-            for (let i = 1; i < total; i++) {
-                gsap.set(cards[i], {
-                    yPercent: 100,
-                    scale: 1,
-                    rotation: 0,
-                    borderRadius: 0,
-                    z: 0,
-                });
-            }
+       Gating purely on it meant the cards stayed invisible whenever the
+       scene did not report at all — no WebGL, a slow mount, a lost
+       context. The section rendered completely empty. So a timer runs
+       alongside: whichever arrives first reveals the cards.
 
-            const timeline = gsap.timeline({
-                scrollTrigger: {
-                    trigger: container.current,
-                    start: "top top",
-                    /* A function, not a baked string. The original captured
-                       window.innerHeight once at setup, so the pin length was
-                       frozen at whatever the viewport happened to be on mount —
-                       a resize or a phone rotating then left the pin ending in
-                       the wrong place, and the ResizeObserver's refresh could
-                       not fix a value that had already been stringified. */
-                    end: () => `+=${window.innerHeight * (total - 1)}`,
-                    pin: true,
-                    scrub: 0.5,
-                    pinSpacing: true,
-                    invalidateOnRefresh: true,
+       Longer than the authored SCAN_DUR of 3.4s on purpose, so in the
+       normal case the scene's own signal is what fires and the cards
+       still follow the branches growing in. This only takes over when
+       that signal never comes.
 
-                    /* Which card is currently front. Rounding rather than
-                       flooring means a card counts as arrived once it is
-                       halfway up, so its copy flips in as it settles instead of
-                       after it has already stopped. */
-                    onUpdate: (self) => {
-                        const next = Math.round(self.progress * (total - 1));
-                        setActiveIndex((prev) => (prev === next ? prev : next));
-                    },
-                    /* onUpdate only fires WHILE the trigger is active, so
-                       arriving at the section from the dock link — which lands
-                       exactly on the pin's start — left the first card sitting
-                       there with every letter still at opacity 0 until the
-                       reader nudged the scroll. These fire on arrival. */
-                    onEnter: () => setActiveIndex((prev) => Math.max(prev, 0)),
-                    onEnterBack: () => setActiveIndex((prev) => Math.max(prev, 0)),
+       IT COUNTS FROM ARRIVAL, not from coming into view. Those used to be
+       the same moment; now `inView` is true a screen earlier, while the
+       camera is still settling, so a visitor who dwells there would spend
+       the whole 4.5s before landing and the cards would appear WITH the
+       heading instead of after the tree. */
+    const [timedOut, setTimedOut] = useState(false);
+    useEffect(() => {
+        if (!arrived || grown) return;
+        const t = window.setTimeout(() => setTimedOut(true), 4500);
+        return () => window.clearTimeout(t);
+    }, [arrived, grown]);
 
-                    /* Scrolled back above the section: nothing is front, so the
-                       whole deck resets and plays again on the way down. */
-                    onLeaveBack: () => setActiveIndex(-1),
-                },
-            });
-
-            for (let i = 0; i < total - 1; i++) {
-                timeline.to(
-                    cards[i],
-                    {
-                        /* Depth, not a smaller copy. The stage carries a
-                           perspective, so an outgoing card travels away from
-                           the viewer into the same space the backdrop is in.
-
-                           No scale alongside it: perspective already shrinks
-                           a receding card, and doing both made it pull away
-                           twice as fast as it moved and leave the frame. */
-                        rotation: 3,
-                        z: -220,
-                        /* Corners round off only as the card pulls back, so
-                           "this is a card" is something the scroll reveals
-                           rather than something the layout states upfront. */
-                        borderRadius: 26,
-                        duration: 1,
-                        ease: "none",
-                    },
-                    i,
-                );
-                timeline.to(
-                    cards[i + 1],
-                    { yPercent: 0, duration: 1, ease: "none" },
-                    i,
-                );
-            }
-
-            const ro = new ResizeObserver(() => ScrollTrigger.refresh());
-            if (container.current) ro.observe(container.current);
-
-            return () => {
-                ro.disconnect();
-                /* Kills only this timeline's own trigger.
-
-                   The original ran ScrollTrigger.getAll().forEach(t => t.kill()),
-                   which tears down every trigger on the page — including any
-                   belonging to other components. Nothing else uses ScrollTrigger
-                   here yet, so it would not bite today; it would bite silently
-                   the first time something else did. */
-                timeline.scrollTrigger?.kill();
-                timeline.kill();
-            };
-        },
-        { scope: container, dependencies: [reduced] },
-    );
+    /* Re-arms on its own when the section leaves and lands again, because
+       `arrived` is the gate. Resetting `grown` instead would strand the
+       cards: the scene only posts when its message changes, so after a
+       reset it would sit silent and they would never come back. */
+    const revealed = (grown || timedOut) && arrived;
 
     return (
-        <section id="projects" className={styles.section}>
-            <div
-                ref={container}
-                className={`${styles.stage} ${scene.stage}`}
-                data-static={reduced || undefined}
-            >
-                {/* The place the cards are standing in. Light is the path
-                    climbing through cedar with four markers along it; dark is
-                    a rooftop with four lit towers. It does not move: the
-                    cards travel past it, which is what makes them feel like
-                    things in a place rather than slides. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                    src={`/scene/backdrop/projects-${theme}.webp`}
-                    alt=""
-                    aria-hidden="true"
-                    className={`${scene.plate} ${scene.far}`}
-                />
-                <span className={scene.air} aria-hidden="true" />
-                <div ref={deckRef} className={styles.deck}>
-                    {slides.map((slide, i) => (
+        <section
+            id="projects"
+            ref={ref}
+            className={styles.section}
+            data-mode={mode}
+            /* Drives the heading, the scene's fade and the section's own
+               lighting in CSS, and makes the state inspectable from
+               outside the way Journey's data-phase is. */
+            data-arrived={arrived || undefined}
+        >
+            <SakuraScene className={styles.scene} onAnchors={onAnchors} />
+
+            {/* The eyebrow is copy that already existed and was never
+                rendered here — projectsIntro.eyebrow in site.ts. Nothing
+                new is invented for the heading. It is decorative to a
+                screen reader: the h2 alone names the section, and having
+                "Selected work" announced ahead of "Projects" would add a
+                second label for one thing. */}
+            <div className={styles.head}>
+                <span className={styles.eyebrow} aria-hidden="true">
+                    {projectsIntro.eyebrow}
+                </span>
+                <h2 className={styles.title}>
+                    <FlipFadeText text={projectsIntro.title} active={arrived} />
+                </h2>
+            </div>
+
+            {/* Transparent to the pointer, so the scene underneath keeps
+                its parting and trails. Only the cards take input. */}
+            <div className={styles.overlay} data-revealed={revealed || undefined}>
+                {projects.map((project, i) => (
+                    <div key={project.no} className={styles.slot}>
+                        {/* No connector. A card seated on the bough does
+                            not need a line drawn to it to read as resting
+                            there, and nothing in the composition has one. */}
                         <article
-                            key={slide.kind === "intro" ? "intro" : slide.project.no}
-                            ref={(el) => {
-                                cardRefs.current[i] = el;
-                            }}
                             className={styles.card}
-                            data-intro={slide.kind === "intro" || undefined}
+                            data-depth={LAYOUT[i].depth}
+                            style={{ "--d": `${i * 0.12}s` } as React.CSSProperties}
                         >
-                            {slide.kind === "project" ? (
-                                <Media project={slide.project} />
-                            ) : null}
-
-                            {/* Project cards only. The intro card is a title
-                                page — there is nothing behind it to open, so a
-                                cursor promising a destination would be lying. */}
-                            {slide.kind === "project" ? (
-                                <ProjectLens
-                                    href={slide.project.repo}
-                                    label={`${slide.project.title} on GitHub`}
-                                >
-                                    {/* The lens copy. Same markup as the real
-                                        card so the magnifier lines up exactly,
-                                        but frozen — no second set of motion
-                                        components for every letter.
-
-                                        The artwork is copied too: without it
-                                        the lens would show magnified text on
-                                        bare background and the illusion would
-                                        break the moment it crossed the image. */}
-                                    <Media project={slide.project} />
-                                    <div className={styles.cardInner}>
-                                        <ProjectCard
-                                            project={slide.project}
-                                            active
-                                            frozen
-                                        />
-                                    </div>
-                                </ProjectLens>
-                            ) : null}
-
-                            {/* The card is now the full viewport, so the copy
-                                needs its own measure — otherwise the number and
-                                the period end up at opposite ends of a 2560px
-                                screen with a desert between them. */}
-                            <div className={styles.cardInner}>
-                                {slide.kind === "intro" ? (
-                                    <IntroCard active={revealed >= i} />
-                                ) : (
-                                    <ProjectCard
-                                        project={slide.project}
-                                        active={revealed >= i}
-                                    />
-                                )}
-                            </div>
+                            <Card project={project} index={i} />
                         </article>
-                    ))}
-                </div>
+                    </div>
+                ))}
             </div>
         </section>
     );
 }
 
-function IntroCard({ active }: { active: boolean }) {
-    return (
-        <>
-            <header className={styles.cardTop}>
-                <FlipFadeText
-                    text={projectsIntro.eyebrow}
-                    active={active}
-                    className={styles.eyebrow}
-                />
-            </header>
-
-            <div className={styles.cardBody}>
-                {/* The section's real heading. It lives on the card rather than
-                    above the deck, so this is still the <h2> for the section. */}
-                <h2 className={styles.introTitle}>
-                    <FlipFadeText
-                        text={projectsIntro.title}
-                        active={active}
-                        letterDuration={0.7}
-                        staggerDelay={0.07}
+/* ------------------------------------------------------------------
+   One card. A single link wraps the whole thing, so the arrow is part
+   of the link rather than a button nested inside one.
+   ------------------------------------------------------------------ */
+function Card({ project, index }: { project: Project; index: number }) {
+    const label = `${project.title} — ${project.kind}`;
+    const body = (
+        <span className={styles.lift}>
+            <span className={styles.preview}>
+                {project.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={project.image}
+                        alt={`${project.title} project preview`}
+                        loading="lazy"
+                        decoding="async"
                     />
-                </h2>
-                <div className={styles.introLines}>
-                    {projectsIntro.lines.map((line) => (
-                        <p key={line} className={styles.introLine}>
-                            <FlipFadeText text={line} active={active} />
-                        </p>
-                    ))}
-                </div>
-            </div>
+                ) : (
+                    /* No invented screenshot. A neutral plate that still
+                       carries the real project name. */
+                    <span className={styles.previewEmpty}>{project.title}</span>
+                )}
+            </span>
 
-            <footer className={styles.cardFoot} aria-hidden="true">
-                <span className={styles.cardFootRule} />
-                <FlipFadeText
-                    text={`${projects.length} projects`}
-                    active={active}
-                />
-            </footer>
-        </>
+            <span className={styles.text}>
+                <span className={styles.kind}>{project.kind || `Project ${project.no}`}</span>
+                <span className={styles.name}>{project.title}</span>
+            </span>
+
+            <span className={styles.arrow} aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3.5 8h9M8.8 4.3 12.5 8l-3.7 3.7" />
+                </svg>
+            </span>
+
+            {/* Decorative blossom overlapping the lower-right corner. */}
+            <span className={styles.blossom} aria-hidden="true">
+                <Blossom />
+            </span>
+        </span>
+    );
+
+    /* Every project in this data has a repo. If one ever does not, it
+       stays a plain article rather than acquiring an invented link. */
+    return project.repo ? (
+        <a
+            className={styles.link}
+            href={project.repo}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label={label}
+            style={{ "--i": index } as React.CSSProperties}
+        >
+            {body}
+        </a>
+    ) : (
+        <span className={styles.link} data-static="true">{body}</span>
     );
 }
 
-/* Sits outside cardInner so it fills the whole card, not the measure. */
-function Media({ project }: { project: Project }) {
-    /* One print, from scripts/nishiki.mjs. There used to be two of these,
-       cross-fading on data-theme, because the old renders were tinted to each
-       theme's ground. These are woodblock prints instead, so there is one
-       artwork per project and it holds at any hour.
-
-       `data-pigment` hands the project's pigment to CSS, which uses it for the
-       leaf's edge and the card's rule: the four projects are four blocks cut in
-       the same workshop, and that is the only thing that distinguishes them. */
+/* A small cluster of five petals. Inline rather than an asset, because
+   it is three paths and the section already carries 800 KB of scene. */
+function Blossom() {
     return (
-        /* Decorative, so no alt text: the card's own heading and copy already
-           say what this is, and a description of the artwork would just be
-           noise between them. */
-        <div className={styles.media} data-pigment={project.pigment} aria-hidden="true">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                src={project.image}
-                alt=""
-                className={styles.mediaImg}
-                loading="lazy"
-                decoding="async"
-            />
-            <span className={styles.scrim} />
-        </div>
-    );
-}
-
-function ProjectCard({
-    project,
-    active,
-    frozen = false,
-}: {
-    project: Project;
-    active: boolean;
-    /* Renders the identical DOM with no motion — used for the lens copy. */
-    frozen?: boolean;
-}) {
-    return (
-        <>
-            {/* No index any more. With the cards full-bleed there is nothing
-                for a "01" to number — the stack itself shows the position, and
-                a lone digit floating in the corner of a full screen read as a
-                stray artefact rather than as a label.
-
-                `no` is still on the Project type: it is the React key and the
-                stable identity for reordering. */}
-            {project.period ? (
-                <header className={styles.cardTop}>
-                    <FlipFadeText
-                        text={project.period}
-                        active={active}
-                        frozen={frozen}
-                        className={styles.period}
-                    />
-                </header>
-            ) : (
-                <span aria-hidden="true" />
-            )}
-
-            <div className={styles.cardBody}>
-                <p className={styles.kind}>
-                    <FlipFadeText text={project.kind} active={active} frozen={frozen} />
-                </p>
-                <h3 className={styles.title}>
-                    <FlipFadeText
-                        text={project.title}
-                        active={active}
-                        frozen={frozen}
-                        letterDuration={0.7}
-                        staggerDelay={0.07}
-                    />
-                </h3>
-                <p className={styles.detail}>
-                    {/* The spread cap does the work here — this sentence would
-                        otherwise take eight seconds to finish arriving. */}
-                    <FlipFadeText text={project.detail} active={active} frozen={frozen} />
-                </p>
-            </div>
-
-            {/* Chips flip as whole units rather than letter by letter.
-
-                Six chips of eight characters each is roughly fifty spans all
-                pivoting at once — it reads as static, not as motion, and buys
-                nothing. Flipping each chip as one object uses the same
-                variants and stays legible. */}
-            <motion.ul
-                className={styles.tech}
-                initial="initial"
-                animate={active ? "animate" : "exit"}
-                variants={{
-                    initial: {},
-                    animate: { transition: { staggerChildren: 0.05 } },
-                    exit: { transition: { staggerChildren: 0.02 } },
-                }}
-            >
-                {project.tech.map((name) => (
-                    <motion.li
-                        key={name}
-                        className={styles.chip}
-                        variants={letterVariants(0.55)}
-                        style={{ transformStyle: "preserve-3d" }}
-                    >
-                        {name}
-                    </motion.li>
-                ))}
-            </motion.ul>
-        </>
+        <svg viewBox="0 0 48 40" fill="none" aria-hidden="true">
+            <g fill="#E8BDC7">
+                <circle cx="14" cy="16" r="7.5" />
+                <circle cx="25" cy="11" r="6" />
+                <circle cx="33" cy="19" r="7" />
+                <circle cx="22" cy="24" r="6.5" />
+                <circle cx="40" cy="12" r="4.5" />
+            </g>
+            <g fill="#F5DEDC">
+                <circle cx="16" cy="14" r="3" />
+                <circle cx="31" cy="17" r="2.6" />
+                <circle cx="24" cy="22" r="2.2" />
+            </g>
+            <g fill="#D79AAA">
+                <circle cx="14" cy="16" r="1.7" />
+                <circle cx="33" cy="19" r="1.5" />
+            </g>
+        </svg>
     );
 }

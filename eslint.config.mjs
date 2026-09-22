@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored third-party source, carried byte-for-byte as the
+    // provenance baseline for the Sylva scene, plus the string modules
+    // generated from it by scripts/sakura-scene.mjs. Linting a minified
+    // r149 build produces thousands of warnings about code that must not
+    // be touched. See src/shaders/sylva-living-world/LICENSE.
+    "src/shaders/**",
   ]),
 ]);
 

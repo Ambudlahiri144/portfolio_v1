@@ -100,21 +100,26 @@ export const heroIntro = {
     from: 0.82,
 } as const;
 
-/* The avatar, in /public/scene/avatar/{light,dark}, rendered by
-   scripts/scene.mjs from the footage in /public/hero-motion.
-
-   Keyed off its studio black and graded once per world, so he picks up the
-   dojo's warm side light or the apartment's cool lamp rather than carrying a
-   third lighting scheme into whichever room he is standing in. */
-export const aboutSequence = {
-    count: 72,
-    /* The turn is finished before the section is centred, so the figure is
-       facing the reader for the whole time the copy beside him is readable.
-       The remaining scroll holds on that last frame. */
-    seqEnd: 0.62,
-} as const;
-
 export const about = {
+    /* The whole of About's copy now. It stands in the upper third of the
+       clip, above the figure on the bridge, so he reads as looking up at
+       it rather than standing next to a caption.
+
+       The wording is not new — it is heroIntro's eyebrow and name, which
+       the scrubbed hero used to carry and which went unsaid anywhere on
+       the site when the hero became one bare clip. */
+    greeting: `${heroIntro.eyebrow} ${heroIntro.name}`,
+
+    /* ------------------------------------------------------------------
+       NOTHING BELOW THIS LINE IS RENDERED.
+
+       About became a title card — greeting and two buttons over the
+       footage — and the prose came off the page with the two-column
+       layout it lived in. It is kept because it is good writing and
+       because deleting it to satisfy a lint rule would be the wrong
+       trade: this way it is one edit from coming back, or from moving
+       somewhere it fits.
+       ------------------------------------------------------------------ */
     eyebrow: "About",
     heading: "I build the whole thing, not just the part that shows.",
     /* Two short paragraphs. Concrete beats adjectives — say what you have
@@ -123,10 +128,6 @@ export const about = {
         "I work across the stack, from database schema to the last few pixels of a hover state. Most of what I build lives in TypeScript, React and Next.js, sitting on Node and Postgres.",
         "What I care about is the part users feel: pages that load before they notice, interfaces that behave the way they expect, and systems that stay boring under load.",
     ],
-    /* The frame the reduced-motion branch holds on: the end of the turn,
-       where he is facing the reader. Per world, like the sequence itself. */
-    photo: (theme: "light" | "dark") => `/scene/avatar/${theme}/frame-072.webp`,
-    photoAlt: "Portrait of Ambud Lahiri",
 } as const;
 
 export type NavItem = {

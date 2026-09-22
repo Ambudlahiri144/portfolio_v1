@@ -18,6 +18,20 @@ public/contact_forms_1/
 public/hero_motion.zip
 public/hero_motion_1.zip
 
+# Raw frame archives for the two scrubbed camera moves in Journey.
+# hero-about_anime.zip -> public/scene/bridge  (120 WebP, 15 MB) by scripts/bridge.mjs
+# about_trans.zip      -> public/scene/descent (240 WebP, 11 MB, plus sm/ at 6.4 MB)
+#                         by scripts/descent.mjs
+public/hero-about_anime.zip
+public/about_trans.zip
+
+# The valley the descent comes to rest on, and Projects' old background.
+# Nothing loads it any more: the section shows the held frame instead, and
+# the reduced-motion path uses public/scene/descent/frame-240.webp, which
+# is the same picture at 48 KB. Kept in the repo because it is the source
+# every grade at that end of the sequence was measured against.
+public/project_bg.png
+
 # Original project card artwork, 19.9 MB of PNG.
 # Converted to public/projects/*.webp (0.6 MB, same pixels).
 public/Bail_bg.png

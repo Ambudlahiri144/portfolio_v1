@@ -1,0 +1,505 @@
+/* ==================================================================
+   THE WAY IN, AND WHAT IT CARRIES
+
+   One pinned surface holding four layers — the hero clip, the scrubbed
+   camera move down to the bridge, the About clip with its greeting, and
+   the second scrubbed move out over the valley — and then PROJECTS,
+   which arrives on top of that last picture rather than below it.
+
+   See Journey.tsx for why this is one surface and not several sections.
+   ================================================================== */
+
+/* ---- the scroll track ----------------------------------------------
+   The track's own height is no longer a number: it is the sticky's
+   100svh, plus a fixed 700svh runway, plus however tall Projects turns
+   out to be, plus a 100svh tail. Projects is 100svh on a desktop and
+   nearly twice that on a phone, which is exactly why the number had to
+   go.
+
+   THE PIN IS NOW LOAD-BEARING FOR TWO SECTIONS, NOT ONE. A sticky child
+   stays pinned until its CONTAINING BLOCK's bottom passes it, so putting
+   Projects inside this element is the whole mechanism that keeps the
+   valley behind the cards instead of being repainted under them.
+
+   That also makes this element fragile in a way worth stating: give it
+   or anything between it and .sticky an `overflow` other than visible,
+   or a transform, filter or contain, and the sticky silently stops
+   sticking — the valley would scroll away halfway through Projects.
+
+   300svh across 120 frames is 2.5svh per frame for the bridge — brisker
+   than the old scrubbed hero's 5.2, which is right for a move you travel
+   through rather than a place you are meant to dwell in. The descent
+   runs 300svh across 240 frames, so 1.25svh per frame: twice the density
+   over the same distance, which is what the longer move needs to read as
+   one continuous lift rather than a series of steps.
+
+   THIS STARTS AT THE TOP OF THE PAGE. Nothing precedes it, which is the
+   whole point: the sticky is pinned from the first pixel of scroll, so
+   the hero never slides anywhere. */
+.track {
+    position: relative;
+    /* THE VALLEY'S OWN DARK, not --bg. This is only ever seen in the tail,
+       where the plate travels up and off — but --bg is near-white in the
+       light theme, so leaving it there would drag a pale band across the
+       one join the picture is supposed to carry. Sampled from the frame
+       the beat ends on, the same value the Contact-side seam uses. */
+    background: #3a2b41;
+    scroll-margin-top: 0;
+}
+
+/* ---- the runway -----------------------------------------------------
+   Pure scroll. It is also what the camera is MEASURED against, because
+   the track's height now depends on how tall Projects is and this does
+   not. Its top sits 100svh down (the sticky's flow box), so with
+   useScroll's ["start end","end start"]:
+
+     start end   its top meets the viewport bottom   -> scroll 0
+     end start   its bottom meets the viewport top   -> scroll 800svh
+
+   which is the same 0..800svh the track used to give, so every constant
+   in Journey.tsx keeps its meaning:
+
+     0-300svh   the bridge scrub, 120 frames      0     -> 0.375
+     300-400    About plays, the greeting reads   0.375 -> 0.5
+     400-700    the descent scrub, 240 frames     0.5   -> 0.875
+     700-800    settling on the last frame        0.875 -> 1
+
+   The settle at the end is not padding, and it now does two jobs: it
+   lets the camera come to rest (the spring trails the scrollbar, so
+   without it the end of the move would slide up the screen), and it is
+   the screen over which Projects rises silently into place. */
+.runway {
+    height: 700svh;
+    pointer-events: none;
+}
+
+/* ---- the tail -------------------------------------------------------
+   What keeps the pin alive to the LAST PIXEL of Projects. The pinned
+   range ends at trackHeight - 100svh; with Projects starting at 800svh
+   and this 100svh below it, that lands exactly on Projects' bottom edge.
+   Without it the plate would begin unpinning a screen early — on a
+   desktop, where Projects is exactly 100svh, that means the valley would
+   slide away through the whole section.
+
+   It is also the room the Projects -> Contact camera move will need. */
+.tail {
+    height: 100svh;
+    pointer-events: none;
+}
+
+.sticky {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 100svh;
+    display: grid;
+    /* The copy is placed high deliberately — see .inner. */
+    align-content: start;
+    justify-items: center;
+    padding: var(--gutter);
+    /* Deliberately no z-index. The dock is position:fixed at z-index 40
+       and must stay above this; a stacking context here is what would put
+       a full-bleed plate over the navigation. */
+}
+
+/* IT WOULD INHERIT A CREAM BACKGROUND OTHERWISE. The element also carries
+   scene.stage, which sets `background: var(--bg)` — #f1eadb in the light
+   theme — and this plate is a night street from its very first frame, so
+   until the canvas has painted a light-theme visitor gets a pale flash
+   behind the hero.
+
+   Written as a child selector on purpose: two classes beat scene.stage's
+   one, so this wins by specificity rather than by whichever module the
+   bundler happened to order last. */
+.track > .sticky {
+    background: #2a2436;
+}
+
+/* A full-bleed layer that can be faded as a whole. SeamlessVideo renders
+   two <video> elements and the crossfade has to take both at once, so
+   the opacity cannot live on the videos themselves. */
+.layer {
+    position: absolute;
+    inset: 0;
+}
+
+/* Where the dock's About link lands: the scroll offset at which the
+   camera has come to rest. 350svh puts it in the MIDDLE of the About
+   hold (300-400svh) — 350/800 = progress 0.4375, clear of BRIDGE_END at
+   0.375 below it and DESCENT_START at 0.5 above. It was 320svh when the
+   track was 500svh and the hold was the last beat; with a scrub now
+   following the hold, landing near either edge would drop the visitor
+   into a camera move they did not ask for. */
+.aboutAnchor {
+    position: absolute;
+    top: 350svh;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+/* Not decoration: a scroll offset. It starts where the descent scrub
+   does, and Journey.tsx explains what the observer's root margin makes
+   of that.
+
+   IT RUNS TO THE BOTTOM OF THE TRACK RATHER THAN BEING A POINT, and that
+   is a fix, not tidiness. As a 1px marker it could only be seen while it
+   was near the window — so a visitor who JUMPED past it, which the dock's
+   Projects link does and a /#projects cold load does, never armed the
+   frames at all and arrived at a section whose backdrop stayed empty.
+   Given height, "am I past it" is the same question as "does it
+   intersect", and it cannot be skipped. */
+.armDescent {
+    position: absolute;
+    top: 400svh;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    pointer-events: none;
+}
+
+/* ---- reduced motion: two ordinary viewports ------------------------ */
+.held {
+    position: relative;
+    /* min-height, not height. A short landscape phone with large type set
+       by the user must be allowed to grow rather than clip the buttons
+       off the bottom edge. */
+    min-height: 100svh;
+    display: grid;
+    align-content: start;
+    justify-items: center;
+    padding: var(--gutter);
+    scroll-margin-top: 2rem;
+}
+
+/* ---- the ground the type stands on ---------------------------------
+   Type over footage needs its own darkness, and neither the shared .air
+   nor .scrimCentre is right here.
+
+   .air is tinted from --bg, which is nearly white in the light theme —
+   it would brighten exactly the region the text needs darkened.
+   .scrimCentre is anchored at 50% 46%, correct for copy sitting
+   mid-frame and too low for copy sitting above a figure's head: it would
+   put its densest part on him and leave the line above it bare.
+
+   So this is a fixed near-black radial centred high, wide enough to
+   cover the greeting and both buttons and gone by the middle of the
+   frame, where the figure and the canal are. Fixed rather than
+   tokenised because the world behind it is the same clip in both themes
+   and runs from black bridge timber to a blown lantern inside one
+   frame — there is no single value to design against. */
+.sky {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        radial-gradient(115% 62% at 50% 20%,
+            rgb(6 8 16 / 0.82) 0%,
+            rgb(6 8 16 / 0.62) 38%,
+            rgb(6 8 16 / 0.26) 64%,
+            transparent 86%);
+}
+
+/* ---- the copy block -------------------------------------------------
+   Sits in the upper third so it lands above the figure's head. Measured
+   against frames through the clip: the camera pushes in slowly and he
+   descends as he grows, with his head highest at about 54% of frame
+   height. Everything here has to finish above that, which is what the
+   top margin and the max-width are for.
+
+   The clip is cover-fitted, and both the desktop window and a portrait
+   phone crop it horizontally rather than vertically, so these vertical
+   percentages hold at every viewport. */
+.inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 46rem;
+    margin-top: clamp(4.5rem, 13svh, 9rem);
+    display: grid;
+    justify-items: center;
+    gap: clamp(1.75rem, 4vh, 2.75rem);
+    text-align: center;
+}
+
+.greeting {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(2.1rem, 1.1rem + 4.2vw, 4.5rem);
+    font-weight: 500;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+    /* FlipFadeText rotates each letter in 3D. Without a perspective the
+       rotation is an affine squash rather than a turn, and the letters
+       look like they are being scaled rather than flipped. */
+    perspective: 800px;
+}
+
+/* Visually hidden, but it is the page's real <h1>. */
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* ==================================================================
+   REVEAL
+
+   Only the buttons need this. The greeting is animated per-letter by
+   FlipFadeText, the same component the projects section uses, so giving
+   it a second opacity animation here would fight that one.
+
+   The hidden state is gated behind html.js so that if the script never
+   runs, nothing is stuck invisible.
+   ================================================================== */
+
+:global(html.js) .actions {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+    /* ONLY EVER SEEN ON THE WAY OUT. The entrance is the `rise` animation
+       below, which overrides both properties while it is applied; this
+       transition governs what happens when [data-visible] is removed and
+       the element falls back to this rule.
+
+       Without it the buttons vanish between two frames while the greeting
+       above them flips away over 600ms — FlipFadeText has a real exit
+       variant, these do not. That was always true, but it only ever
+       happened when scrolling back up out of the greeting, where the
+       moving picture hid it. The descent makes it happen on the way
+       DOWN too, in front of someone watching the copy leave. */
+    transition:
+        opacity 420ms var(--ease),
+        transform 420ms var(--ease);
+}
+
+[data-visible] .actions {
+    animation: rise 760ms var(--ease-out) both;
+    animation-delay: var(--d, 0s);
+}
+
+/* ==================================================================
+   BUTTONS
+
+   Glass and metal, in the dock's family without the dock's machinery.
+   DockFx is a real WebGL material — a twelve-pass pipeline that already
+   runs every frame — and putting two more instances of it on the page
+   to style two links would be an absurd trade. This is the same read
+   built from a translucent fill, a blurred backdrop, and a border that
+   catches light along its top edge the way a turned metal rim does.
+
+   At rest they are transparent and the label carries the contrast. On
+   hover they fill with the site's one accent.
+   ================================================================== */
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+
+    color: var(--on-world);
+    /* Barely there. Enough to lift the label off whatever the footage is
+       doing underneath without reading as a filled pill. */
+    background: rgb(255 255 255 / 0.06);
+    backdrop-filter: blur(10px) saturate(1.2);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    /* The metal. A 1px border cannot hold a gradient on its own, so the
+       rim is painted as a masked gradient ring in ::before — bright along
+       the top where a rounded metal edge would catch the sky, dim at the
+       bottom. */
+    border: 0;
+
+    text-shadow: 0 1px 3px rgb(6 8 14 / 0.55);
+    transition:
+        transform 200ms var(--ease-out),
+        background-color 220ms var(--ease),
+        color 220ms var(--ease),
+        box-shadow 220ms var(--ease);
+}
+
+.btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(160deg,
+            rgb(255 255 255 / 0.65) 0%,
+            rgb(255 255 255 / 0.22) 28%,
+            rgb(255 255 255 / 0.08) 52%,
+            rgb(255 255 255 / 0.28) 100%);
+    /* Draws the gradient as a ring rather than a fill: paint the padding
+       box, then punch out everything inside it. */
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: opacity 220ms var(--ease);
+}
+
+.arrow {
+    width: 15px;
+    height: 15px;
+    transition: transform 240ms var(--ease-out);
+}
+
+.btn:hover,
+.btn:focus-visible {
+    transform: translate3d(0, -2px, 0);
+    background: var(--seal);
+    /* Not --on-world. Measured against --seal (#c9412a), that warm bone
+       lands at 4.36:1 — it FAILS AA for text this size. This near-white
+       is 4.74:1, which passes. The margin is thin because --seal is a
+       mid-luminance red, so if that token is ever lightened, re-measure
+       this pair rather than assuming it still clears. */
+    color: #fffaf7;
+    text-shadow: none;
+    box-shadow: 0 8px 22px rgb(0 0 0 / 0.32);
+}
+
+/* The rim is a highlight for glass. Once the pill is filled it is just a
+   pale outline around a solid colour, so it goes. */
+.btn:hover::before,
+.btn:focus-visible::before {
+    opacity: 0;
+}
+
+.btn:hover .arrow {
+    transform: translate3d(3px, 0, 0);
+}
+
+/* A pointer that cannot hover has no hover state to preview, so the lift
+   would only ever fire as a jump on tap. */
+@media (hover: none) {
+    .btn:hover {
+        transform: none;
+    }
+}
+
+/* ==================================================================
+   THE PRELOAD BAR
+
+   Deliberately not a blocking overlay. The hero clip is playing on top
+   of the canvas until the frames land, so there is nothing broken on
+   screen to hide — only a reason to say something is still coming. It
+   sits at the bottom, out of the way of the greeting.
+   ================================================================== */
+
+.loader {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(5rem, 12svh, 7rem);
+    translate: -50% 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.loaderBar {
+    display: block;
+    width: min(180px, 40vw);
+    height: 2px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.18);
+    overflow: hidden;
+}
+
+.loaderFill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--on-world);
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 180ms linear;
+}
+
+/* ==================================================================
+   RESPONSIVE
+   ================================================================== */
+
+@media (max-width: 52rem) {
+    .inner {
+        /* Higher on a phone. The clip is cropped hard to the centre in
+           portrait, so the figure fills more of the frame and his head
+           sits higher in it. */
+        margin-top: clamp(3rem, 9svh, 6rem);
+        gap: 1.75rem;
+    }
+
+    .actions {
+        width: 100%;
+    }
+
+    .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}
+
+/* ==================================================================
+   REDUCED MOTION
+
+   FlipFadeText zeroes its own durations, so the greeting arrives
+   without turning. This is the button reveal, which is this file's own.
+   ================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    :global(html.js) .actions {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    [data-visible] .actions {
+        animation: none;
+    }
+
+    .btn,
+    .arrow {
+        transition: color 220ms var(--ease), background-color 220ms var(--ease);
+    }
+
+    .btn:hover {
+        transform: none;
+    }
+}
+
+/* ==================================================================
+   KEYFRAMES — local by necessity (CSS Modules localise these names).
+   ================================================================== */
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 22px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
