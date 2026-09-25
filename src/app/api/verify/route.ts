@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hireFields } from "@/lib/site";
+import { hireFields } from "@/shared/contact";
 import { mailConfigured, recipient, sendMail } from "@/server/mail";
 import {
     checkToken,

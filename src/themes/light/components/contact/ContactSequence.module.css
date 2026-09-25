@@ -1,0 +1,366 @@
+/* ==================================================================
+   CONTACT SEQUENCE
+
+   The page's second scroll-linked frame sequence, and the second
+   section that ignores the theme tokens — locked to #010101 in both
+   themes, same as the hero, so the page reads as black bookends
+   around About and Projects.
+
+   Where it differs from the hero: the hero's frames are near-black at
+   every edge, so matching the background made the panel's boundary
+   genuinely invisible. These frames are lit right into the corners
+   (#0b0f10 up to #703d11 in the first sixty), so no colour makes the
+   edge vanish. .veil does that job instead.
+   ================================================================== */
+
+.wrap {
+    position: relative;
+
+    /* This is the scrub speed control — the frame index is a fraction of the
+       distance scrolled through this element, so its height *is* how fast the
+       sequence plays.
+
+       840vh is the hero's speed carried over exactly: 700vh / 145 frames is
+       4.83vh per frame, x 142 frames is 686vh of footage, / seqEnd 0.82 = 837vh.
+       Matching it means the two sequences feel like one hand pulled them. */
+    height: 840vh;
+    background: #010101;
+}
+
+/* Zero-height marker at the very top of the section, watched by an
+   IntersectionObserver to start the preload. The section itself is 480vh tall
+   and is therefore already intersecting the viewport long before the footage
+   is anywhere near being needed — observing it would defeat the point. */
+.trigger {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+/* The full viewport, with the footage as a band inside it.
+
+   This used to be the other way round — the sticky element was itself sized to
+   the footage. That was right while the section held nothing but a canvas, and
+   it is how the hero still works, because the hero has to hand off to About
+   below it and any leftover height would show as a dead strip at that seam.
+
+   Nothing follows this section, so there is no seam to protect, and the form
+   needs somewhere to live: the band is about 219px tall on a phone, which does
+   not hold a card with a heading, three fields and a button. */
+.sticky {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 100svh;
+    overflow: hidden;
+    background: #010101;
+    /* Deliberately no z-index. The dock is position:fixed at z-index 40 and must
+       stay above this; raising z-index here is what would put the canvas over
+       the navigation. */
+}
+
+/* The footage itself, centred in the viewport. --aspect is set inline from
+   contactSequence.aspect so the CSS and the encoded frames cannot drift. */
+.band {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: min(100svh, calc(100vw / var(--aspect, 1.7778)));
+    /* The `translate` property, not a transform — same reasoning as the beats
+       below. Nothing animates this today, but leaving the transform channel
+       free costs nothing and removes a trap. */
+    translate: 0 -50%;
+}
+
+.canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ==================================================================
+   EDGE VEIL
+   ================================================================== */
+
+/* Fixed pixels, not percentages.
+
+   The band is roughly 810px tall on a laptop and 219px on a phone. A percentage
+   fade tuned for the first would swallow most of the second — at 8% each side a
+   phone would lose 35px of a 219px band, which is survivable, but anything
+   strong enough to actually hide a lit edge on desktop would not be.
+
+   Frames 61-81 are already black at the edges so the veil costs them nothing.
+   It earns its place entirely on the first sixty. */
+.veil {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(to bottom,
+            #010101 0,
+            transparent 72px,
+            transparent calc(100% - 72px),
+            #010101 100%),
+        linear-gradient(to right,
+            #010101 0,
+            transparent 96px,
+            transparent calc(100% - 96px),
+            #010101 100%);
+}
+
+/* On a phone the band is short enough that a 72px fade top and bottom would eat
+   two-thirds of it. Scale both down to something proportionate. */
+@media (max-width: 48rem) {
+    .veil {
+        background:
+            linear-gradient(to bottom,
+                #010101 0,
+                transparent 26px,
+                transparent calc(100% - 26px),
+                #010101 100%),
+            linear-gradient(to right,
+                #010101 0,
+                transparent 34px,
+                transparent calc(100% - 34px),
+                #010101 100%);
+    }
+}
+
+/* ==================================================================
+   BEATS
+
+   Positioned with flexbox, never with a transform. Framer Motion writes
+   `transform` inline to animate `y`, which silently wins over anything
+   this stylesheet puts there — a translate centring trick gets wiped the
+   moment the beat animates. Flex alignment leaves the transform channel
+   free for motion to own.
+   ================================================================== */
+
+.beat {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    padding-inline: var(--gutter);
+    /* Lifts the block off the dock, which is fixed across the bottom. */
+    padding-bottom: 5rem;
+    pointer-events: none;
+}
+
+.beatInner {
+    max-width: min(34rem, 44vw);
+}
+
+.center {
+    justify-content: center;
+    text-align: center;
+}
+
+.center .beatInner {
+    max-width: min(38rem, 60vw);
+}
+
+.left {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.right {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.beatTitle {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(2.25rem, 1.2rem + 4.4vw, 5.5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: rgb(255 255 255 / 0.9);
+    text-wrap: balance;
+}
+
+.beatBody {
+    margin-top: 1.1rem;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(0.95rem, 0.88rem + 0.4vw, 1.2rem);
+    font-weight: 300;
+    line-height: 1.55;
+    letter-spacing: -0.005em;
+    color: rgb(255 255 255 / 0.6);
+    text-wrap: pretty;
+}
+
+/* ==================================================================
+   FORM LAYER
+   ================================================================== */
+
+/* Above the beats, and the only layer in this section that takes pointer
+   events — everything else is decoration or display type. `inert` on the
+   element handles the invisible-but-focusable problem; this is just layout. */
+.formLayer {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    /* minmax(0, 1fr), not the default `auto`.
+
+       An auto-sized row takes its minimum from the content, so a tall panel
+       pushed the card past the bottom of the viewport and under the dock
+       instead of scrolling inside itself — measured at 958px in a 900px
+       window. A 1fr row with a zero minimum cannot grow, which forces the
+       overflow down into the panel where it belongs. */
+    grid-template-rows: minmax(0, 1fr);
+    /* `stretch`, not `center`. The card is meant to come close to filling the
+       section, so it takes the whole layer and the layer's padding is what
+       stops it touching an edge. */
+    place-items: stretch;
+    justify-items: center;
+    padding-inline: clamp(1rem, 4vw, 3.5rem);
+    /* Top gap is small; the bottom has to clear the dock, which is fixed across
+       the bottom of every viewport. */
+    padding-block: clamp(1rem, 3vh, 2.25rem) 6.5rem;
+}
+
+/* ==================================================================
+   LOADING READOUT
+
+   Not a blocking overlay. This section is several viewports down, so
+   the footage plays underneath while the rest of the set arrives —
+   the paint loop holds the previous frame for anything not yet
+   decoded, which degrades far better than a black screen would.
+   ================================================================== */
+
+.loading {
+    position: absolute;
+    z-index: 3;
+    right: var(--gutter);
+    bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    pointer-events: none;
+}
+
+.loadingBar {
+    display: block;
+    width: 84px;
+    height: 2px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.14);
+    overflow: hidden;
+}
+
+.loadingFill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: rgb(255 255 255 / 0.7);
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 180ms linear;
+}
+
+.loadingText {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.16em;
+    color: rgb(255 255 255 / 0.42);
+    /* Tabular so the readout does not jitter as the digits change. */
+    font-variant-numeric: tabular-nums;
+}
+
+/* ==================================================================
+   REDUCED MOTION — no 480vh, no canvas, no frame downloads.
+   ================================================================== */
+
+.static {
+    background: #010101;
+    /* Generous bottom padding so nothing sits under the dock. */
+    padding: clamp(4rem, 10vh, 7rem) var(--gutter) clamp(9rem, 16vh, 12rem);
+    display: grid;
+    justify-items: center;
+    gap: clamp(2rem, 5vh, 3.5rem);
+}
+
+.staticImage {
+    width: min(100%, 60rem);
+    height: auto;
+    display: block;
+}
+
+.staticCopy {
+    display: grid;
+    gap: 2rem;
+    max-width: 44rem;
+    width: 100%;
+}
+
+.staticBeat {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.staticTitle {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: rgb(255 255 255 / 0.9);
+}
+
+.staticBody {
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: rgb(255 255 255 / 0.6);
+}
+
+.staticForm {
+    width: 100%;
+    max-width: 46rem;
+}
+
+/* ==================================================================
+   RESPONSIVE
+   ================================================================== */
+
+@media (max-width: 48rem) {
+
+    .beat,
+    .center,
+    .left,
+    .right {
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 16vh;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .beatTitle {
+        font-size: clamp(1.75rem, 1.2rem + 3.6vw, 2.75rem);
+    }
+}
+
+/* Visually hidden, but a real heading — the canvas is aria-hidden decoration,
+   so without this the section is a landmark with nothing to name it. */
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

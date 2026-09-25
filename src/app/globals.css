@@ -1,3 +1,20 @@
+/* ============================================================
+   SHARED CSS INFRASTRUCTURE — both themes load this.
+
+   Only the plumbing lives here: Tailwind, shadcn, and the mapping from
+   shadcn's tokens to Tailwind utilities. Nothing in this file has a
+   colour, a size or a font of its own.
+
+   Every token VALUE, the reset and all other global rules live in the
+   theme's own stylesheet:
+     src/themes/dark/theme.css
+     src/themes/light/theme.css
+
+   Both of those are loaded on every page (the root layout imports both
+   themes), so each one is scoped to its own html[data-theme] — see the
+   note at the top of either file.
+   ============================================================ */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -6,265 +23,9 @@
 
    shadcn ships this variant as `&:is(.dark *)`, but nothing in this project
    ever adds a `.dark` class — the theme is carried by data-theme on <html>,
-   set by the blocking script in layout.tsx and flipped by ThemeToggle. Left on
-   the default selector, every `dark:` utility and every shadcn dark token below
-   is inert, and components stay light while the rest of the site is dark. */
+   rendered by the root layout in app/[theme]/layout.tsx. Left on the default
+   selector, every `dark:` utility would be inert. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
-
-:root {
-  color-scheme: light;
-
-  --bg: #eff1ee;
-  --ink: #121615;
-  --ink-2: #5c6664;
-  --ink-3: #8c9491;
-  --rule: #d3d7d3;
-  --dot: #ccd1cd;
-  --signal: #2e7d4f;
-
-  /* Dock glass */
-  --glass: rgba(255, 255, 255, 0.5);
-  --glass-solid: rgba(246, 247, 245, 0.94);
-  --glass-rule: rgba(0, 0, 0, 0.09);
-  --glass-hover: rgba(0, 0, 0, 0.055);
-  --glass-sheen: rgba(255, 255, 255, 0.85);
-  /* The travelling blob. Slightly brighter than the dock it sits in,
-     so it reads as a raised lens rather than a hole. */
-  --blob-top: rgba(255, 255, 255, 0.95);
-  --blob-bottom: rgba(255, 255, 255, 0.62);
-
-  /* Ambient glow behind the hero type */
-  --glow: rgba(255, 255, 255, 0.9);
-
-  /* Bricolage Grotesque is the whole site's face now, not just the hero's.
-     Outfit has been removed rather than left loaded and unused. */
-  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
-
-  --gutter: clamp(1.25rem, 5vw, 4rem);
-
-  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-1: 180ms;
-  --dur-2: 620ms;
-  --dur-3: 900ms;
-  --dur-theme: 480ms;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  /* #010101, sampled off the hero footage.
-
-     The hero cannot change colour — it has to match the frames exactly or the
-     image's edges become visible — so every other surface moves to meet it
-     instead. This used to be #0a0c0d, which left a visible step where the hero
-     handed off to About and again at the projects section.
-
-     The greys below were also faintly green (#232827, rgba(22,27,26)). That
-     reads as a deliberate tint against #0a0c0d and as a mistake against a true
-     black, so they are neutral now. */
-  --bg: #010101;
-  --ink: #eef1ef;
-  --ink-2: #98a2a0;
-  --ink-3: #626c6a;
-  --rule: #1d1d1f;
-  --dot: #161618;
-  --signal: #4ade80;
-
-  --glass: rgba(26, 26, 28, 0.5);
-  --glass-solid: rgba(16, 16, 17, 0.94);
-  --glass-rule: rgba(255, 255, 255, 0.1);
-  --glass-hover: rgba(255, 255, 255, 0.07);
-  --glass-sheen: rgba(255, 255, 255, 0.14);
-  --blob-top: rgba(255, 255, 255, 0.17);
-  --blob-bottom: rgba(255, 255, 255, 0.06);
-
-  --glow: rgba(122, 158, 168, 0.16);
-}
-
-/* ============================================================
-   RESET
-   ============================================================ */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-* {
-  margin: 0;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-
-  /* NOTE: no `scroll-behavior: smooth` here.
-
-     Lenis owns smooth scrolling now (see SmoothScroll.tsx). Running both means
-     the browser eases the scroll and Lenis eases the result of that easing,
-     which reads as a soft double-bounce on every anchor jump. Under reduced
-     motion Lenis is never constructed, and instant native scroll is what we
-     want there anyway. */
-
-  /* The dock is fixed to the bottom of the viewport, so an element scrolled to
-     the very bottom edge can land underneath it — including one the keyboard
-     just focused. This reserves the dock's height plus breathing room.
-     WCAG 2.2 AA, 2.4.11 Focus Not Obscured. */
-  scroll-padding-bottom: 6.5rem;
-  scroll-padding-top: 2rem;
-}
-
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.0625rem);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  min-height: 100svh;
-  overflow-x: hidden;
-}
-
-img,
-svg {
-  display: block;
-  max-width: 100%;
-}
-
-button {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-h1 {
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-/* ============================================================
-   THEME TRANSITION
-
-   The universal selector is expensive, so it is only live for the
-   ~480ms the swap is happening. ThemeToggle adds this class, flips
-   the theme, then removes it. Outside that window there is no
-   universal transition rule in the cascade at all.
-   ============================================================ */
-
-:root.theme-switching *,
-:root.theme-switching *::before,
-:root.theme-switching *::after {
-  transition:
-    background-color var(--dur-theme) var(--ease-out),
-    border-color var(--dur-theme) var(--ease-out),
-    color var(--dur-theme) var(--ease-out),
-    fill var(--dur-theme) var(--ease-out),
-    stroke var(--dur-theme) var(--ease-out) !important;
-  transition-delay: 0ms !important;
-}
-
-/* ============================================================
-   FOCUS + SKIP LINK
-   ============================================================ */
-
-:where(a, button, [tabindex]):focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-
-.u-skip {
-  position: fixed;
-  left: var(--gutter);
-  top: -100%;
-  z-index: 100;
-  padding: 0.6rem 1rem;
-  background: var(--ink);
-  color: var(--bg);
-  font-size: 0.8125rem;
-  border-radius: 6px;
-}
-
-.u-skip:focus-visible {
-  top: 0.75rem;
-}
-
-/* ============================================================
-   ENTRANCE MOTION
-
-   Keyframes are deliberately NOT defined here.
-
-   CSS Modules localise @keyframes names, so `animation: rise` inside a
-   .module.css file compiles to a hashed name that will never match a
-   plainly-named keyframe declared in this global file. The animation
-   then fails silently — no error, no warning, it just never runs.
-
-   So each .module.css declares the keyframes it uses. The cost is a few
-   duplicated blocks; the benefit is animations that actually work.
-   ============================================================ */
-
-/* ============================================================
-   REDUCED MOTION
-   ============================================================ */
-
-@media (prefers-reduced-motion: reduce) {
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 1ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
-  }
-}
 
 @theme inline {
   --font-heading: var(--font-sans);
@@ -307,44 +68,6 @@ h1 {
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-/* shadcn's dark tokens, moved off `.dark` onto the selector this project
-   actually sets. Separate from the hand-written block above on purpose — that
-   one owns the site's own palette (--bg, --ink, --signal, glass), this one owns
-   the shadcn component tokens. */
-:root[data-theme="dark"] {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {

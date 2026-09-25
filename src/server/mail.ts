@@ -10,7 +10,7 @@
    draw the page.
    ================================================================== */
 
-import { contactForm } from "@/lib/site";
+import { contactEmail } from "@/shared/contact";
 
 const ENDPOINT = "https://api.resend.com/emails";
 
@@ -39,7 +39,7 @@ export function mailConfigured() {
  * by editing site.ts is a change that eventually gets committed by accident.
  */
 export function recipient() {
-    return process.env.CONTACT_TO_EMAIL?.trim() || contactForm.email;
+    return process.env.CONTACT_TO_EMAIL?.trim() || contactEmail;
 }
 
 export async function sendMail({

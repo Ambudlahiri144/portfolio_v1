@@ -1,0 +1,29 @@
+.canvasWrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* The scene fades up once WebGL has a first frame, rather than popping in
+       against the already-painted type. */
+    animation: canvasIn 1.2s var(--ease-out) both;
+    animation-delay: 0.2s;
+}
+
+.canvasWrap canvas {
+    /* r3f sizes the canvas to its parent; this stops a stray inline height
+       from letting it overflow the hero and paint over the next section. */
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+@keyframes canvasIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

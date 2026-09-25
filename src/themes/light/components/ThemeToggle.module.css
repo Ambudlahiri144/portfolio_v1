@@ -1,0 +1,63 @@
+.toggle {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    color: var(--ink-2);
+    transition:
+        color var(--dur-1) var(--ease),
+        background-color var(--dur-1) var(--ease);
+}
+
+/* The nav items alongside this drop their hover background because a tooltip
+   confirms the hover for them. This button has no tooltip, so the background
+   is its only hover affordance and stays. */
+.toggle:hover,
+.toggle:focus-visible {
+    color: var(--ink);
+    background: var(--glass-hover);
+}
+
+/* Matches Docknav's .glyph so the toggle sits on the same optical rhythm as
+   the four icons beside it. currentColor throughout, so the SVG inherits the
+   colour transition above rather than carrying its own palette. */
+/* 18px against the dock's 20px, deliberately.
+
+   The nav icons are 1.6-weight outlines in a 24 viewBox; this is a solid fill
+   in a 32 viewBox that reaches the edges. Matched box-for-box the filled shape
+   carries far more ink and reads a size larger, so it is stepped down to sit on
+   the same optical weight rather than the same measurement. */
+.glyph {
+    display: block;
+    width: 18px;
+    height: 18px;
+}
+
+/* NOTE: no transform-origin / transform-box rule for the rays group.
+   framer-motion computes an SVG element's transform origin from its bbox and
+   writes it inline, and an inline style beats a stylesheet — adding one here
+   would either be ignored or, worse, double-apply against fill-box and throw
+   the scale off centre. */
+
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (max-width: 26rem) {
+    .toggle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .glyph {
+        width: 16px;
+        height: 16px;
+    }
+}

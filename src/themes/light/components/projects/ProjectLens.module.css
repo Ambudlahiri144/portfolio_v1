@@ -1,0 +1,220 @@
+/* ==================================================================
+   PROJECT LENS
+
+   A circular cursor that magnifies the card underneath it. The
+   refraction is real: the circle contains a second, scaled copy of the
+   card, offset so the point under the pointer stays under the pointer.
+   That is why the text bends and swims at the rim rather than simply
+   being tinted.
+
+   SVG feDisplacementMap over a backdrop-filter would be the "proper"
+   way to distort live DOM, but it is not dependable across browsers —
+   Safari in particular. A magnifier works everywhere.
+   ================================================================== */
+
+.link,
+.host {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: block;
+}
+
+.host {
+    /* The lens replaces the pointer while it is over a card. */
+    cursor: none;
+}
+
+.lens {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 148px;
+    height: 148px;
+    border-radius: 50%;
+    pointer-events: none;
+
+    opacity: 0;
+    transform-origin: center;
+    /* Scale is animated here, position is written per frame from JS — keeping
+       them on separate properties means the entrance never fights the tracking. */
+    scale: 0.72;
+    transition:
+        opacity 260ms var(--ease-out),
+        scale 420ms var(--ease-out);
+    will-change: transform;
+}
+
+.host[data-hovering] .lens {
+    opacity: 1;
+    scale: 1;
+}
+
+/* ---- The refracting window --------------------------------------- */
+
+.window {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    /* Matches the card so the copy sits on the same ground and the rim is the
+       only visible boundary. */
+    background: var(--bg);
+}
+
+.copy {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Sized and positioned entirely from JS — see ProjectLens.tsx. */
+    transform-origin: 0 0;
+    /* The copy is decorative; it must never be selectable or clickable, or the
+       lens would intercept text selection meant for the card. */
+    user-select: none;
+    pointer-events: none;
+}
+
+/* ---- Liquid metal rim, no glow ----------------------------------- */
+
+.rim {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 1.5px;
+
+    /* Rolled metal: a conic sweep with hard-ish transitions between light and
+       dark facets. A smooth gradient reads as plastic; the banding is what
+       makes it metal. */
+    background: conic-gradient(from 210deg,
+            rgba(255, 255, 255, 0.92) 0deg,
+            rgba(255, 255, 255, 0.18) 42deg,
+            rgba(255, 255, 255, 0.62) 96deg,
+            rgba(255, 255, 255, 0.08) 150deg,
+            rgba(255, 255, 255, 0.78) 208deg,
+            rgba(255, 255, 255, 0.14) 262deg,
+            rgba(255, 255, 255, 0.55) 318deg,
+            rgba(255, 255, 255, 0.92) 360deg);
+
+    /* Punches the middle out so only the ring paints — a border cannot carry a
+       conic gradient, and an outline cannot be masked. */
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* The lit top edge and the thickness under it. Inset only — nothing spills
+   outside the circle, so there is no halo. */
+.sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.45),
+        inset 0 0 22px -8px rgba(255, 255, 255, 0.28);
+}
+
+/* ---- Arrow -------------------------------------------------------- */
+
+/* The wrapper owns the launch; the svg inside owns nothing but the glyph.
+   Keeping them apart means the launch transform cannot stomp on the draw-in. */
+.arrowWrap {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 62px;
+    height: 62px;
+    display: block;
+}
+
+/* The arrow holds still while hovering.
+
+   It used to run a looping travel-and-fade for as long as the pointer was over
+   a card, which read as blinking — motion with nothing behind it. The only
+   moment it moves now is when the card is actually pressed, below, where the
+   movement stands for the thing that is about to happen. */
+.host[data-pressed] .arrowWrap {
+    animation: arrowLaunch 480ms var(--ease-out) forwards;
+}
+
+.arrow {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: var(--ink);
+    /* On a metal rim over artwork, pure --ink alone can lose its edge; a hair
+       of shadow keeps the glyph readable on any frame behind it. */
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+.arrowShaft,
+.arrowHead {
+    /* pathLength="1" is set as an SVG attribute on the paths themselves — it
+       is not a CSS property — which normalises both to a length of 1 so one
+       dash value draws either regardless of its real geometry. */
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 340ms var(--ease-out);
+}
+
+.host[data-hovering] .arrowShaft {
+    stroke-dashoffset: 0;
+    transition-delay: 90ms;
+}
+
+.host[data-hovering] .arrowHead {
+    stroke-dashoffset: 0;
+    /* The head lands after the shaft has drawn, so the arrow assembles
+       rather than appearing all at once. */
+    transition-delay: 280ms;
+}
+
+/* Plays once, on press. The arrow leaves along the axis it points down, which
+   makes the click feel like it launched something rather than that the cursor
+   simply stopped existing. `forwards` holds it gone until the state resets. */
+@keyframes arrowLaunch {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate3d(26px, -26px, 0) scale(0.82);
+        opacity: 0;
+    }
+}
+
+/* ---- Reduced motion / no-lens fallback --------------------------- */
+
+.plainLink {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: block;
+}
+
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Touch has no hover, so the lens would only ever appear stuck after a tap.
+   The card stays a link; the cursor simply does not exist. */
+@media (hover: none) {
+    .host {
+        cursor: auto;
+    }
+
+    .lens {
+        display: none;
+    }
+}
