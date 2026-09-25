@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
     motion,
@@ -19,6 +19,8 @@ import { useReducedMotion } from "@/lib/useReducedMotion";
 import { about, site } from "@/lib/site";
 import scene from "../scene/scene.module.css";
 import styles from "./Journey.module.css";
+import { StageContext, type Stage } from "./stage";
+import PixelWipe from "./PixelWipe";
 
 /* ==================================================================
    THE WAY IN: HERO, THE CAMERA MOVE, ABOUT, AND THE DESCENT — ONE
@@ -89,6 +91,14 @@ const BRIDGE_END = 0.375;
 const DESCENT_START = 0.5;
 const DESCENT_END = 0.875;
 
+/* When Projects fades in on the held frame. The descent's last frame is
+   on screen from DESCENT_END; this waits until the camera has sat on it
+   for 60svh of the settle, so what the visitor sees is the move ending,
+   a beat of stillness, and THEN the section — not the two overlapping.
+   Read off the spring, like `arrived`, because it is the camera coming to
+   rest that the eye is waiting for, not the scrollbar. */
+const PROJECTS_SHOWN = 0.95;
+
 /* How much scroll a clip takes to hand the frame over. 0.6% of the track
    is about 43px of scrolling — long enough not to be a hard cut, short
    enough that it happens on the first flick of a wheel. The two pictures
@@ -155,6 +165,43 @@ function ScrollJourney({ children }: { children?: React.ReactNode }) {
        the viewport; the runway is a fixed 700svh, so the beats keep their
        arithmetic. Journey.module.css does that sum. */
     const runwayRef = useRef<HTMLDivElement>(null);
+    const wipeRef = useRef<HTMLDivElement>(null);
+
+    /* ---- the wipe into Contact -------------------------------------
+       0 as the wipe zone's top reaches the top of the window, 1 as its
+       bottom does — the last 150svh of the frame's pin (see the CSS).
+
+       RAW SCROLL, NOT THE SPRING. Every other beat reads the spring
+       because it is a camera the eye follows; this one has a hard
+       obligation instead: the screen must be fully black by the moment
+       the pins let go, or the held layers would be seen sliding away. A
+       spring trailing the scrollbar could still be at 0.9 when that
+       happens. Lenis already smooths the scroll itself. */
+    const { scrollYProgress: wipe } = useScroll({
+        target: wipeRef,
+        offset: ["start start", "end start"],
+    });
+
+    /* NO LATCHED STATE. Contact is pulled up one screen (its CSS), so it
+       pins at exactly the pixel this wipe reaches 1 — its own black takes
+       the screen there and the overlay has nothing left to cover. So the
+       overlay exists precisely while the wipe is part-way through, and
+       anchor jumps, reverse scrolling and cold loads are all right by
+       construction.
+
+       `covered` goes to Projects: under the black its cards are hidden
+       but would still take clicks and keyboard focus, so past the
+       halfway point it turns itself inert. */
+    const [wipeVisible, setWipeVisible] = useState(false);
+    const [covered, setCovered] = useState(false);
+    const syncWipe = useCallback(() => {
+        const p = wipe.get();
+        const next = p > 0 && p < 1;
+        setWipeVisible((prev) => (prev === next ? prev : next));
+        const c = p >= 0.6;
+        setCovered((prev) => (prev === c ? prev : c));
+    }, [wipe]);
+    useMotionValueEvent(wipe, "change", syncWipe);
 
     /* No preload gate, unlike every other sequence on the site. There is
        nothing to defer behind: this is the top of the page and these
@@ -231,6 +278,9 @@ function ScrollJourney({ children }: { children?: React.ReactNode }) {
        the scrollbar has. Those are different moments, and the spring is
        the one the eye is watching. */
     const [phase, setPhase] = useState<Phase>("before");
+    const [shown, setShown] = useState(false);
+    const [boot, setBoot] = useState(false);
+    const stage = useMemo<Stage>(() => ({ shown, boot, covered }), [shown, boot, covered]);
     const sync = useCallback(() => {
         const next: Phase =
             scrollYProgress.get() <= 0.001
@@ -241,6 +291,22 @@ function ScrollJourney({ children }: { children?: React.ReactNode }) {
                         ? "arrived"
                         : "bridge";
         setPhase((prev) => (prev === next ? prev : next));
+
+        /* What the pinned Projects stage is told — see ./stage.ts.
+
+           `boot` latches on entering the settle. Projects' tree is a
+           WebGL iframe carrying ~800 KB of inlined three.js; building it
+           costs a visible hitch, and the settle is the one stretch where
+           nothing on screen is moving to show one — the frame is already
+           held on its last image. Earlier and it would stutter the scrub;
+           later and the tree would not be ready to fade in.
+
+           `shown` is not latched: scroll back up into the camera move and
+           Projects fades away again, so the move is never played with
+           cards floating over it. */
+        const s = smooth.get();
+        setShown((prev) => (prev === s >= PROJECTS_SHOWN ? prev : !prev));
+        if (s >= DESCENT_END) setBoot(true);
     }, [scrollYProgress, smooth]);
     useMotionValueEvent(scrollYProgress, "change", sync);
     useMotionValueEvent(smooth, "change", sync);
@@ -430,24 +496,54 @@ function ScrollJourney({ children }: { children?: React.ReactNode }) {
                 camera is measured against. */}
             <div ref={runwayRef} className={styles.runway} aria-hidden="true" />
 
-            {/* PROJECTS, INSIDE THE TRACK AND IN NORMAL FLOW.
+            {/* Where the dock's Projects link and the "My Contributions"
+                button land — a point in the hold, after the section has
+                faded in. Projects itself cannot carry the id any more: it
+                is pinned, and an anchor on a pinned element resolves to
+                wherever it happens to be stuck, not to a scroll position.
+                Lenis measures the element's current rect, so a jump from
+                the hero would stop short in the camera move and a jump
+                from Contact would land at the end of the hold. */}
+            <span id="projects" className={styles.projectsAnchor} aria-hidden="true" />
 
-                Not inside the sticky, which would clip it — .section is
-                overflow:hidden and on a phone it is nearly twice the
-                height of the window. In flow it grows to whatever it
-                needs while the sticky above stays pinned behind it,
-                because a sticky child is held by its containing block
-                and this is that block.
+            {/* PROJECTS, ON ITS OWN PINNED STAGE, ON TOP OF THE FRAME.
 
-                It has no background of its own any more, so while it
-                rises into place it is invisible: the valley simply
-                stays, and Projects reveals itself once it has landed.
-                ProjectStack decides that moment from its own position —
-                it is not told anything from here. */}
-            {children}
+                The camera's last frame does not scroll away and Projects
+                does not scroll in. The stage is pulled up one screen so it
+                pins over the same window the frame fills, a little before
+                the settle, and sits there invisible; when the camera has
+                come to rest, Journey tells it to fade in. Nothing on
+                screen travels — the section appears where the picture
+                already is, and then both hold together.
 
-            {/* Keeps the pin alive to Projects' last pixel. See the CSS. */}
-            <div className={styles.tail} aria-hidden="true" />
+                Not inside the frame's own sticky, which would clip it:
+                .section is overflow:hidden, and on a phone it is nearly
+                twice the height of the window. As its own sticky in the
+                same track it keeps its full height, and on a phone the
+                rest of it scrolls up over the still valley once the hold
+                is over. */}
+            <div className={styles.stageBox}>
+                <StageContext.Provider value={stage}>
+                    <div className={styles.stage}>{children}</div>
+                </StageContext.Provider>
+
+                {/* The hold, and what keeps both pins alive through it. See
+                    the CSS for why its length is what it is. */}
+                <div className={styles.dwell} aria-hidden="true" />
+
+                {/* The wipe's scroll room on a desktop, where it holds the
+                    stage and the frame still under the black. */}
+                <div className={styles.wipeRoom} aria-hidden="true" />
+            </div>
+
+            {/* The wipe's scroll room on a phone, after the stage's box so
+                the lower cards have scrolled past before the black. */}
+            <div className={styles.wipeRoomAfter} aria-hidden="true" />
+
+            {/* Where the wipe runs: the last 150svh of the frame's pin. */}
+            <div ref={wipeRef} className={styles.wipeZone} aria-hidden="true" />
+
+            <PixelWipe progress={wipe} visible={wipeVisible} />
         </section>
     );
 }
@@ -496,6 +592,12 @@ function HeldJourney({ children }: { children?: React.ReactNode }) {
                 it to sit on, so it paints its own ground — see the
                 reduced-motion rule in ProjectStack.module.css. */}
             {children}
+
+            {/* Scrolling, Journey ends by wiping the screen to black; held,
+                there is no wipe, and Projects' valley would cut straight to
+                Contact's black room. A seam in the room's own black carries
+                the join instead. */}
+            <Seam tint="#050507" />
         </>
     );
 }

@@ -4,6 +4,8 @@ import {
   Geist,
   Bricolage_Grotesque,
   Shippori_Mincho,
+  Federo,
+  Reggae_One,
 } from "next/font/google";
 import { site } from "@/lib/site";
 import DockNav from "@/components/Docknav";
@@ -44,6 +46,25 @@ const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-plex-mono",
+  display: "swap",
+});
+
+/* The walls' face, for one place only: the words mounted on the walls
+   of the Contact room (ChoiceWalls). A single weight is all it has. */
+/* The face of every section except Contact. One weight is all it has.
+   Loaded for Latin only; the stacks in globals.css keep the previous
+   faces behind it for anything it has no glyph for. */
+const reggae = Reggae_One({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-reggae",
+  display: "swap",
+});
+
+const federo = Federo({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-federo",
   display: "swap",
 });
 
@@ -104,6 +125,8 @@ export default function RootLayout({
         bricolage.variable,
         plexMono.variable,
         shippori.variable,
+        federo.variable,
+        reggae.variable,
       )}
     >
       <head>

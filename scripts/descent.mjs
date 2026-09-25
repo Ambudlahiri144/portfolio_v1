@@ -89,10 +89,23 @@
    artefact is an edge.
    ================================================================== */
 
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { mkdirSync, existsSync, statSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { cpus } from "node:os";
+import { cpus, tmpdir } from "node:os";
+
+/* A white-on-black mask the size of the frame, drawn by a geq expression
+   into the temp directory, returned as a path ffmpeg's filter parser will
+   accept. A Windows drive colon is escaped TWICE: the filtergraph parser
+   strips one backslash and the filter's own option parser strips the
+   other, so a single escape still ended the argument at the colon. */
+function maskFile(name, w, h, expr) {
+    const out = join(tmpdir(), `wm-mask-${name}.png`);
+    execFileSync("ffmpeg", ["-v", "error", "-y",
+        "-f", "lavfi", "-i", `color=black:s=${w}x${h}:d=1,format=gray`,
+        "-vf", `geq=lum='${expr}'`, "-frames:v", "1", out]);
+    return out.replace(/\\/g, "/").replace(/:/g, "\\\\:");
+}
 
 const ZIP = resolve("public/about_trans.zip");
 const OUT_DIR = resolve("public/scene/descent");
@@ -157,8 +170,22 @@ const SAT_AT_END = 1.20;
 const saturationFor = (i) =>
     (SAT_AT_START + ((i - 1) / (COUNT - 1)) * (SAT_AT_END - SAT_AT_START)).toFixed(4);
 
+/* ---- the watermark ---------------------------------------------------
+   The generator's sparkle sits in the lower right of every frame: a
+   translucent grey four-point star, 50x50px, centred at (1160, 600).
+   Measured on a 10px grid at frames 1, 60 and 120 — it does not move.
+   (The still-pixel method bridge.mjs uses cannot find it here: this
+   clip's last thirty frames barely move at all, so the whole corner
+   reads as still.)
+
+   removelogo over a circular mask 4px wider than the star, for the same
+   reason as the bridge: it fills only the masked pixels from their
+   surroundings, where delogo's rectangle dragged the lantern light
+   into streaks. First in the chain, on the raw source. */
+const MASK = maskFile("descent", 1280, 720, "if(lte(hypot(X-1160,Y-600),29),255,0)");
+
 const filterFor = (i) =>
-    `${DENOISE},${SHARPEN},eq=saturation=${saturationFor(i)}`;
+    `removelogo=${MASK},${DENOISE},${SHARPEN},eq=saturation=${saturationFor(i)}`;
 
 /* Same encoder settings as every other sequence on the site. */
 const ENC = ["-c:v", "libwebp", "-quality", "78", "-compression_level", "6"];

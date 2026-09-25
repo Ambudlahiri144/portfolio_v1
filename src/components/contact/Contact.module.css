@@ -1,112 +1,238 @@
 /* ==================================================================
-   CONTACT
+   CONTACT — THE HOTLINE
 
-   The section owns the box and the stacking. Everything inside the two
-   canvases is drawn by the renderer; everything inside the card is
-   ContactForm's.
+   One pinned surface, like Journey's: a sticky 100svh room above a
+   750svh runway the camera is scrubbed across. See Contact.tsx for the
+   beats; this file is the arithmetic's physical half.
    ================================================================== */
 
-.section {
+.track {
     position: relative;
+    /* PULLED UP ONE SCREEN, onto the end of Journey. Journey's frame
+       releases 100svh above its own bottom edge — at exactly the moment
+       its wipe reaches full black — and this pins at that same pixel and
+       paints over the slide-off (later in the DOM, both z-index auto).
+       Without the pull-up there would be a full screen of dead black
+       between the wipe ending and the room lighting up. */
+    margin-top: -100svh;
+    background: #000;
+}
+
+/* CONTACT KEEPS ITS OWN FACES. Every other section is set in Reggae One
+   (globals.css); this one restores the base stacks for everything inside
+   it — the form, its labels, the hint. The variables alone would not do:
+   the body's font-family is resolved on the body and inherited as a
+   finished value, so the root has to set its own too. The wall words
+   set theirs (Federo) themselves. */
+.track,
+.held {
+    --font-display: var(--font-display-base);
+    --font-mono: var(--font-mono-base);
+    --font-mincho: var(--font-mincho-base);
+    font-family: var(--font-display);
+    font-synthesis-weight: auto;
+}
+
+/* LOCKED: THE PAGE ENDS AT FRAME 145 until a mode is chosen.
+   100svh of sticky + 300svh of runway = frame 145 at the very bottom of
+   the document, which is the lock: nothing can scroll past the end of a
+   page. `clip`, not `hidden` — clip is not a scroll container, so the
+   sticky inside keeps pinning to the window. The extra lvh-svh is for
+   phones, where the window can be taller than 100svh with the toolbar
+   away; without it frame 145 would be a few frames out of reach. The
+   runway inside keeps its full height either way, so every progress
+   fraction in Contact.tsx means the same thing locked or not. */
+.track[data-locked] {
+    height: calc(400svh + 100lvh - 100svh);
+    overflow: clip;
+}
+
+/* Nothing below the lock may exist while it holds — a footer link could
+   be reached with Tab or find-in-page, and the page would scroll to it
+   straight past the lock. */
+:global(html[data-contact-gate="locked"] footer) {
+    display: none;
+}
+
+.sticky {
+    position: sticky;
+    top: 0;
     width: 100%;
-    /* Tall enough for the panel plus its clearances on a short desktop
-       window, and never a fixed height: a longer tab, an error or a
-       resized textarea grows the section instead of being cropped. */
-    min-height: max(820px, 100svh);
-    display: grid;
-    overflow: hidden;
-    /* Contains the depth ladder, so the world, the form and the near
-       garden cannot interleave with anything outside the section.
-       `isolation` rather than a z-index, so the fixed dock at z-index 40
-       still paints above all of it. */
-    isolation: isolate;
-    /* The colour behind the canvas before it decodes, matched to
-       THEME.air.clear so the handoff is invisible. */
-    background: #1e1936;
+    height: 100svh;
+    /* No z-index — the fixed dock at 40 must stay above. */
 }
 
-/* ---- the world, behind everything --------------------------------- */
-.scene {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
+/* scene.stage paints var(--bg), cream in the light theme. This room is
+   black in both. Two classes, so it wins by specificity. */
+.track > .sticky {
+    background: #000;
 }
 
-/* ---- the near garden, in front of the form -------------------------
-   Same box as the world — the renderer sizes both canvases from the
-   scene's own box, so they must cover exactly the same area or the
-   grass would float free of the ground it grows from. Decorative: the
-   host marks it aria-hidden and pointer-transparent. */
-.foreground {
+.runway {
+    height: 750svh;
+    pointer-events: none;
+}
+
+/* The dock's Contact link: frame 48, the options on the walls. 98svh is
+   frame 48's place on the runway; the 2rem cancels the page's
+   scroll-padding, which an anchor jump stops short by. */
+.contactAnchor {
+    position: absolute;
+    top: calc(98svh + 2rem);
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+/* Arms the frame download. Tall on purpose: a point could be jumped
+   past; a span that runs the whole track cannot. */
+.arm {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    pointer-events: none;
+}
+
+/* ---- the room --------------------------------------------------------- */
+
+.room {
     position: absolute;
     inset: 0;
+    transition: filter 700ms var(--ease);
+}
+
+/* At the last frame, 290, the room goes out of focus behind the chosen form. The
+   blur is on the room only — never on the form above it. */
+.room[data-blur] {
+    filter: blur(14px) brightness(0.62);
+}
+
+.black {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
     z-index: 2;
 }
 
-/* ---- the form, between them ----------------------------------------
+.hint {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(6.5rem, 14svh, 8.5rem);
+    transform: translateX(-50%);
+    margin: 0;
+    z-index: 4;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(242 235 227 / 0.72);
+    opacity: 0;
+    transition: opacity 400ms var(--ease);
+    pointer-events: none;
+    white-space: nowrap;
+}
 
-   THE BOTTOM GAP IS WHERE THE GRASS IS. It is not a spacing choice:
-   the panel's bottom edge has to land just below the crest of the near
-   grass, so the blades cross the card's empty decorative base and stop
-   short of the submit row. The crest's height on screen is fixed by
-   the world's camera, so this was measured against the rendered frame
-   rather than picked. See the verification notes in the commit. */
-.layout {
-    position: relative;
-    z-index: 1;
+.hint[data-show] {
+    opacity: 1;
+}
+
+/* ---- the chosen form, large ------------------------------------------ */
+
+.formLayer {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
     display: grid;
-    /* The left third. The gate, the flight and the moon keep the rest. */
-    grid-template-columns: minmax(0, min(34vw, 480px)) minmax(0, 1fr);
-    align-content: end;
-    min-height: inherit;
-    box-sizing: border-box;
-    padding-block: 112px var(--grass-gap, 236px);
-    padding-inline: 5.5vw;
+    place-items: center;
+    padding: clamp(16px, 5svh, 56px) clamp(16px, 5vw, 72px);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.97);
+    transition:
+        opacity 500ms var(--ease),
+        transform 500ms var(--ease),
+        visibility 0s linear 500ms;
+    pointer-events: none;
 }
 
-.layout > * {
-    grid-column: 1;
-    min-width: 0;
-    max-width: 520px;
+.formLayer[data-open] {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+        opacity 500ms var(--ease),
+        transform 500ms var(--ease),
+        visibility 0s;
+    pointer-events: auto;
 }
 
-/* A narrower panel and a tighter inset, which is what keeps the stairs
-   clear at these widths. */
-@media (min-width: 1024px) and (max-width: 1279px) {
-    .layout {
-        grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-        padding-inline: 32px;
+/* Large, "almost covering the section": the last frame still shows in a
+   margin round it. Scrolls inside itself when a mode needs more room
+   than the window — the Hire verification steps on a phone. */
+.cardBox {
+    width: min(1080px, 100%);
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 24px;
+}
+
+/* Focused programmatically when it opens (tabIndex -1), purely so the
+   next Tab lands inside the form; it is not a control, so no ring. */
+.cardBox:focus {
+    outline: none;
+}
+
+.cardBox > .soloCard {
+    min-height: min(76svh, 720px);
+    align-content: center;
+    gap: 1.2rem;
+    padding: clamp(24px, 4vw, 56px);
+    border-radius: 24px;
+}
+
+/* On a phone the card fills the screen, and the floating dock would sit
+   over its last row — the Send button, in the first screenshot. The
+   layer keeps clear of it; the card scrolls inside the space left. */
+@media (max-width: 767px) {
+    .formLayer {
+        padding: calc(env(safe-area-inset-top) + 12px) 12px
+            calc(env(safe-area-inset-bottom) + 96px);
+    }
+
+    .cardBox > .soloCard {
+        min-height: 0;
     }
 }
 
-/* ---- stacked --------------------------------------------------------
-   Below this the left third is too narrow for the form and the temple
-   both, so the panel moves into normal flow, centred, with a band of
-   the scene left visible above it. Bottom padding clears the dock. The
-   near garden is kept, but the panel sits far enough above the ground
-   that the grass does not reach it — on a phone, a smaller overlap is
-   not worth the risk of a blade across a control. */
-@media (max-width: 1023px) {
-    .layout {
-        grid-template-columns: minmax(0, 460px);
-        justify-content: center;
-        align-content: start;
-        padding: 240px 20px max(128px, env(safe-area-inset-bottom));
-    }
+.cardBox h3 {
+    font-size: clamp(2rem, 1.3rem + 2.2vw, 3.25rem);
 }
 
-@media (max-width: 480px) {
-    .layout {
-        padding-inline: 16px;
-        padding-top: 200px;
-    }
+.cardBox textarea {
+    min-height: 10rem;
+}
+
+/* ---- reduced motion ---------------------------------------------------- */
+
+.held {
+    position: relative;
+    min-height: 100svh;
+    background: #000;
 }
 
 .sr {
     position: absolute;
     width: 1px;
     height: 1px;
+    margin: -1px;
+    padding: 0;
     overflow: hidden;
-    clip-path: inset(50%);
+    clip: rect(0 0 0 0);
     white-space: nowrap;
+    border: 0;
 }

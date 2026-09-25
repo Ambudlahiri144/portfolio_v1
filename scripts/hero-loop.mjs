@@ -36,7 +36,21 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
+import { tmpdir } from "node:os";
+
+/* A white-on-black mask the size of the frame, drawn by a geq expression
+   into the temp directory, returned as a path ffmpeg's filter parser will
+   accept. A Windows drive colon is escaped TWICE: the filtergraph parser
+   strips one backslash and the filter's own option parser strips the
+   other. Same helper as scripts/bridge.mjs and scripts/descent.mjs. */
+function maskFile(name, w, h, expr) {
+    const out = join(tmpdir(), `wm-mask-${name}.png`);
+    execFileSync("ffmpeg", ["-v", "error", "-y",
+        "-f", "lavfi", "-i", `color=black:s=${w}x${h}:d=1,format=gray`,
+        "-vf", `geq=lum='${expr}'`, "-frames:v", "1", out]);
+    return out.replace(/\\/g, "/").replace(/:/g, "\\\\:");
+}
 
 const SRC = resolve("public/new_hero_dark.mp4");
 const OUT = resolve("public/new_hero_dark_loop.mp4");
@@ -179,9 +193,23 @@ const drift =
 const body = DURATION - FADE;
 const offset = body - FADE;
 
+/* ---- the watermark ---------------------------------------------------
+   The generator's sparkle was blotted out upstream with a flat dark disc,
+   which is a mark of its own: a black spot on the embankment, in every
+   frame — the same spot scripts/bridge.mjs removes from the camera move
+   that follows this clip. Measured on a 10px grid: centred (1751, 905),
+   radius about 39, with a sliver of the grey sparkle showing past its
+   left edge at x 1704. A radius-49 circle takes both.
+
+   removelogo, first in the chain and on both inputs, so the grade and the
+   drift correction treat the fill like the rest of the picture, and the
+   dissolved-in head does not bring the spot back for 0.8s every loop. */
+const MASK = maskFile("hero", 1920, 1080, "if(lte(hypot(X-1751,Y-905),49),255,0)");
+const CLEAN = `removelogo=${MASK}`;
+
 const filter =
-    `[0:v]${grade},${drift},trim=start=${FADE},setpts=PTS-STARTPTS[body];` +
-    `[1:v]${grade},${drift},setpts=PTS-STARTPTS[head];` +
+    `[0:v]${CLEAN},${grade},${drift},trim=start=${FADE},setpts=PTS-STARTPTS[body];` +
+    `[1:v]${CLEAN},${grade},${drift},setpts=PTS-STARTPTS[head];` +
     `[body][head]xfade=transition=fade:duration=${FADE}:offset=${offset}[v]`;
 
 if (!existsSync(SRC)) {

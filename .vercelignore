@@ -24,6 +24,21 @@ public/hero_motion_1.zip
 #                         by scripts/descent.mjs
 public/hero-about_anime.zip
 public/about_trans.zip
+# contact_draft_1.zip    -> public/scene/hotline (290 WebP at 1080p, 6.5 MB, plus sm/
+#                           at 1280 wide, 3.6 MB)
+# red-hotline-1920x1080  -> public/scene/hotline/still.webp (50 KB)
+#                           both by scripts/hotline.mjs
+# contact_draft.zip is the first draft of the same shot (300 frames, 720p),
+# superseded by contact_draft_1.zip and kept only as a record.
+public/contact_draft_1.zip
+public/contact_draft.zip
+public/red-hotline-1920x1080.png
+# Frames 291-300 of the first draft's 300, left over: the current set ends
+# at 290 and nothing requests these.
+public/scene/hotline/frame-29[1-9].webp
+public/scene/hotline/frame-300.webp
+public/scene/hotline/sm/frame-29[1-9].webp
+public/scene/hotline/sm/frame-300.webp
 
 # The valley the descent comes to rest on, and Projects' old background.
 # Nothing loads it any more: the section shows the held frame instead, and

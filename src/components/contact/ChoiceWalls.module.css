@@ -1,0 +1,270 @@
+/* ==================================================================
+   THE THREE WALLS — letters standing on the floor lines
+
+   The geometry — the vanishing point, where each word's floor line comes
+   on screen, the perspective depth that lands each word's far end beside
+   the pedestal — is measured and solved in ChoiceWalls.tsx and arrives
+   here as custom properties. This file places the planes and builds the
+   letters: their face, their thickness, their shadow and their pop.
+   ================================================================== */
+
+.walls {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+/* Every wall and every stage covers the whole screen, so a stage's
+   perspective origin is simply the vanishing point in screen pixels. */
+.wall,
+.stage {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/* THE LIFT: each side word scaled about its own top outer corner, so it
+   keeps its angles and its shape and its bottom rises off the marble into
+   the black. The pivot and the amount are set with the geometry. */
+.wall[data-wall="left"],
+.wall[data-wall="right"] {
+    transform: scale(var(--lift, 1));
+    transform-origin: var(--ox, 0px) var(--oy, 0px);
+}
+
+/* One stage per word: each has its own depth, solved from its own length,
+   so that every word ends the same fraction of the way to the pedestal.
+   Both words of a wall share its place, so the swap happens in place. */
+.stage {
+    perspective: var(--p, 1000px);
+    perspective-origin: var(--vp-x, 50%) var(--vp-y, 46%);
+}
+
+.plane {
+    position: absolute;
+    top: var(--y, 0px);
+    display: flex;
+    align-items: flex-end;
+    white-space: nowrap;
+    /* Each stage carries its word's solved size (--f) and the top corner
+       of its box (--x, --y): placed so the baseline sits on the floor line
+       and the capitals reach the top of the screen. */
+    font-size: var(--f, 144px);
+    line-height: 1;
+    /* FLAT, on purpose. The word is painted once, as one flat sheet, and
+       the sheet is what gets turned into the room. Built as a 3D stack —
+       a layer per letter and per step of its cut — a screen-tall word was
+       some sixty textures a million pixels each, and scrolling past it
+       stalled. */
+    transform-style: flat;
+}
+
+/* THE SIDE WALLS. Pinned at the point where the floor line comes on
+   screen, then turned a full 90° to run straight down the room: a plane
+   turned that far has its horizontal lines converge exactly on the
+   perspective origin, which is the runway's vanishing point. */
+.wall[data-wall="left"] .plane {
+    left: var(--x, 2vw);
+    transform-origin: left center;
+    transform: rotateY(90deg);
+}
+
+.wall[data-wall="right"] .plane {
+    right: var(--x, 2vw);
+    transform-origin: right center;
+    transform: rotateY(-90deg);
+}
+
+/* THE CENTRE WALL faces the viewer: flat, hanging from the top of the
+   screen, between the two ceiling lines. */
+.wall[data-wall="back"] .plane {
+    left: var(--x, 50%);
+    transform: translateX(-50%);
+}
+
+/* THE WALL ITSELF, barely: a soft wash of light on its surface behind the
+   letters, so their shadow has something to fall on. The room is pure
+   black, and a shadow on pure black is no shadow at all. Shown only while
+   a word is up. */
+.plane::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -40% -8%;
+    background: radial-gradient(
+        ellipse 60% 55% at 40% 60%,
+        rgb(255 238 220 / 0.08) 0%,
+        rgb(255 238 220 / 0.03) 45%,
+        rgb(255 238 220 / 0) 75%
+    );
+    opacity: 0;
+    transition: opacity 400ms ease;
+    pointer-events: none;
+}
+
+.plane:has([data-state="in"])::before {
+    opacity: 1;
+}
+
+/* ---- the words and the letters ---------------------------------------- */
+
+.word {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.08em;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    white-space: nowrap;
+    font: inherit;
+    font-family: var(--font-federo), serif;
+    font-weight: 400;
+    line-height: 1;
+    color: inherit;
+    pointer-events: none;
+}
+
+button.word {
+    cursor: pointer;
+}
+
+button.word[data-state="in"] {
+    pointer-events: auto;
+}
+
+.ch {
+    position: relative;
+    display: inline-block;
+    visibility: hidden;
+    transform: scale(0);
+}
+
+/* THE CUT. A cut letter's thickness, drawn as seven copies of the glyph
+   stepped toward the side that faces the viewer, each a little darker,
+   then its shadow on the wall. One step is (--dx, --dy):
+   - a side wall steps along the word toward its near end, the side of
+     every stroke the viewer can see; the step is set in px with the
+     geometry, from the size of the screen, since the letters are seen
+     so edge-on that a cut measured in their own ems would be a slab;
+   - the centre wall steps down, toward the vanishing point below it.
+   The glow comes first so it sits over the cut, under the face. */
+.face {
+    --dx: 0px;
+    --dy: 0px;
+    --glow: transparent;
+    position: relative;
+    display: block;
+    color: #f4ede5;
+    text-shadow:
+        0 0 min(0.3em, 36px) var(--glow),
+        calc(var(--dx) * 1) calc(var(--dy) * 1) 0 color-mix(in srgb, #2a2521 13%, #a2978c),
+        calc(var(--dx) * 2) calc(var(--dy) * 2) 0 color-mix(in srgb, #2a2521 26%, #a2978c),
+        calc(var(--dx) * 3) calc(var(--dy) * 3) 0 color-mix(in srgb, #2a2521 39%, #a2978c),
+        calc(var(--dx) * 4) calc(var(--dy) * 4) 0 color-mix(in srgb, #2a2521 52%, #a2978c),
+        calc(var(--dx) * 5) calc(var(--dy) * 5) 0 color-mix(in srgb, #2a2521 65%, #a2978c),
+        calc(var(--dx) * 6) calc(var(--dy) * 6) 0 color-mix(in srgb, #2a2521 78%, #a2978c),
+        calc(var(--dx) * 7) calc(var(--dy) * 7) 0 color-mix(in srgb, #2a2521 91%, #a2978c),
+        calc(var(--dx) * 8 + min(0.04em, 8px)) calc(var(--dy) * 8 + min(0.08em, 14px)) min(0.12em, 18px) rgb(0 0 0 / 0.9);
+}
+
+.wall[data-wall="left"] .face {
+    --dx: calc(var(--cut, 1.6px) * -1);
+}
+
+.wall[data-wall="right"] .face {
+    --dx: var(--cut, 1.6px);
+}
+
+.wall[data-wall="back"] .face {
+    --dy: 0.012em;
+}
+
+/* The phone is red, so a chosen or hovered wall takes the phone's red. */
+button.word[data-state="in"]:hover .face,
+button.word[data-chosen] .face {
+    --glow: rgb(255 70 55 / 0.5);
+    color: #ff5b4d;
+    text-shadow:
+        0 0 min(0.3em, 36px) var(--glow),
+        calc(var(--dx) * 1) calc(var(--dy) * 1) 0 color-mix(in srgb, #1f0b09 13%, #9c2c22),
+        calc(var(--dx) * 2) calc(var(--dy) * 2) 0 color-mix(in srgb, #1f0b09 26%, #9c2c22),
+        calc(var(--dx) * 3) calc(var(--dy) * 3) 0 color-mix(in srgb, #1f0b09 39%, #9c2c22),
+        calc(var(--dx) * 4) calc(var(--dy) * 4) 0 color-mix(in srgb, #1f0b09 52%, #9c2c22),
+        calc(var(--dx) * 5) calc(var(--dy) * 5) 0 color-mix(in srgb, #1f0b09 65%, #9c2c22),
+        calc(var(--dx) * 6) calc(var(--dy) * 6) 0 color-mix(in srgb, #1f0b09 78%, #9c2c22),
+        calc(var(--dx) * 7) calc(var(--dy) * 7) 0 color-mix(in srgb, #1f0b09 91%, #9c2c22),
+        calc(var(--dx) * 8 + min(0.04em, 8px)) calc(var(--dy) * 8 + min(0.08em, 14px)) min(0.12em, 18px) rgb(0 0 0 / 0.9);
+}
+
+button.word:focus-visible {
+    outline: 2px solid rgb(255 91 77 / 0.7);
+    outline-offset: 8px;
+    border-radius: 6px;
+}
+
+/* A word that has left the wall keeps no ring. */
+button.word:not([data-state="in"]):focus-visible {
+    outline: none;
+}
+
+/* ---- the pop ---------------------------------------------------------
+   Scale only: a hard pop, not a fade. From nothing to 118% in ~140ms and
+   back to size, 30ms a letter. */
+.word[data-state="in"] .ch {
+    visibility: visible;
+    animation: pop 260ms cubic-bezier(0.2, 1.7, 0.35, 1) both;
+    animation-delay: calc(var(--i) * 30ms);
+}
+
+.word[data-state="out"] .ch {
+    visibility: visible;
+    animation: popOut 170ms cubic-bezier(0.5, 0, 0.8, 0.3) both;
+    animation-delay: calc(var(--i) * 12ms);
+}
+
+.word[data-state="hidden"] .ch {
+    visibility: hidden;
+    transform: scale(0);
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0);
+    }
+
+    55% {
+        transform: scale(1.18);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes popOut {
+    0% {
+        transform: scale(1);
+    }
+
+    35% {
+        transform: scale(1.12);
+    }
+
+    100% {
+        transform: scale(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .word[data-state="in"] .ch {
+        animation: none;
+        transform: none;
+    }
+
+    .word[data-state="out"] .ch {
+        animation: none;
+        visibility: hidden;
+    }
+}

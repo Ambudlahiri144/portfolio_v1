@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import SakuraScene, { type AnchorMessage } from "./SakuraScene";
+import { StageContext } from "../journey/stage";
 import FlipFadeText from "../hero/FlipFadeText";
 import { useInView } from "@/lib/useinview";
 import { projects, projectsIntro, type Project } from "@/lib/site";
@@ -80,42 +81,37 @@ export default function ProjectStack() {
        setState on every frame the scene publishes. */
     const grownRef = useRef(false);
 
-    /* ---- HAS THIS SECTION ARRIVED? ---------------------------------
-       Not "is it on screen", which is what this observer used to ask
-       (threshold 0.2) and which is now a whole screen too early.
+    /* ---- SHOULD THIS SECTION BE SHOWING? ---------------------------
+       Two answers, depending on where it has been put.
 
-       Projects is carried by the pinned surface in Journey: the camera
-       comes to rest on the valley, and this section then rises over that
-       held picture with no background of its own, which means that while
-       it is moving there is nothing in it to see. Everything it contains
-       is revealed only once it has LANDED, so nothing is ever watched
-       sliding into place.
+       ON JOURNEY'S STAGE (the normal case). Projects is pinned over the
+       frame the camera comes to rest on, so it is sitting at the top of
+       the window well before the camera gets there — its own position
+       says nothing useful. Journey says it instead: `shown` once the
+       camera has settled on the last frame, and the whole section fades
+       in on the spot. Nothing slides in; it appears where the picture
+       already is. See ../journey/stage.ts.
 
-       That is a rule about this section's own position and nothing else.
-       It is not told anything by Journey, and it still reads correctly
-       when this is an ordinary section — which it is under reduced
-       motion, where there is no pinned surface at all.
-
-       HOW THE MARGIN SAYS "LANDED". Pulling the root's bottom edge up by
-       92% leaves a band across the top of the window, and the test
-       becomes `top <= 8% of the window AND bottom >= 0`. Because this
-       section is always at least a windowful tall, that is a RANGE and
-       not a threshold: it holds from the moment the section lands until
-       its last pixel leaves, so no scroll — however fast — can step over
-       it, and it still releases on the way out the way the old gate did.
-
-       The 8% is not slack for its own sake. An anchor jump to #projects
-       lands short by the page's 2rem scroll-padding, and a scroll that
-       stops exactly on the boundary pixel is a real thing under Lenis;
-       both must count as arrived. Measured the exact way first — progress
-       through the section, treating anything above zero as arrival — and
-       it failed both: on a phone the dock's jump landed 64px short and
-       the section stayed blank. */
-    const { ref, inView: arrived } = useInView<HTMLElement>({
+       AS AN ORDINARY SECTION (reduced motion, where Journey renders no
+       stage). Then its position is the answer: it shows once it has
+       LANDED — top edge within the top 8% of the window, bottom edge not
+       yet gone. Because the section is always at least a windowful tall
+       that is a range, not a threshold, so no scroll can step over it;
+       and the 8% absorbs the 2rem an anchor jump stops short by. */
+    const stage = useContext(StageContext);
+    const { ref, inView: landed } = useInView<HTMLElement>({
         threshold: 0,
         rootMargin: "0px 0px -92% 0px",
         once: false,
     });
+    const arrived = stage ? stage.shown : landed;
+
+    /* The tree is a WebGL iframe carrying ~800 KB of inlined three.js.
+       On the stage it is on screen long before it is wanted, so it waits
+       to be built until Journey says the camera has entered its settle —
+       the one stretch where nothing on screen is moving to show the cost.
+       Standalone, it mounts as it always did. */
+    const sceneOn = stage ? stage.boot : true;
 
     /* Layout mode from the container, not from a device guess. Four
        readable cards need roughly 4 x 220 plus gaps and padding. */
@@ -181,7 +177,11 @@ export default function ProjectStack() {
 
     return (
         <section
-            id="projects"
+            /* On the stage the id lives on a marker in Journey's track
+               instead: this element is pinned, and an anchor on a pinned
+               element resolves to wherever it is stuck, not to the scroll
+               position that shows it. */
+            id={stage ? undefined : "projects"}
             ref={ref}
             className={styles.section}
             data-mode={mode}
@@ -189,8 +189,11 @@ export default function ProjectStack() {
                lighting in CSS, and makes the state inspectable from
                outside the way Journey's data-phase is. */
             data-arrived={arrived || undefined}
+            /* Blacked out by the wipe into Contact: still here, but nothing
+               in it may take a click or keyboard focus. */
+            inert={stage?.covered || undefined}
         >
-            <SakuraScene className={styles.scene} onAnchors={onAnchors} />
+            {sceneOn && <SakuraScene className={styles.scene} onAnchors={onAnchors} />}
 
             {/* The eyebrow is copy that already existed and was never
                 rendered here — projectsIntro.eyebrow in site.ts. Nothing

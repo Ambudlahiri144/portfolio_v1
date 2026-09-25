@@ -30,9 +30,9 @@
 
        So there is no background at all. Journey keeps its surface pinned
        through this whole section, and what you see behind these cards is
-       that held frame, still exactly where the camera left it. Which is
-       also why an EMPTY section can rise into place unnoticed: there is
-       nothing in it to see until it has landed.
+       that held frame, still exactly where the camera left it — and the
+       section is pinned over it too, so it fades in on the spot rather
+       than scrolling in.
 
        The two radial pools that used to sit over the photograph are the
        scene's own lighting — they came out of the iframe when the scene
@@ -63,6 +63,36 @@
        position:fixed dock at z-index 40 still paints above the whole
        section exactly as before. */
     isolation: isolate;
+}
+
+/* THE WHOLE SECTION FADES IN WHERE IT STANDS.
+
+   On Journey's stage it is pinned over the frame from the start of the
+   camera's settle, so it is on screen — just not visible — before it is
+   wanted. `visibility` goes with the opacity, not as decoration: an
+   opacity-0 section still takes clicks and keyboard focus, and four
+   invisible card links sitting over the end of the camera move would be
+   found by both. The visibility flip is delayed on the way out so the
+   fade can finish first.
+
+   The finer gates inside it still run — heading, then the tree, then the
+   cards after --tree-lead — so this is the envelope and those are the
+   order. Gated behind html.js: without script nothing would ever set
+   data-arrived. */
+:global(html.js) .section {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 600ms var(--ease),
+        visibility 0s linear 600ms;
+}
+
+:global(html.js) .section[data-arrived] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+        opacity 600ms var(--ease),
+        visibility 0s;
 }
 
 /* ALL of the section's lighting: the floor pool that moved out of
@@ -332,7 +362,7 @@
     place-items: center;
     padding: 0 12px;
     text-align: center;
-    font-family: var(--font-bricolage), var(--font-display);
+    font-family: var(--font-display);
     font-size: 0.875rem;
     color: #775e6b;
 }
@@ -359,7 +389,7 @@
 .name {
     display: block;
     margin-top: 4px;
-    font-family: var(--font-bricolage), var(--font-display);
+    font-family: var(--font-display);
     font-size: 1.3125rem;
     font-weight: 500;
     line-height: 1.2;
@@ -612,6 +642,12 @@
 
     /* Nothing is waiting for an arrival here — there is no camera to
        settle and nothing rises over anything. */
+    :global(html.js) .section {
+        opacity: 1;
+        visibility: visible;
+        transition: none;
+    }
+
     .section::before,
     .section .scene,
     :global(html.js) .eyebrow {

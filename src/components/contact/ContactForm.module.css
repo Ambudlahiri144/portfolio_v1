@@ -86,6 +86,53 @@
     text-align: center;
 }
 
+/* ---- the solo header ------------------------------------------------
+   The card now shows one mode, chosen out in the scene, so the tabs are
+   gone and this row takes their place: the section's own label on the
+   left, and the way back to the choice on the right. */
+.soloHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.soloEyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.changeMode {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font-bricolage), var(--font-display);
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    transition:
+        border-color var(--dur-1) var(--ease-out),
+        color var(--dur-1) var(--ease-out);
+}
+
+.changeMode:hover {
+    border-color: color-mix(in srgb, var(--ink) 45%, transparent);
+    color: var(--ink);
+}
+
+.changeMode:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--seal) 42%, transparent);
+    outline-offset: 3px;
+}
+
 /* ---- Tabs --------------------------------------------------------- */
 
 /* Bare labels in a row — no enclosing pill. The only thing that needs to be

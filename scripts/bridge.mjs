@@ -73,10 +73,23 @@
    not compare.
    ================================================================== */
 
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { mkdirSync, existsSync, statSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { cpus } from "node:os";
+import { cpus, tmpdir } from "node:os";
+
+/* A white-on-black mask the size of the frame, drawn by a geq expression
+   into the temp directory, returned as a path ffmpeg's filter parser will
+   accept. A Windows drive colon is escaped TWICE: the filtergraph parser
+   strips one backslash and the filter's own option parser strips the
+   other, so a single escape still ended the argument at the colon. */
+function maskFile(name, w, h, expr) {
+    const out = join(tmpdir(), `wm-mask-${name}.png`);
+    execFileSync("ffmpeg", ["-v", "error", "-y",
+        "-f", "lavfi", "-i", `color=black:s=${w}x${h}:d=1,format=gray`,
+        "-vf", `geq=lum='${expr}'`, "-frames:v", "1", out]);
+    return out.replace(/\\/g, "/").replace(/:/g, "\\\\:");
+}
 
 const ZIP = resolve("public/hero-about_anime.zip");
 const OUT_DIR = resolve("public/scene/bridge");
@@ -177,7 +190,36 @@ const SAT_AT_END = 1.31;
 const saturationFor = (i) =>
     (SAT_AT_START + ((i - 1) / (COUNT - 1)) * (SAT_AT_END - SAT_AT_START)).toFixed(4);
 
+/* ---- the watermark ---------------------------------------------------
+   The source carries the generator's sparkle in the lower right, already
+   blotted out upstream with a flat dark disc — which is its own mark, a
+   black spot sitting on the railing in every frame. From about source
+   frame 138 a grey shard of the sparkle also shows past the disc's upper
+   right, and it DRIFTS: measured on a 10px grid at frames 140-160 it
+   slides from (1787-1812, 790) down to (1762-1792, 870).
+
+   The disc was located by what does not move: across 24 frames spread
+   through a clip in which everything else moves, the only still pixels
+   in that corner form an 82x83 disc at (1701, 849). The shard cannot be
+   found that way because it moves, so it gets a box covering its whole
+   path — and only on the frames it appears in, so the other 80% of the
+   clip keeps the tighter fill. Checked absent at 115, 122, 128, 133, 137.
+
+   removelogo, not delogo. delogo fills a whole RECTANGLE by interpolating
+   its edges, which on a railing lit by lanterns dragged streaks of light
+   straight through the box. removelogo fills only the pixels of a shaped
+   mask, blurring in from their surroundings, so the fill follows the
+   railing's own light instead of smearing it. It runs FIRST, on the raw
+   source, so the denoiser and the grade treat the patch like any other
+   part of the picture. */
+const DISC = "lte(hypot(X-1742,Y-890),47)";
+const MASK = maskFile("bridge", 1920, 1080, `if(${DISC},255,0)`);
+const MASK_LATE = maskFile("bridge-late", 1920, 1080,
+    `if(${DISC}+between(X,1756,1818)*between(Y,782,876),255,0)`);
+const SHARD_FROM = 138;
+
 const filterFor = (i) =>
+    `removelogo=${sourceFor(i) >= SHARD_FROM ? MASK_LATE : MASK},` +
     `${DENOISE},${SHARPEN},eq=saturation=${saturationFor(i)}`;
 
 /* Same encoder settings as every other sequence on the site. */

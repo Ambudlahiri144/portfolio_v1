@@ -1,6 +1,5 @@
 import Journey from "@/components/journey/Journey";
 import ProjectStack from "@/components/projects/ProjectStack";
-import Seam from "@/components/scene/Seam";
 import Contact from "@/components/contact/Contact";
 import Footer from "@/components/footer/Footer";
 
@@ -26,12 +25,15 @@ export default function Home() {
         <Journey>
           <ProjectStack />
         </Journey>
-        {/* Carries id="contact" internally. Tinted to the temple night's
-            own clear colour rather than to --bg, for the same reason the
-            Projects seams are: the section below is a fixed dark world in
-            both themes, so a --bg band would be the only light thing on
-            screen at exactly the join meant to soften it. */}
-        <Seam tint="#1E1936" />
+        {/* NO SEAM HERE ANY MORE. Journey ends by turning the screen
+            black square by square (PixelWipe), and Contact opens on that
+            same black and lights up out of it — so the join is already a
+            cut to black, and a haze band laid over it would only muddy
+            it. Contact must follow Journey DIRECTLY: the wipe's overlay
+            hides at the exact moment the track's bottom edge reaches the
+            top of the window, which is only Contact's first pixel if
+            nothing sits between them. Under reduced motion there is no
+            wipe, and Journey's held branch brings its own seam. */}
         <Contact />
       </main>
       {/* Outside <main> on purpose. A <footer> that is not nested in <main> is

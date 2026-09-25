@@ -46,7 +46,21 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
+import { tmpdir } from "node:os";
+
+/* A white-on-black mask the size of the frame, drawn by a geq expression
+   into the temp directory, returned as a path ffmpeg's filter parser will
+   accept. A Windows drive colon is escaped TWICE: the filtergraph parser
+   strips one backslash and the filter's own option parser strips the
+   other. Same helper as scripts/bridge.mjs and scripts/descent.mjs. */
+function maskFile(name, w, h, expr) {
+    const out = join(tmpdir(), `wm-mask-${name}.png`);
+    execFileSync("ffmpeg", ["-v", "error", "-y",
+        "-f", "lavfi", "-i", `color=black:s=${w}x${h}:d=1,format=gray`,
+        "-vf", `geq=lum='${expr}'`, "-frames:v", "1", out]);
+    return out.replace(/\\/g, "/").replace(/:/g, "\\\\:");
+}
 
 const SRC = resolve("public/new_about.mp4");
 const OUT = resolve("public/new_about_loop.mp4");
@@ -124,9 +138,25 @@ const CRF = "25";
 const body = DURATION - FADE;
 const offset = body - FADE;
 
+/* ---- the watermark ---------------------------------------------------
+   The generator's translucent sparkle sits in the lower right for the
+   whole clip — the same mark scripts/descent.mjs removes from the frames
+   that follow this clip on the page. Here it is centred at (1166, 602),
+   arms reaching 22px, measured on a 10px grid and checked identical at
+   four points across the eight seconds.
+
+   removelogo over a circle 4px wider than the star: it fills only the
+   masked pixels from their surroundings. It runs FIRST, before the
+   sharpen, so the sharpen cannot put a halo on the star's edge before
+   it is gone — and on BOTH inputs, because the head is dissolved onto
+   the tail and would otherwise bring the mark back for 0.8s every loop.
+   The poster below is taken from the output, so it is clean too. */
+const MASK = maskFile("about", 1280, 720, "if(lte(hypot(X-1166,Y-602),26),255,0)");
+const CLEAN = `removelogo=${MASK}`;
+
 const filter =
-    `[0:v]${SHARPEN},trim=start=${FADE},setpts=PTS-STARTPTS[body];` +
-    `[1:v]${SHARPEN},setpts=PTS-STARTPTS[head];` +
+    `[0:v]${CLEAN},${SHARPEN},trim=start=${FADE},setpts=PTS-STARTPTS[body];` +
+    `[1:v]${CLEAN},${SHARPEN},setpts=PTS-STARTPTS[head];` +
     `[body][head]xfade=transition=fade:duration=${FADE}:offset=${offset}[v]`;
 
 if (!existsSync(SRC)) {

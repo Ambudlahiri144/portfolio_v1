@@ -53,14 +53,22 @@
   --grain-opacity: 0.05;
   --grain-blend: multiply;
 
-  /* Bricolage Grotesque is the whole site's face now, not just the hero's.
-     Outfit has been removed rather than left loaded and unused. */
-  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
-  /* Display serif for a few section-level moments only: the Mincho
-     typographic tradition, with real Latin glyphs. Bricolage stays the
-     face of everything else. */
-  --font-mincho: var(--font-shippori), "Shippori Mincho", "Yu Mincho", Georgia, serif;
+  /* THE BASE STACKS. Bricolage Grotesque for text, Plex Mono for labels,
+     Shippori Mincho for a few section-level display moments. These are
+     now the Contact section's faces only — see below. */
+  --font-display-base: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-mono-base: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+  --font-mincho-base: var(--font-shippori), "Shippori Mincho", "Yu Mincho", Georgia, serif;
+
+  /* REGGAE ONE IS EVERY SECTION'S FACE — text, labels and display alike —
+     except Contact, which restores the base stacks on its own root
+     (Contact.module.css) and so keeps them for everything inside it.
+     Each stack keeps its base behind Reggae One, so anything Reggae One
+     has no glyph for (it is loaded for Latin only) falls back to the face
+     it had before: a kanji still comes out in Shippori Mincho. */
+  --font-display: var(--font-reggae), var(--font-display-base);
+  --font-mono: var(--font-reggae), var(--font-mono-base);
+  --font-mincho: var(--font-reggae), var(--font-mincho-base);
 
   --gutter: clamp(1.25rem, 5vw, 4rem);
 
@@ -262,6 +270,10 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-display);
+  /* Reggae One has one weight. A browser asked for bold would smear a
+     fake one out of it, so it is not allowed to; Contact, whose faces
+     have their weights, turns this back on. */
+  font-synthesis-weight: none;
   font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.0625rem);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;

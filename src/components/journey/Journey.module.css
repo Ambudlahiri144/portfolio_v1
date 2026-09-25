@@ -12,14 +12,14 @@
 /* ---- the scroll track ----------------------------------------------
    The track's own height is no longer a number: it is the sticky's
    100svh, plus a fixed 700svh runway, plus however tall Projects turns
-   out to be, plus a 100svh tail. Projects is 100svh on a desktop and
-   nearly twice that on a phone, which is exactly why the number had to
-   go.
+   out to be (less the screen its stage is pulled up by), plus the hold.
+   Projects is 100svh on a desktop and nearly twice that on a phone,
+   which is exactly why the number had to go.
 
-   THE PIN IS NOW LOAD-BEARING FOR TWO SECTIONS, NOT ONE. A sticky child
+   THE PIN IS NOW LOAD-BEARING FOR TWO STICKIES, NOT ONE. A sticky child
    stays pinned until its CONTAINING BLOCK's bottom passes it, so putting
-   Projects inside this element is the whole mechanism that keeps the
-   valley behind the cards instead of being repainted under them.
+   Projects' stage inside this element is the whole mechanism that keeps
+   the valley behind the cards instead of being repainted under them.
 
    That also makes this element fragile in a way worth stating: give it
    or anything between it and .sticky an `overflow` other than visible,
@@ -38,8 +38,8 @@
    the hero never slides anywhere. */
 .track {
     position: relative;
-    /* THE VALLEY'S OWN DARK, not --bg. This is only ever seen in the tail,
-       where the plate travels up and off — but --bg is near-white in the
+    /* THE VALLEY'S OWN DARK, not --bg. This is only ever seen at the end
+       of the hold, where the plate travels up and off — but --bg is near-white in the
        light theme, so leaving it there would drag a pale band across the
        one join the picture is supposed to carry. Sampled from the frame
        the beat ends on, the same value the Contact-side seam uses. */
@@ -67,23 +67,141 @@
    The settle at the end is not padding, and it now does two jobs: it
    lets the camera come to rest (the spring trails the scrollbar, so
    without it the end of the move would slide up the screen), and it is
-   the screen over which Projects rises silently into place. */
+   where Projects' stage pins, still invisible, ready to fade in. */
 .runway {
     height: 700svh;
     pointer-events: none;
 }
 
-/* ---- the tail -------------------------------------------------------
-   What keeps the pin alive to the LAST PIXEL of Projects. The pinned
-   range ends at trackHeight - 100svh; with Projects starting at 800svh
-   and this 100svh below it, that lands exactly on Projects' bottom edge.
-   Without it the plate would begin unpinning a screen early — on a
-   desktop, where Projects is exactly 100svh, that means the valley would
-   slide away through the whole section.
+/* ---- the Projects stage ---------------------------------------------
+   Projects, pinned over the frame instead of scrolling in beneath it.
 
-   It is also the room the Projects -> Contact camera move will need. */
-.tail {
-    height: 100svh;
+   Pulled up one screen, so its flow position starts at 700svh — the
+   start of the settle — rather than at 800svh after the runway. It
+   therefore pins at 700svh, while it is still invisible, and never
+   travels across the screen with anything in it: Journey fades it in at
+   PROJECTS_SHOWN (camera 0.95, about 760svh) on top of a frame that has
+   already stopped.
+
+   No z-index, for the same reason .sticky has none — the fixed dock at
+   z-index 40 must stay above. DOM order alone puts it over the frame. */
+.stageBox {
+    margin-top: -100svh;
+}
+
+/* The stage is held by .stageBox rather than by the whole track, so the
+   frame's pin and the stage's pin can be extended independently — which
+   is what lets the wipe below run over a HELD Projects on a desktop and
+   only AFTER the last card on a phone. */
+.stage {
+    position: sticky;
+    top: 0;
+}
+
+/* ---- the wipe -------------------------------------------------------
+   The Projects -> Contact transition: the screen turns black square by
+   square, bottom-left to top-right (PixelWipe.tsx). It runs over the
+   last W = 150svh of the frame's pinned range, measured by .wipeZone,
+   which sits exactly there by construction: the frame's pin ends 100svh
+   above the track's bottom edge.
+
+   Where the 150svh of extra scroll comes from differs by layout, and
+   that is the whole reason for two elements:
+
+   - DESKTOP. Projects is one screen tall. The room goes INSIDE
+     .stageBox, which extends the stage's pin and the frame's pin by the
+     same amount: both stay held, and the wipe eats a still picture.
+   - PHONES. Projects is nearly two screens tall, so while it is pinned
+     only its top half shows. Room inside .stageBox would hold it there
+     and wipe out the lower cards unseen. So the room goes AFTER the box:
+     the stage releases on time, its lower cards scroll up over the still
+     valley, and only once the last one has reached the bottom of the
+     screen does the black begin. */
+.wipeRoom {
+    height: 150svh;
+    pointer-events: none;
+}
+
+.wipeRoomAfter {
+    display: none;
+}
+
+@media (max-width: 39.99rem) {
+    .wipeRoom {
+        display: none;
+    }
+
+    /* 150svh of wipe plus 70svh of lead: without the lead the last card
+       would reach the bottom of the screen on the very pixel the black
+       begins there — the wipe starts bottom-left — and be covered before
+       it could be read. */
+    .wipeRoomAfter {
+        display: block;
+        height: 220svh;
+        pointer-events: none;
+    }
+}
+
+.wipeZone {
+    position: absolute;
+    bottom: 100svh;
+    left: 0;
+    width: 1px;
+    height: 150svh;
+    pointer-events: none;
+}
+
+/* Over everything but the dock (z-index 40), which stays usable. */
+.wipe {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 30;
+    pointer-events: none;
+}
+
+/* ---- the hold ---------------------------------------------------------
+   How long Projects stays on screen. With the stage flowing from 700svh
+   at height P, this hold D below it, and the wipe's room W = 150svh:
+
+   DESKTOP (W inside .stageBox, P = 100svh):
+     stage pinned until   700 + D + W            = 1100svh
+     frame pinned until   600 + P + D + W        = 1100svh
+     wipe runs            950 -> 1100svh, over both, still
+   So from the fade-in at about 760svh Projects is held for ~190svh, the
+   screen then turns black over the next 150, and at 1100svh both pins
+   let go together — invisibly, under the black.
+
+   PHONES (W after .stageBox, P ~ 180svh, D = 150svh):
+     stage pinned until   700 + D                = 850svh
+     frame pinned until   600 + P + D + W + 70   ~ 1150svh
+     wipe runs            ~1000 -> 1150svh, 70svh after the last card lands
+   The stage releases first and its lower cards scroll up over a still
+   valley; the black begins once the last card has reached the bottom of
+   the screen. The hold is shorter there because only the top of the
+   section is visible while pinned, and a long wait on one card reads as
+   the page having stuck. */
+.dwell {
+    height: 250svh;
+    pointer-events: none;
+}
+
+@media (max-width: 39.99rem) {
+    .dwell {
+        height: 150svh;
+    }
+}
+
+/* Where #projects lands: 820svh, inside the hold and after the fade-in.
+   An anchor jump stops 2rem short because of the page's scroll-padding,
+   which is still comfortably past PROJECTS_SHOWN. */
+.projectsAnchor {
+    position: absolute;
+    top: 820svh;
+    left: 0;
+    width: 1px;
+    height: 1px;
     pointer-events: none;
 }
 
@@ -225,7 +343,7 @@
 }
 
 .greeting {
-    font-family: var(--font-bricolage), var(--font-display);
+    font-family: var(--font-display);
     font-size: clamp(2.1rem, 1.1rem + 4.2vw, 4.5rem);
     font-weight: 500;
     line-height: 1.02;
