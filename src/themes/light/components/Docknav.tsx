@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useLenis } from "lenis/react";
 import { nav, type NavItem } from "@light/lib/site";
 import ThemeToggle from "./ThemeToggle";
-import DockFx from "./dock/DockFx";
 import styles from "./Docknav.module.css";
 
 /* Inline SVGs rather than an icon package — four icons is not worth a
@@ -35,6 +34,14 @@ function Icon({ name }: { name: NavItem["icon"] }) {
                 <svg {...common}>
                     <circle cx="12" cy="8.2" r="3.7" />
                     <path d="M4.8 19.8a7.4 7.4 0 0 1 14.4 0" />
+                </svg>
+            );
+        case "work":
+            return (
+                <svg {...common}>
+                    <rect x="3.5" y="7.2" width="17" height="12.3" rx="1.8" />
+                    <path d="M8.8 7.2V5.6a1.6 1.6 0 0 1 1.6-1.6h3.2a1.6 1.6 0 0 1 1.6 1.6v1.6" />
+                    <path d="M3.5 12.6h17" />
                 </svg>
             );
         case "projects":
@@ -133,7 +140,9 @@ export default function DockNav() {
            scroll. Taking it over from the browser keeps the motion consistent
            with the rest of the page and lets Lenis honour scroll-padding. */
         e.preventDefault();
-        lenis.scrollTo(target, { offset: 0 });
+        /* Long enough that the page turns between here and there play out
+           rather than blurring past. */
+        lenis.scrollTo(target, { offset: 0, duration: 2.2 });
 
         /* Keep the URL truthful without letting the browser jump to the anchor
            itself, which would fight the animation we just started. */
@@ -142,11 +151,6 @@ export default function DockNav() {
 
     return (
         <nav ref={navRef} className={styles.dock} aria-label="Sections">
-            {/* Liquid-metal surface and travelling rim glow. Purely decorative,
-                pointer-transparent, and absent entirely under reduced motion or
-                without WebGL2 — the dock below is fully functional on its own. */}
-            <DockFx targetRef={navRef} />
-
             {/* Specular highlight along the top edge — the thing that reads as
           "glass" more than the blur itself does. */}
             <span className={styles.sheen} aria-hidden="true" />

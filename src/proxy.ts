@@ -38,8 +38,9 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  /* Pages only. Skips the API routes, Next's own assets, and anything with a
+  /* Pages only. Skips the API routes, Next's own assets (_next) and dev-only
+     endpoints (__nextjs_*, used by the error overlay), and anything with a
      file extension — every file in /public (footage, resumes, favicon) is
      shared by both themes and must never be rewritten into one of them. */
-  matcher: ["/((?!api|_next|.*\\..*).*)"],
+  matcher: ["/((?!api|_next|__nextjs|.*\\..*).*)"],
 };

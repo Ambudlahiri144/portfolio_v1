@@ -27,3 +27,11 @@ public/Murmur_bg.png
 
 # Local browser-automation output.
 .playwright-cli/
+
+# Raw clips nothing on the site references (193 MB). Kept as source footage.
+public/videos/
+
+# Book masters for the light theme: the supplied keyframes and Veo clips, and
+# the lossless PNG frames scripts/book-frames.mjs renders from them. The site
+# loads only the WebP output in public/book/.
+assets-src/

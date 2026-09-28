@@ -1,0 +1,84 @@
+/* The book laid out flat: a still of the cover, then each spread as
+   paper sheets. Used for reduced motion and portrait screens. */
+
+.unbound {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.5rem, 8vw, 5rem);
+    padding: clamp(1.25rem, 5vw, 3rem) clamp(1rem, 5vw, 3rem) 8rem;
+}
+
+.cover {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+}
+
+@media (min-width: 900px) {
+    .cover {
+        grid-template-columns: 1fr 1.2fr;
+    }
+    .coverText {
+        order: -1;
+    }
+}
+
+/* The still is cropped to the closed book, which sits on the right of the
+   frame; the label is positioned in the frame's own percentages. */
+.coverFrame {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    aspect-ratio: 16 / 9;
+}
+
+.coverFrame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.label {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    /* The label's font is sized against --pw; here the panel is a share
+       of the frame, so give it the frame-relative width. */
+    --pw: calc(min(100vw, 1200px) * 0.14);
+    container-type: inline-size;
+}
+
+.coverText {
+    font-size: 1rem;
+    --pw: 26rem;
+}
+
+.spread {
+    display: grid;
+    gap: 1.25rem;
+    max-width: 60rem;
+    width: 100%;
+    margin-inline: auto;
+}
+
+@media (min-width: 900px) {
+    .spread:has(> .sheet + .sheet) {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* A page of the book, on its own. */
+.sheet {
+    background: var(--paper);
+    border-radius: 3px;
+    padding: clamp(1.5rem, 5vw, 2.75rem);
+    font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.05rem);
+    box-shadow:
+        0 1px 0 rgba(255, 250, 240, 0.5) inset,
+        0 18px 40px -26px var(--shadow);
+}
+
+.table {
+    --pw: 28rem;
+    padding: 1rem 0;
+}

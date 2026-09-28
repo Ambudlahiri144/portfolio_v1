@@ -14,12 +14,10 @@
 
 import type { Metadata, Viewport } from "next";
 import {
-  IBM_Plex_Mono,
+  Cormorant_Garamond,
   Geist,
-  Bricolage_Grotesque,
-  Dancing_Script,
-  Instrument_Serif,
-  Inter,
+  IBM_Plex_Mono,
+  Literata,
 } from "next/font/google";
 import { site } from "@light/lib/site";
 import DockNav from "@light/components/Docknav";
@@ -27,31 +25,31 @@ import SmoothScroll from "@light/components/SmoothScroll";
 import "./theme.css";
 import { cn } from "@light/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+/* Interface chrome: the dock, form labels, buttons. Also what shadcn's
+   `font-sans` resolves to. */
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
-
-/* The site's display face. It started scoped to the hero, but it is now what
-   --font-display resolves to, so the full weight range the rest of the site
-   uses has to be loaded: 200 for the hero name, 300 for body and headings,
-   400/500 for labels and card titles. Outfit has been removed — nothing
-   referenced it any more and it was still being downloaded. */
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin"],
-  weight: ["200", "300", "400", "500"],
-  variable: "--font-bricolage",
-  display: "swap",
-});
-
-/* One heading only — the contact form's. Scoped deliberately: a script face is
-   an accent, and the moment it appears anywhere else it stops reading as one.
-   Just the two weights that heading uses, nothing speculative. */
-const dancingScript = Dancing_Script({
+/* Titles. 500 for headings, 600 for the name on the cover, and the italic
+   for the occasional emphasised word — a book sets emphasis in italic of
+   the same face, not in a second family. */
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["500", "600"],
-  variable: "--font-dancing",
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
+/* The page's reading face. Variable, so every weight in between costs
+   nothing extra; the italic is loaded for titles of works and emphasis. */
+const literata = Literata({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-literata",
+  display: "swap",
+});
+
+/* Tech stacks and other labels that are data rather than prose. */
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
@@ -59,57 +57,25 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-/* The video hero's headline face, and nothing else on the site.
-
-   Scoped the same way Dancing_Script is: a serif inside a page set entirely in
-   Bricolage is an accent, and it stops reading as one the moment it turns up
-   somewhere a second time. 400 is the only upright weight Google publishes for
-   this family, so there is nothing else to load.
-
-   NOTE the variable name. The reference this came from called it
-   --font-display, which already exists in theme.css and resolves to
-   Bricolage — taking that name would have silently re-faced the entire site. */
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-instrument",
-  display: "swap",
-});
-
-/* Body face for the video hero's subtext and its one button. Also scoped —
-   everything below the hero stays on Bricolage. */
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: `${site.name} — ${site.role}`,
+  title: `${site.name}, ${site.role}`,
   description: site.tagline,
 };
 
+/* The tablecloth, so the browser chrome continues the table. */
 export const viewport: Viewport = {
-  themeColor: "#eff1ee",
+  themeColor: "#cdb69e",
 };
 
-/* The font variables belong on <html>, not <body>.
-
-   --font-display and --font-mono are declared on html in theme.css as
-   `var(--font-bricolage), …`. A custom property resolves its own var()
-   references against the element it is declared on — so with the font
-   classes on <body>, html had no --font-bricolage to read and --font-display
-   computed to nothing at all. Every rule using it silently fell through to
-   whatever <html> happened to be set to, which since the shadcn setup added
-   `font-sans` has been Geist. The root layout puts this on <html>. */
+/* The font variables belong on <html>, not <body>: theme.css declares
+   --font-serif and friends on html as `var(--font-cormorant), …`, and a
+   custom property resolves its var() references on the element it is
+   declared on. The root layout puts this on <html>. */
 export const htmlClassName = cn(
   geist.variable,
-  bricolage.variable,
+  cormorant.variable,
+  literata.variable,
   plexMono.variable,
-  dancingScript.variable,
-  instrumentSerif.variable,
-  inter.variable,
 );
 
 /* Everything inside <body>. */
