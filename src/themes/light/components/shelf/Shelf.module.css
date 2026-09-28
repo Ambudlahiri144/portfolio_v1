@@ -1,0 +1,166 @@
+/* ==================================================================
+   SHELF — the DOM around the 3D shelf, and the paper fallback.
+   ================================================================== */
+
+.stage {
+    position: relative;
+    height: min(72svh, 700px);
+    min-height: 460px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #dcc6a8;
+}
+
+.canvas {
+    position: absolute;
+    inset: 0;
+}
+
+/* Bottom right: clear of the volumes, the open page and its cover, which
+   swings out to the left. */
+.hint {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 1rem;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--ink-2);
+    pointer-events: none;
+}
+
+/* The keyboard's list: off screen until a button is focused. */
+.proxies {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.proxies button {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.proxies button:focus-visible {
+    width: auto;
+    height: auto;
+    clip-path: none;
+    padding: 0.45rem 0.9rem;
+    background: var(--ink);
+    color: var(--paper-hi);
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    border-radius: 999px;
+}
+
+/* ------------------------------------------------------------------
+   The open volume's page. ShelfScene sets left/top/width/height and
+   --pw from the 3D page, every frame.
+   ------------------------------------------------------------------ */
+
+.page {
+    position: absolute;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 200ms ease;
+    font-size: clamp(11px, calc(var(--pw, 300px) * 0.045), 17px);
+}
+
+.pageInner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55em;
+    height: 100%;
+    padding: 1.4em 1.5em 1.2em;
+    overflow: auto;
+    color: var(--ink-2);
+    font-family: var(--font-body);
+}
+
+.period {
+    font-family: var(--font-mono);
+    font-size: 0.72em;
+    color: var(--ink-3);
+}
+
+.pageTitle {
+    font-size: 1.9em;
+    line-height: 1.05;
+}
+
+.org {
+    font-style: italic;
+    color: var(--ink-3);
+}
+
+.detail {
+    line-height: 1.55;
+}
+
+.seal {
+    align-self: flex-end;
+}
+
+.stack,
+.stackAll {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3em 0.9em;
+    font-family: var(--font-mono);
+    font-size: 0.72em;
+    color: var(--ink-3);
+}
+
+.stackAll {
+    font-size: 0.8em;
+    gap: 0.45em 1.1em;
+}
+
+.close {
+    margin-top: auto;
+    align-self: flex-start;
+    font-family: var(--font-ui);
+    font-size: 0.8em;
+    color: var(--ink-3);
+    padding: 0.35em 0.85em;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+}
+
+.close:hover {
+    color: var(--ink);
+    border-color: var(--ink-4);
+}
+
+/* ------------------------------------------------------------------
+   Paper fallback
+   ------------------------------------------------------------------ */
+
+.paper {
+    display: grid;
+    gap: 1.25rem;
+}
+
+@media (min-width: 760px) {
+    .paper {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.sheet {
+    background: var(--paper);
+    border-radius: 3px;
+    box-shadow:
+        0 1px 0 rgba(255, 250, 240, 0.5) inset,
+        0 18px 40px -26px var(--shadow);
+    font-size: 1rem;
+}

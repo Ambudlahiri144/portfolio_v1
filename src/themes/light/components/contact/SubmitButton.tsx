@@ -42,7 +42,7 @@ export default function SubmitButton({
     return (
         <button
             type="submit"
-            className={styles.submit}
+            className={`${styles.submit} ink`}
             /* pointerdown, not click. The pop should answer the press itself;
                waiting for click delays it behind the form's own validation and
                makes the button feel a beat slow. */

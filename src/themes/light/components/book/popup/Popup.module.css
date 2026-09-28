@@ -1,0 +1,176 @@
+/* ==================================================================
+   POP-UP — the DOM around the 3D scene: its canvas slot, the caption
+   card, the hint, and the keyboard's proxy buttons.
+   ================================================================== */
+
+.layer {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.layer[data-active] .caption,
+.layer[data-active] .scene {
+    pointer-events: auto;
+}
+
+/* Placed by PopupLayer on the drawn frame, so the 3D camera and the
+   photograph share one projection. */
+.scene {
+    position: absolute;
+}
+
+/* ------------------------------------------------------------------
+   Caption: an index card lying on the tablecloth above the book.
+   ------------------------------------------------------------------ */
+
+.caption {
+    position: absolute;
+    display: grid;
+    gap: 0.45rem;
+    padding: 1.1rem 1.25rem 1.2rem;
+    background: var(--paper-hi);
+    border-radius: 3px;
+    color: var(--ink-2);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    box-shadow:
+        0 1px 1px rgba(42, 28, 19, 0.1),
+        0 18px 36px -22px var(--shadow);
+    rotate: -0.6deg;
+    animation: settle 520ms var(--ease-out) both;
+}
+
+.caption[data-selected] {
+    rotate: 0deg;
+}
+
+@keyframes settle {
+    from {
+        opacity: 0;
+        filter: blur(3px);
+        transform: translateY(8px);
+    }
+}
+
+.kind {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--ink-3);
+}
+
+.title {
+    font-size: 1.9rem;
+    line-height: 1;
+}
+
+.detail {
+    line-height: 1.55;
+}
+
+.stack {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--ink-3);
+}
+
+/* The technology the reader pressed in the type tray. */
+.stack [data-hot] {
+    color: var(--ink);
+    background: var(--beige);
+    box-shadow: 0 0 0 0.2rem var(--beige);
+    border-radius: 2px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.2rem;
+}
+
+.repo {
+    font-style: italic;
+    color: var(--signal);
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+    text-decoration-color: color-mix(in srgb, var(--signal) 40%, transparent);
+}
+
+.repo:hover {
+    text-decoration-color: currentColor;
+}
+
+.back {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink-3);
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+}
+
+.back:hover {
+    color: var(--ink);
+    border-color: var(--ink-4);
+}
+
+.hint {
+    position: absolute;
+    left: 50%;
+    translate: -50% 0;
+    font-family: var(--font-body);
+    font-style: italic;
+    color: var(--ink-3);
+    animation: settle 700ms var(--ease-out) both;
+}
+
+/* ------------------------------------------------------------------
+   Proxies: real buttons for the keyboard, off screen until focused.
+   ------------------------------------------------------------------ */
+
+.proxies {
+    position: absolute;
+    left: 0;
+    bottom: 6rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.proxies button {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.proxies button:focus-visible {
+    width: auto;
+    height: auto;
+    clip-path: none;
+    left: 1.5rem;
+    padding: 0.5rem 0.9rem;
+    background: var(--ink);
+    color: var(--paper-hi);
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    border-radius: 999px;
+    pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .caption,
+    .hint {
+        animation: none;
+    }
+}

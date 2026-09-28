@@ -253,15 +253,10 @@
     justify-self: start;
     padding: 0.6em 1.05em;
     border-radius: 999px;
-    background: var(--signal);
-    color: var(--paper-hi);
+    border: 1.5px solid var(--signal);
+    color: var(--signal);
     font-size: 0.85em;
     font-weight: 500;
-    transition: background-color var(--dur-1) var(--ease);
-}
-
-.resume:hover {
-    background: var(--ink-2);
 }
 
 .resume:focus-visible {
@@ -371,16 +366,11 @@
     align-items: center;
     padding: 0.7em 1.3em;
     border-radius: 999px;
-    background: var(--signal);
-    color: var(--paper-hi);
+    border: 1.5px solid var(--signal);
+    color: var(--signal);
     font-family: var(--font-ui);
     font-size: 0.88em;
     font-weight: 500;
-    transition: background-color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
-}
-
-.submit:hover:not(:disabled) {
-    background: var(--ink-2);
 }
 
 .submit:disabled {
@@ -404,12 +394,6 @@
     background: linear-gradient(100deg, transparent 30%, rgba(255, 248, 236, 0.28) 50%, transparent 70%);
     transform: translateX(-100%);
     pointer-events: none;
-}
-
-.submit:hover:not(:disabled) .sweep,
-.submit:focus-visible:not(:disabled) .sweep {
-    transition: transform 700ms var(--ease-out);
-    transform: translateX(100%);
 }
 
 .submit[data-pending] .sweep {

@@ -70,10 +70,41 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     white-space: nowrap;
-    color: rgba(74, 52, 36, 0.78);
-    text-shadow:
-        0 1px 0 rgba(255, 249, 238, 0.45),
-        0 -1px 0 rgba(42, 28, 19, 0.18);
+}
+
+/* ------------------------------------------------------------------
+   Hot-foil stamping: gold pressed into the cloth.
+
+   A metallic gradient clipped to the letters, with its brightest band
+   (--sheen) tracking the pointer across the stage (Book.tsx sets --px,
+   0..1). The bevel is two hairline drop-shadows, not text-shadow: with
+   the text itself transparent, a text-shadow would show through it.
+   ------------------------------------------------------------------ */
+
+.foil {
+    --sheen: calc(18% + var(--px, 0.5) * 64%);
+    background-image: linear-gradient(
+        104deg,
+        #5f421f 0%,
+        #9c7338 16%,
+        #d8b46b calc(var(--sheen) - 14%),
+        #fff1c9 var(--sheen),
+        #e1bd72 calc(var(--sheen) + 10%),
+        #a47a3a 82%,
+        #5a3e1c 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter:
+        drop-shadow(0 1px 0 rgba(255, 247, 228, 0.5))
+        drop-shadow(0 -0.5px 0 rgba(42, 28, 19, 0.55));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .foil {
+        --sheen: 50%;
+    }
 }
 
 .coverText {
@@ -122,17 +153,12 @@
     gap: 0.6em;
     padding: 0.8em 1.35em;
     border-radius: 999px;
-    background: var(--signal);
-    color: var(--paper-hi);
+    /* Outlined in ink at rest; the `ink` class floods it on hover. */
+    border: 1.5px solid var(--signal);
+    color: var(--signal);
     font-family: var(--font-ui);
     font-size: 0.9em;
     font-weight: 500;
-    box-shadow: 0 10px 24px -14px var(--shadow);
-    transition: background-color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
-}
-
-.cta:hover {
-    background: var(--ink-2);
 }
 
 .cta:active {
@@ -145,6 +171,20 @@
 
 .opening {
     justify-content: center;
+}
+
+/* With the peel-back photo: the print at the head of the page, the line
+   beneath it, set a size smaller to share the page. */
+.openingWithPhoto {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: flex-start;
+    gap: 1.6em;
+}
+
+.openingWithPhoto .openingLine {
+    font-size: 2.2em;
 }
 
 .openingLine {
@@ -364,3 +404,47 @@
 .colophon .cta {
     margin-top: 0;
 }
+
+/* ------------------------------------------------------------------
+   Engraving: the seal beside Education, the bookplate in the colophon.
+   ------------------------------------------------------------------ */
+
+.headingWithSeal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+}
+
+.bookplate {
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+    padding: 0.7em 1.1em 0.7em 0.8em;
+    border: 1px solid var(--rule);
+    outline: 1px solid var(--rule);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+.bookplate p {
+    display: grid;
+    gap: 0.1em;
+}
+
+.exLibris {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.95em;
+    color: var(--ink-3);
+}
+
+.bookplateName {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 1.15em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+

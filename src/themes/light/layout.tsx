@@ -22,6 +22,7 @@ import {
 import { site } from "@light/lib/site";
 import DockNav from "@light/components/Docknav";
 import SmoothScroll from "@light/components/SmoothScroll";
+import InkDefs from "@light/components/InkDefs";
 import "./theme.css";
 import { cn } from "@light/lib/utils";
 
@@ -90,6 +91,8 @@ export function Body({ children }: { children: React.ReactNode }) {
       <SmoothScroll>{children}</SmoothScroll>
       {/* Lives in the layout so it persists across routes. */}
       <DockNav />
+      {/* The ink-bloom buttons' shared filter and entry-point tracking. */}
+      <InkDefs />
     </>
   );
 }

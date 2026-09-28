@@ -325,7 +325,7 @@ function EmployeePanel({
                                     <div className={styles.actions}>
                                         <button
                                             type="button"
-                                            className={styles.submit}
+                                            className={`${styles.submit} ink`}
                                             onClick={confirmCode}
                                             disabled={
                                                 step === "checking" || code.length < 6
@@ -351,7 +351,7 @@ function EmployeePanel({
                                 <div className={styles.actions}>
                                     <button
                                         type="button"
-                                        className={styles.submit}
+                                        className={`${styles.submit} ink`}
                                         onClick={requestCode}
                                         disabled={step === "sending" || !values.email}
                                     >
@@ -393,7 +393,7 @@ function ResumeLink({ href, label }: { href: string; label: string }) {
     }
     return (
         <a
-            className={styles.resume}
+            className={`${styles.resume} ink`}
             href={href}
             /* Renames the file on the way out. The PDFs are stored under their
                working names — Ambud_Resume_SDE-1.pdf and so on — and a "-1" in

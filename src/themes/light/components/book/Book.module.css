@@ -149,7 +149,20 @@
     min-width: 36px;
     min-height: 36px;
     padding: 0;
-    cursor: pointer;
+    cursor: grab;
+    /* The corner is dragged, so a touch on it must not scroll the page. */
+    touch-action: none;
+}
+
+.dogEar:active {
+    cursor: grabbing;
+}
+
+/* The left page's corner, for turning back: the same fold, mirrored. */
+.dogEarLeft {
+    right: auto;
+    left: 0;
+    transform: scaleX(-1);
 }
 
 .dogEar span {

@@ -8,7 +8,8 @@
    ================================================================== */
 
 import { holds, manifest, rect } from "./timeline";
-import { spreads } from "./Spreads";
+import { projects } from "@light/lib/site";
+import { ProjectPage, spreads } from "./Spreads";
 import { frameUrl } from "./useBookFrames";
 import styles from "./BookStatic.module.css";
 
@@ -47,8 +48,21 @@ export default function BookStatic() {
             </section>
 
             {holds
-                .filter((h) => h.spread !== "cover")
+                .filter((h) => h.spread !== "cover" && h.spread !== "projects-intro")
                 .map((h) => {
+                    /* Without the 3D pop-up, the projects are sheets like
+                       every other page, two to a row. */
+                    if (h.spread === "popup") {
+                        return (
+                            <section key={h.spread} id={h.anchor} className={styles.spread}>
+                                {projects.map((p) => (
+                                    <div key={p.title} className={styles.sheet}>
+                                        <ProjectPage project={p} />
+                                    </div>
+                                ))}
+                            </section>
+                        );
+                    }
                     const s = spreads[h.spread];
                     return (
                         <section key={h.spread} id={h.anchor} className={styles.spread}>

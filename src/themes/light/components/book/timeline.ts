@@ -93,6 +93,19 @@ export function frameAt(p: number): FrameRef {
     return { clip: seg.clip, frame: seg.reverse ? n - 1 - f : f };
 }
 
+/* The frames just beyond the segment at p: where the next motion starts
+   and where the previous one ended. The frame store decodes a little
+   around these ahead of time, so a turn never begins on a stand-in. */
+export function aheadOf(p: number): FrameRef[] {
+    const { index } = locate(p);
+    const out: FrameRef[] = [];
+    const next = segments.slice(index + 1).find((s) => s.kind === "motion");
+    const prev = segments.slice(0, index).reverse().find((s) => s.kind === "motion");
+    if (next && next.kind === "motion") out.push(startOf(next));
+    if (prev && prev.kind === "motion") out.push(endOf(prev));
+    return out;
+}
+
 /* Where a hold's content is fully on the page, 0..1 — the anchor point.
    Just past the fade-in, so a jump lands on readable text. */
 export function readingPoint(hold: Pick<PlacedSegment, "from" | "to">) {

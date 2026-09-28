@@ -38,14 +38,14 @@ export const site = {
    jump to these.
    ------------------------------------------------------------------ */
 
-export type BookClip = "open" | "turnA" | "turnB";
+export type BookClip = "open" | "turnA" | "turnB" | "tilt";
 
 export type SpreadId =
     | "cover"
     | "about"
     | "work"
-    | "projects-1"
-    | "projects-2"
+    | "projects-intro"
+    | "popup"
     | "contact"
     | "closed";
 
@@ -62,10 +62,14 @@ export const bookTimeline: BookSegment[] = [
     { kind: "motion", clip: "turnA", vh: 100 },
     { kind: "hold", spread: "work", vh: 150, anchor: "work" },
     { kind: "motion", clip: "turnB", vh: 80 },
-    { kind: "hold", spread: "projects-1", vh: 150, anchor: "projects" },
+    { kind: "hold", spread: "projects-intro", vh: 70 },
+    /* The camera comes down to the front of the book, where the projects
+       stand up off the page as a pop-up. The same clip reversed takes it
+       back overhead. */
+    { kind: "motion", clip: "tilt", vh: 120 },
+    { kind: "hold", spread: "popup", vh: 460, anchor: "projects" },
+    { kind: "motion", clip: "tilt", reverse: true, vh: 110 },
     { kind: "motion", clip: "turnA", vh: 100 },
-    { kind: "hold", spread: "projects-2", vh: 150 },
-    { kind: "motion", clip: "turnB", vh: 80 },
     { kind: "hold", spread: "contact", vh: 190, anchor: "contact" },
     /* Closing the book is the opening played backwards. */
     { kind: "motion", clip: "open", reverse: true, vh: 120 },
@@ -93,6 +97,20 @@ export const about = {
     ],
     status: site.status,
     more: { label: "The full record", href: "/experience" },
+
+    /* A print tipped onto the left page that can be peeled back by its
+       corner to show the note written underneath. Leave `src` empty and
+       the page shows the opening line alone. The portrait is a pencil
+       drawing; scripts/book-props.mjs makes portrait.webp from
+       public/book/props/light.png. */
+    photo: {
+        src: "/book/props/portrait.webp",
+        /* Its contour lines, drawn first when About comes to rest. */
+        lines: "/book/props/portrait-lines.webp",
+        alt: "Pencil portrait of Ambud Lahiri",
+        /* DRAFT: replace with your own words. */
+        note: "If you peeled this back, we will get along. Say hello on the last page.",
+    },
 } as const;
 
 export type NavItem = {
@@ -254,6 +272,12 @@ export const projects: Project[] = [
 export const projectsSpread = {
     heading: "Selected work",
     repoLabel: "Read the source",
+    /* The right page of the intro spread, before the camera comes down. */
+    invite: "Four things I built, and what they are made of. Lean in.",
+    /* The pop-up's hint, shown once the cards are up. */
+    hint: "Pick a card to take it out of the book.",
+    close: "Put it back",
+    stackLabel: "Built with",
 } as const;
 
 /* ------------------------------------------------------------------
@@ -362,4 +386,6 @@ export const footer = {
     backToTop: "Back to the cover",
     fullRecord: { label: "The full record", href: "/experience" },
     colophon: "Set in Cormorant Garamond and Literata. Built with Next.js.",
+    /* The name on the bookplate inside the back cover. */
+    bookplate: site.name,
 } as const;

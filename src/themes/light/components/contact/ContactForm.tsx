@@ -37,7 +37,11 @@ function stretchFor(distancePx: number) {
     return 1 + Math.min(Math.abs(distancePx) / 260, 0.4);
 }
 
-export default function ContactForm() {
+/* What was sent, for whatever shows the letter going: the envelope on the
+   book's contact page. */
+export type SentLetter = { name: string; message: string };
+
+export default function ContactForm({ onSent }: { onSent?: (letter: SentLetter) => void } = {}) {
     const uid = useId();
     const [active, setActive] = useState<TabId>(TABS[0].id);
 
@@ -81,7 +85,11 @@ export default function ContactForm() {
                     return;
                 }
 
-                setResult({ ok: true, message: "Sent — thank you." });
+                setResult({ ok: true, message: "Sent. Thank you." });
+                onSent?.({
+                    name: values.name,
+                    message: String(extra.message ?? values.message ?? ""),
+                });
                 /* Keep name and email; clear what was actually said. Someone
                    sending a second message should not retype who they are. */
                 setValues((v) => ({ ...v, topic: "", message: "", capacity: "" }));
@@ -91,7 +99,7 @@ export default function ContactForm() {
                 setPending(false);
             }
         },
-        [values],
+        [values, onSent],
     );
 
     const tab = TABS.find((t) => t.id === active) ?? TABS[0];

@@ -1,0 +1,353 @@
+/* ==================================================================
+   ENVELOPE — one timeline of CSS 3D keyframes.
+
+   Sized in em from the page's font-size, like everything else on a
+   page of the book. Times are absolute from the moment of sending; each
+   piece's animation-delay puts it on that shared clock.
+   ================================================================== */
+
+.stage {
+    position: relative;
+    height: 100%;
+    min-height: 22em;
+}
+
+.scene {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    perspective: 70em;
+    pointer-events: none;
+}
+
+/* The envelope and everything in it leaves as one object.
+
+   Layering is plain z-index, back to front: flap (open), letter, pocket;
+   then the flap moves above the pocket as it swings past upright. Each
+   moving part has its own perspective. A shared 3D context was tried
+   first: the browser's depth sort between near-coplanar paper put the
+   shut flap behind the pocket. */
+.envelope {
+    position: relative;
+    width: 19em;
+    aspect-ratio: 640 / 333;
+    translate: 0 4em;
+    animation: envLeave 850ms cubic-bezier(0.55, 0, 0.75, 0.2) 3400ms forwards;
+}
+
+/* The pocket and flap arrive from below while the letter is folding. The
+   letter is already on the page, so it is not part of this. */
+@keyframes arrive {
+    from {
+        translate: 0 14em;
+        opacity: 0;
+    }
+}
+
+@keyframes envLeave {
+    to {
+        translate: 36em 3em;
+        rotate: 9deg;
+        opacity: 0;
+    }
+}
+
+.pocket {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: url("/book/props/envelope-body.webp") center / 100% 100%;
+    box-shadow: 0 1.2em 2em -1.4em var(--shadow);
+    animation: arrive 600ms var(--ease-out) 900ms both;
+}
+
+/* ------------------------------------------------------------------
+   Flap: hinged along the envelope's top edge. Open it points up; shut
+   it has swung 180deg and lies over the pocket, showing its outside.
+   ------------------------------------------------------------------ */
+
+.flap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    aspect-ratio: 640 / 207;
+    z-index: 0;
+    transform-origin: 50% 100%;
+    transform-style: preserve-3d;
+    animation:
+        arrive 600ms var(--ease-out) 900ms both,
+        flapShut 600ms cubic-bezier(0.5, 0, 0.3, 1) 1900ms both;
+}
+
+/* Past upright, the flap is over the pocket, so it moves above it. */
+@keyframes flapShut {
+    from {
+        transform: perspective(40em) rotateX(0deg);
+        z-index: 0;
+    }
+    49% {
+        z-index: 0;
+    }
+    51% {
+        z-index: 3;
+    }
+    to {
+        transform: perspective(40em) rotateX(-180deg);
+        z-index: 3;
+    }
+}
+
+.flapInside,
+.flapOutside {
+    position: absolute;
+    inset: 0;
+    background: url("/book/props/envelope-flap.webp") center / 100% 100%;
+    backface-visibility: hidden;
+}
+
+/* The inside of the flap reads a shade darker: it faces away from the
+   window. */
+.flapInside {
+    filter: brightness(0.93);
+}
+
+/* Turned about Y, not X: the flap's own swing about X already points it
+   down, and a Y turn only changes which side faces out. (A scaleY(-1)
+   mirror made the browser treat it as a back face and hide it.) */
+.flapOutside {
+    transform: rotateY(180deg);
+    filter: drop-shadow(0 0.25em 0.3em rgba(42, 28, 19, 0.2));
+}
+
+/* ------------------------------------------------------------------
+   Letter: three panels. The top and bottom fold over the middle, then
+   the folded letter drops into the envelope, behind the pocket.
+   ------------------------------------------------------------------ */
+
+.letter {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: 38%;
+    z-index: 1;
+    perspective: 60em;
+    transform-style: preserve-3d;
+    animation:
+        letterAppear 300ms var(--ease-out) both,
+        letterIn 700ms cubic-bezier(0.5, 0, 0.3, 1) 1000ms both;
+}
+
+@keyframes letterAppear {
+    from {
+        opacity: 0;
+    }
+}
+
+/* From the middle of the page, where the form was, down into the pocket:
+   far enough that the folded letter is wholly behind it. */
+@keyframes letterIn {
+    from {
+        transform: translateY(-6em);
+    }
+    60% {
+        transform: translateY(0.5em);
+    }
+    to {
+        transform: translateY(4.3em);
+    }
+}
+
+.third {
+    position: relative;
+    height: 4.6em;
+    transform-style: preserve-3d;
+}
+
+.face,
+.back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    background: var(--paper-hi);
+}
+
+.face {
+    display: block;
+    padding: 0.7em 1em;
+    overflow: hidden;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.78em;
+    line-height: 1.5;
+    color: var(--ink-2);
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 1.45em,
+        var(--rule) 1.45em,
+        var(--rule) 1.5em
+    );
+}
+
+.back {
+    transform: rotateX(180deg);
+    background: #ece2d1;
+}
+
+.top {
+    transform-origin: 50% 100%;
+    animation: foldTop 450ms cubic-bezier(0.5, 0, 0.3, 1) 150ms both;
+}
+
+.bottom {
+    transform-origin: 50% 0%;
+    animation: foldBottom 450ms cubic-bezier(0.5, 0, 0.3, 1) 520ms both;
+}
+
+/* A shadow along each fold, deepening as the panel comes over. */
+.middle .face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(42, 28, 19, 0.14), transparent 22%, transparent 78%, rgba(42, 28, 19, 0.14));
+    opacity: 0;
+    animation: foldShade 900ms ease 150ms both;
+}
+
+@keyframes foldTop {
+    to {
+        transform: rotateX(-178deg) translateZ(0.05em);
+    }
+}
+
+@keyframes foldBottom {
+    to {
+        transform: rotateX(178deg) translateZ(0.1em);
+    }
+}
+
+@keyframes foldShade {
+    to {
+        opacity: 1;
+    }
+}
+
+/* The letter is written to be read for a moment before it folds. */
+.letter,
+.third {
+    /* Faded in from the page the form was on. */
+    animation-fill-mode: both;
+}
+
+.salutation {
+    display: block;
+    font-size: 1.15em;
+    color: var(--ink);
+}
+
+.excerpt {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.signature {
+    display: block;
+    text-align: right;
+    padding-top: 1.1em;
+    font-size: 1.1em;
+    color: var(--ink);
+}
+
+/* ------------------------------------------------------------------
+   The seal: pressed where the flap's point lands.
+   ------------------------------------------------------------------ */
+
+.seal {
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    width: 4.6em;
+    height: 4.6em;
+    margin: -2.3em 0 0 -2.3em;
+    z-index: 4;
+    filter: drop-shadow(0 0.35em 0.4em rgba(42, 28, 19, 0.35));
+    animation: sealPress 620ms cubic-bezier(0.3, 1.4, 0.5, 1) 2500ms both;
+}
+
+@keyframes sealPress {
+    0% {
+        opacity: 0;
+        transform: translateY(-1.5em) scale(1.7) rotate(-18deg);
+        filter: drop-shadow(0 1.6em 1.2em rgba(42, 28, 19, 0.2));
+    }
+    55% {
+        opacity: 1;
+        transform: scale(0.9, 0.86) rotate(-8deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(-8deg);
+        filter: drop-shadow(0 0.3em 0.35em rgba(42, 28, 19, 0.35));
+    }
+}
+
+/* ------------------------------------------------------------------
+   After: a note inked onto the empty page.
+   ------------------------------------------------------------------ */
+
+.note {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.8em;
+    animation: ink 900ms var(--ease-out) both;
+}
+
+@keyframes ink {
+    from {
+        opacity: 0;
+        filter: blur(4px);
+    }
+}
+
+.noteTitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 2.6em;
+    line-height: 1.05;
+    color: var(--ink);
+    padding-bottom: 0.08em;
+}
+
+.noteBody {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--ink-2);
+}
+
+.again {
+    align-self: flex-start;
+    font-family: var(--font-body);
+    font-style: italic;
+    color: var(--signal);
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+    text-decoration-color: color-mix(in srgb, var(--signal) 40%, transparent);
+}
+
+.again:hover {
+    text-decoration-color: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .note {
+        animation: none;
+    }
+}

@@ -34,6 +34,10 @@ const CONCURRENCY = 8;
 /* New bitmaps started per animation frame, so a big jump does not queue
    dozens of decodes in one tick. */
 const DECODES_PER_TICK = 3;
+/* How far from the wanted frame a decoded neighbour may stand in. */
+const STAND_IN = 6;
+/* Frames pre-decoded at each end of the motions either side of a hold. */
+const AHEAD = 8;
 
 export type Tier = keyof typeof manifest.tiers;
 
@@ -67,6 +71,8 @@ export class FrameStore {
     private pinned = new Set<string>();
     private disposed = false;
     private readonly window: number;
+    /** Which frame each bitmap is — for diagnostics. */
+    readonly frameOf = new WeakMap<ImageBitmap, number>();
 
     constructor(readonly tier: Tier) {
         this.window = WINDOW[tier];
@@ -75,11 +81,19 @@ export class FrameStore {
         for (const h of holds) this.pinned.add(key(h.clip, h.frame));
     }
 
-    /* The exact frame's bitmap, else the nearest decoded frame of the same
-       clip, else null (nothing of that clip decoded yet). */
+    /* The exact frame's bitmap, else a decoded frame at most STAND_IN away
+       in the same clip, else null — and null means "keep what is on the
+       canvas".
+
+       The limit matters. Unlimited, the nearest decoded frame of a clip the
+       reader has only just entered was often its LAST frame, because that
+       is the frame the next spread rests on and it is kept decoded. For the
+       page turns that was harmless (they end where they start), but the
+       tilt ends at the front of the book: the first two frames of every
+       descent flashed the finished camera move. */
     drawable(ref: FrameRef): ImageBitmap | null {
         const n = this.blobs[ref.clip].length;
-        for (let d = 0; d < n; d++) {
+        for (let d = 0; d <= STAND_IN && d < n; d++) {
             const a = this.bitmaps.get(key(ref.clip, ref.frame - d));
             if (a) return a;
             if (d === 0) continue;
@@ -89,25 +103,34 @@ export class FrameStore {
         return null;
     }
 
-    /* Decode the neighbourhood of the playhead; release everything else. */
-    focus(ref: FrameRef) {
+    /* Decode the neighbourhood of the playhead, plus a short window around
+       each `ahead` frame (the ends of the motions either side of a hold, so
+       a turn starts on real frames rather than stand-ins). Release the rest. */
+    focus(ref: FrameRef, ahead: FrameRef[] = []) {
         if (this.disposed) return;
-        const w = this.window;
+        const windows = [
+            { ref, w: this.window },
+            ...ahead.map((a) => ({ ref: a, w: AHEAD })),
+        ];
+        const near = (clip: string, f: number) =>
+            windows.some((x) => x.ref.clip === clip && Math.abs(f - x.ref.frame) <= x.w + 4);
 
         for (const [k, bmp] of this.bitmaps) {
             if (this.pinned.has(k)) continue;
             const [clip, f] = k.split(":");
-            if (clip !== ref.clip || Math.abs(Number(f) - ref.frame) > w + 4) {
+            if (!near(clip, Number(f))) {
                 bmp.close();
                 this.bitmaps.delete(k);
             }
         }
 
         let started = 0;
-        const n = this.blobs[ref.clip].length;
-        for (let d = 0; d <= w && started < DECODES_PER_TICK; d++) {
-            for (const f of d === 0 ? [ref.frame] : [ref.frame + d, ref.frame - d]) {
-                if (f >= 0 && f < n && this.decode(ref.clip, f)) started++;
+        for (const { ref: r, w } of windows) {
+            const n = this.blobs[r.clip].length;
+            for (let d = 0; d <= w && started < DECODES_PER_TICK; d++) {
+                for (const f of d === 0 ? [r.frame] : [r.frame + d, r.frame - d]) {
+                    if (f >= 0 && f < n && this.decode(r.clip, f)) started++;
+                }
             }
         }
     }
@@ -129,6 +152,7 @@ export class FrameStore {
                 this.pending.delete(k);
                 if (this.disposed) return bmp.close();
                 this.bitmaps.set(k, bmp);
+                this.frameOf.set(bmp, f);
                 this.onDecoded?.();
             })
             .catch(() => this.pending.delete(k));

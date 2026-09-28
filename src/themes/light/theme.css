@@ -215,6 +215,84 @@
 }
 
 /* ============================================================
+   INK BLOOM
+
+   Buttons with the `ink` class are outlined in ink at rest; on hover the
+   ink floods in from where the pointer entered (--ix/--iy, set by
+   InkDefs.tsx), with a ragged fibrous edge from the #ink-edge filter,
+   and the label turns to paper as the ink passes under it.
+
+   The bloom is a pseudo-element under the label: `isolation` makes the
+   button its own stacking context, so z-index -1 lands between the
+   button's background and its text.
+   ============================================================ */
+
+/* The bloom's radius, registered so it can be transitioned: the ink is a
+   radial gradient of this radius, and it is the gradient's own edge that
+   #ink-edge roughens. (A clip-path circle was tried first: CSS applies
+   filter before clip-path, so the clip cut the roughened fill back into a
+   perfect circle.) Registration is global by nature; nothing but .ink
+   reads it. */
+@property --ink-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+:where(html[data-theme="light"]) .ink {
+  --ink-color: var(--signal);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* The label turns to paper once the ink has nearly reached it. */
+  transition: color 240ms var(--ease) 200ms;
+}
+
+:where(html[data-theme="light"]) .ink::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  z-index: -1;
+  background: radial-gradient(
+    circle at calc(var(--ix, 50%) + 10px) calc(var(--iy, 50%) + 10px),
+    var(--ink-color) calc(var(--ink-r) - 1px),
+    transparent var(--ink-r)
+  );
+  filter: url(#ink-edge);
+  transition: --ink-r 640ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  pointer-events: none;
+}
+
+:where(html[data-theme="light"]) .ink:is(:hover, :focus-visible) {
+  color: var(--paper-hi);
+}
+
+:where(html[data-theme="light"]) .ink:is(:hover, :focus-visible)::before {
+  --ink-r: 420px;
+}
+
+/* Leaving: the ink drains faster than it spread, and the label turns back
+   at once so it is never pale on bare paper. */
+:where(html[data-theme="light"]) .ink:not(:hover, :focus-visible) {
+  transition-delay: 0ms;
+}
+
+:where(html[data-theme="light"]) .ink:not(:hover, :focus-visible)::before {
+  transition-duration: 360ms;
+}
+
+/* Pressed: the ink darkens, as if more had been laid down. */
+:where(html[data-theme="light"]) .ink:active {
+  --ink-color: var(--ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(html[data-theme="light"]) .ink::before {
+    filter: none;
+  }
+}
+
+/* ============================================================
    FOCUS + SKIP LINK
    ============================================================ */
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import type { MotionValue } from "framer-motion";
 import type { Fit } from "./fit";
-import { frameAt, manifest } from "./timeline";
+import { aheadOf, frameAt, manifest } from "./timeline";
 import type { FrameStore } from "./useBookFrames";
 
 /* ==================================================================
@@ -92,8 +92,9 @@ export default function BookCanvas({
             raf = requestAnimationFrame(tick);
             const s = store.current;
             if (!s) return;
-            const ref = frameAt(progress.get());
-            s.focus(ref);
+            const p = progress.get();
+            const ref = frameAt(p);
+            s.focus(ref, aheadOf(p));
             const src = s.drawable(ref);
             if (!src) return;
             /* Keyed on the source as well as the frame: while the exact frame
@@ -104,6 +105,18 @@ export default function BookCanvas({
             paint(src);
             drawn = k;
             drewSource = src;
+            if (process.env.NODE_ENV !== "production") {
+                /* Dev-only draw log: what the timeline asked for vs what was
+                   actually painted. A big gap is a visible jump. */
+                const w = window as unknown as { __bookDraws?: unknown[] };
+                (w.__bookDraws ??= []).push({
+                    t: Math.round(performance.now()),
+                    clip: ref.clip,
+                    want: ref.frame,
+                    got: s.frameOf.get(src),
+                });
+                if (w.__bookDraws.length > 4000) w.__bookDraws.shift();
+            }
         };
 
         raf = requestAnimationFrame(tick);

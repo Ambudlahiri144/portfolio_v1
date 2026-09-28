@@ -1,0 +1,41 @@
+/* Hairlines of ink. Drawn on when a page of the book with one on it comes
+   to rest (the spread gains data-active); everywhere else, just drawn. */
+
+.rosette {
+    display: block;
+    overflow: visible;
+}
+
+.rosette path,
+.border {
+    fill: none;
+    stroke: var(--ink-3);
+    stroke-width: 0.55;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    opacity: 0.7;
+}
+
+.border {
+    stroke-width: 1;
+    opacity: 0.5;
+}
+
+:global([data-active]) .rosette path,
+:global([data-active]) .border {
+    animation: engrave 2600ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes engrave {
+    from {
+        stroke-dashoffset: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :global([data-active]) .rosette path,
+    :global([data-active]) .border {
+        animation: none;
+    }
+}
