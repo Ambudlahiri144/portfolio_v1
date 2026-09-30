@@ -1,0 +1,25 @@
+/* ==================================================================
+   CAT — the walk-by and the peek, over the overhead pages.
+
+   Above the page text (2) and the pen (3), so her head covers the page
+   corner she leans over; below the hanging cords (6) and the dock.
+   ================================================================== */
+
+.layer {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.clip {
+    position: absolute;
+    max-width: none;
+    user-select: none;
+    transition: opacity 250ms ease-out;
+}
+
+.clip[data-leaving] {
+    opacity: 0;
+}

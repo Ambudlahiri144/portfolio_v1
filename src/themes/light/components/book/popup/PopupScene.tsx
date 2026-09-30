@@ -125,7 +125,7 @@ export default function PopupScene(props: Props) {
    to do. Measured without it, that frame stalled the page for ~250 ms.
 
    Done in one frame, the warm-up itself was the stall, 360-520 ms, when
-   the reader jumped straight past Work (the dock, a link): most of it
+   the reader jumped straight past About (the dock, a link): most of it
    texSubImage2D decoding each image on the main thread as it uploaded.
    So it is spread out, and the heavy parts leave the main thread:
      1. each image is decoded off thread (img.decode()),

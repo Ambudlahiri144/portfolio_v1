@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { useLenis } from "lenis/react";
+import { onScene } from "./sceneEvents";
 import { Rope } from "./verlet";
 import styles from "./Atmosphere.module.css";
 
@@ -32,6 +33,7 @@ export default function PullCord({
     buttonLabel,
     className,
     children,
+    gustName,
 }: {
     side: "left" | "right";
     /* Resting length in CSS px. */
@@ -43,6 +45,9 @@ export default function PullCord({
     buttonLabel: string;
     className?: string;
     children?: ReactNode;
+    /* Listens for scene `gust` events with this cord name (sceneEvents.ts):
+       something in the room brushed past it. */
+    gustName?: string;
 }) {
     const ref = useRef<HTMLCanvasElement>(null);
     const lenis = useLenis();
@@ -110,13 +115,23 @@ export default function PullCord({
         canvas.addEventListener("pointercancel", onUp);
         canvas.addEventListener("pointerleave", onLeave);
 
+        /* A brush from something passing (the cat): a push of wind that dies
+           away over about a second. */
+        let gust = 0;
+        const offGust = gustName
+            ? onScene("gust", (e) => {
+                  if (e.cord === gustName) gust += e.strength;
+              })
+            : () => {};
+
         const tick = () => {
             raf = requestAnimationFrame(tick);
             if (document.hidden) return;
             t += 1 / 60;
             /* Scrolling drags the air: the cord leans against the motion. */
             const v = live.current.lenis?.velocity ?? 0;
-            const wind = Math.max(-1.2, Math.min(1.2, -v * 0.02)) * (side === "left" ? -1 : 1) * 0.5;
+            gust *= 0.94;
+            const wind = Math.max(-1.2, Math.min(1.2, -v * 0.02)) * (side === "left" ? -1 : 1) * 0.5 + gust;
             rope.step({
                 wind,
                 push: rope.grab ? undefined : { x: pointer.x, y: pointer.y, r: 26, strength: 2.2 },
@@ -130,13 +145,14 @@ export default function PullCord({
 
         return () => {
             cancelAnimationFrame(raf);
+            offGust();
             canvas.removeEventListener("pointerdown", onDown);
             canvas.removeEventListener("pointermove", onMove);
             canvas.removeEventListener("pointerup", onUp);
             canvas.removeEventListener("pointercancel", onUp);
             canvas.removeEventListener("pointerleave", onLeave);
         };
-    }, [length, links, threshold, side]);
+    }, [length, links, threshold, side, gustName]);
 
     return (
         <div className={`${styles.cord} ${side === "left" ? styles.cordLeft : styles.cordRight} ${className ?? ""}`}>

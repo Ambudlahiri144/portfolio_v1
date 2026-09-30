@@ -5,30 +5,34 @@
    sheets for reduced motion and portrait screens) is the caller's
    business, so both layouts read the same content and cannot drift.
 
-   Each spread fills some of four slots:
+   Text marked data-write is written onto the page by the fountain pen
+   ("line", "heading" or "body" sets how fast; pen/writer.ts). Everything
+   else is set down with a fade.
+
+   Each spread fills some of five slots:
      left, right  the two pages of an open spread
      table        the tablecloth beside the closed book
      label        the cover's debossed title panel
+     endText      the free table in the last scene, beside the cat
    ================================================================== */
 
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
     about,
+    cat,
     contactSpread,
     cover,
-    education,
     footer,
     nav,
     projectsSpread,
     social,
-    work,
-    workSpread,
     type Project,
     type SpreadId,
-    type TimelineEntry,
 } from "@light/lib/site";
-import LetterPage from "../contact/LetterPage";
+import Chooser from "../contact/stationery/Chooser";
+import WritingDesk from "../contact/stationery/WritingDesk";
+import stationeryStyles from "../contact/stationery/Stationery.module.css";
 import GoLink from "./GoLink";
 import PeelPhoto from "./PeelPhoto";
 import Guilloche from "../Guilloche";
@@ -39,26 +43,16 @@ export type SpreadSlots = {
     right?: ReactNode;
     table?: ReactNode;
     label?: ReactNode;
+    endText?: ReactNode;
 };
 
 /* The name on the cloth. Decorative: the real heading is the h1 beside the
    book, and a screen reader should not hear the name twice. */
 function Label() {
     return (
-        <span className={`${styles.label} ${styles.foil}`} aria-hidden="true">
+        <span className={`${styles.label} ${styles.foil}`} data-foil aria-hidden="true">
             {cover.title}
         </span>
-    );
-}
-
-function Entry({ entry }: { entry: TimelineEntry }) {
-    return (
-        <li className={styles.entry}>
-            <span className={styles.period}>{entry.period}</span>
-            <h3 className={styles.entryTitle}>{entry.title}</h3>
-            <span className={styles.org}>{entry.org}</span>
-            {entry.detail && <p className={styles.entryDetail}>{entry.detail}</p>}
-        </li>
     );
 }
 
@@ -121,50 +115,28 @@ export const spreads: Record<SpreadId, SpreadSlots> = {
                         note={about.photo.note}
                     />
                 )}
-                <p className={styles.openingLine}>{about.opening}</p>
+                <p className={styles.openingLine} data-write="line">
+                    {about.opening}
+                </p>
             </div>
         ),
         right: (
             <div className={styles.flow}>
-                <h2 className={styles.pageHeading}>{about.heading}</h2>
+                <h2 className={styles.pageHeading} data-write="heading">
+                    {about.heading}
+                </h2>
                 {about.body.map((p) => (
-                    <p key={p} className={styles.body}>
+                    <p key={p} className={styles.body} data-write="body">
                         {p}
                     </p>
                 ))}
-                <p className={styles.status}>
+                <p className={styles.status} data-write="body">
                     <span className={styles.statusDot} aria-hidden="true" />
                     {about.status}
                 </p>
-                <Link href={about.more.href} className={styles.link}>
+                <Link href={about.more.href} className={styles.link} data-write="body">
                     {about.more.label}
                 </Link>
-            </div>
-        ),
-    },
-
-    work: {
-        left: (
-            <div className={styles.flow}>
-                <h2 className={styles.pageHeading}>{workSpread.workHeading}</h2>
-                <ul className={styles.entries}>
-                    {work.map((e) => (
-                        <Entry key={e.org} entry={e} />
-                    ))}
-                </ul>
-            </div>
-        ),
-        right: (
-            <div className={styles.flow}>
-                <div className={styles.headingWithSeal}>
-                    <h2 className={styles.pageHeading}>{workSpread.educationHeading}</h2>
-                    <Guilloche preset="seal" size={56} />
-                </div>
-                <ul className={styles.entries}>
-                    {education.map((e) => (
-                        <Entry key={e.org} entry={e} />
-                    ))}
-                </ul>
             </div>
         ),
     },
@@ -173,12 +145,16 @@ export const spreads: Record<SpreadId, SpreadSlots> = {
     "projects-intro": {
         left: (
             <div className={styles.opening}>
-                <h2 className={styles.openingLine}>{projectsSpread.heading}</h2>
+                <h2 className={styles.openingLine} data-write="line">
+                    {projectsSpread.heading}
+                </h2>
             </div>
         ),
         right: (
             <div className={styles.flow}>
-                <p className={styles.body}>{projectsSpread.invite}</p>
+                <p className={styles.body} data-write="body">
+                    {projectsSpread.invite}
+                </p>
             </div>
         ),
     },
@@ -188,71 +164,117 @@ export const spreads: Record<SpreadId, SpreadSlots> = {
        sheets instead. */
     popup: {},
 
+    /* A writing desk: the stationery lies on the right page, and the
+       paper chosen is written on on the left (contact/stationery). */
     contact: {
-        left: (
-            <div className={styles.formPage}>
-                <LetterPage />
-            </div>
-        ),
+        left: <WritingDesk />,
         right: (
             <div className={styles.flow}>
-                <h2 className={styles.pageHeading}>{contactSpread.heading}</h2>
-                <p className={styles.body}>{contactSpread.body}</p>
-                <p className={styles.direct}>
-                    {contactSpread.direct}{" "}
-                    <a className={styles.link} href={`mailto:${footer.email}`}>
-                        {footer.email}
-                    </a>
+                <h2 className={styles.pageHeading} data-write="heading">
+                    {contactSpread.heading}
+                </h2>
+                <p className={styles.body} data-write="body">
+                    {contactSpread.body}
+                </p>
+                <Chooser />
+                <p className={stationeryStyles.address}>
+                    <span>{contactSpread.direct}</span>
+                    <a href={`mailto:${footer.email}`}>{footer.email}</a>
                 </p>
             </div>
         ),
     },
 
+    /* The closed book. The pen writes the thanks on the cloth beside it.
+       Without the cat this is the last spread, so the way back into the
+       book, the links and the bookplate are here too; with her, they
+       move to the table she lies on (end). */
     closed: {
         label: <Label />,
         table: (
             <footer className={styles.colophon}>
-                <h2 className={`${styles.colophonTitle} ${styles.foil}`}>{footer.heading}</h2>
-                <nav aria-label="Chapters" className={styles.colophonNav}>
-                    <ul>
-                        {nav.slice(1).map((n) => (
-                            <li key={n.id}>
-                                <GoLink to={n.href.split("#")[1]}>{n.label}</GoLink>
-                            </li>
-                        ))}
-                        <li>
-                            <Link href={footer.fullRecord.href}>{footer.fullRecord.label}</Link>
-                        </li>
-                    </ul>
-                </nav>
-                <ul className={styles.social} aria-label="Elsewhere">
-                    {social.map((s) => (
-                        <li key={s.id}>
-                            {s.href ? (
-                                <a href={s.href} target="_blank" rel="noreferrer">
-                                    {s.label}
-                                </a>
-                            ) : (
-                                <span aria-disabled="true">{s.label}</span>
-                            )}
-                        </li>
-                    ))}
-                    <li>
-                        <a href={`mailto:${footer.email}`}>Email</a>
-                    </li>
-                </ul>
-                <GoLink to="top" className={`${styles.cta} ink`}>
-                    {footer.backToTop}
-                </GoLink>
-                <div className={styles.bookplate}>
-                    <Guilloche preset="plate" size={64} />
-                    <p>
-                        <span className={styles.exLibris}>Ex libris</span>
-                        <span className={styles.bookplateName}>{footer.bookplate}</span>
-                    </p>
-                </div>
+                <h2 className={`${styles.colophonTitle} ${styles.foil}`} data-foil data-write="line">
+                    {footer.heading}
+                </h2>
+                {!cat.enabled && (
+                    <>
+                        <ChapterNav />
+                        <Elsewhere />
+                        <GoLink to="top" className={`${styles.cta} ink`}>
+                            {footer.backToTop}
+                        </GoLink>
+                        <Bookplate />
+                        <p className={styles.colophonNote}>{footer.colophon}</p>
+                    </>
+                )}
+            </footer>
+        ),
+    },
+
+    /* The last scene: the cat on the table (end/EndLayer), the way back
+       set in type in front of her (end/EndScene), and on the free table
+       beside her the links and the bookplate. */
+    end: {
+        endText: (
+            <footer className={`${styles.colophon} ${styles.endText}`}>
+                <Bookplate />
+                <Elsewhere />
                 <p className={styles.colophonNote}>{footer.colophon}</p>
             </footer>
         ),
     },
 };
+
+/* ------------------------------------------------------------------
+   The colophon's parts, shared by the closed book and the last scene.
+   ------------------------------------------------------------------ */
+
+export function ChapterNav() {
+    return (
+        <nav aria-label="Chapters" className={styles.colophonNav}>
+            <ul>
+                {nav.slice(1).map((n) => (
+                    <li key={n.id}>
+                        <GoLink to={n.href.split("#")[1]}>{n.label}</GoLink>
+                    </li>
+                ))}
+                <li>
+                    <Link href={footer.fullRecord.href}>{footer.fullRecord.label}</Link>
+                </li>
+            </ul>
+        </nav>
+    );
+}
+
+export function Elsewhere() {
+    return (
+        <ul className={styles.social} aria-label="Elsewhere">
+            {social.map((s) => (
+                <li key={s.id}>
+                    {s.href ? (
+                        <a href={s.href} target="_blank" rel="noreferrer">
+                            {s.label}
+                        </a>
+                    ) : (
+                        <span aria-disabled="true">{s.label}</span>
+                    )}
+                </li>
+            ))}
+            <li>
+                <a href={`mailto:${footer.email}`}>Email</a>
+            </li>
+        </ul>
+    );
+}
+
+export function Bookplate() {
+    return (
+        <div className={styles.bookplate}>
+            <Guilloche preset="plate" size={64} />
+            <p>
+                <span className={styles.exLibris}>Ex libris</span>
+                <span className={styles.bookplateName}>{footer.bookplate}</span>
+            </p>
+        </div>
+    );
+}

@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------------
    Everything you personalise in the LIGHT theme lives here.
 
-   The light theme is a book read by scrolling: the cover, five open
+   The light theme is a book read by scrolling: the cover, four open
    spreads, and the closed book again at the end. This file holds the
    words on those pages and the order they come in. The footage they sit
    on is described by public/book/manifest.json, which
@@ -38,20 +38,47 @@ export const site = {
    jump to these.
    ------------------------------------------------------------------ */
 
-export type BookClip = "open" | "turnA" | "turnB" | "tilt";
+export type BookClip = "open" | "turnA" | "turnB" | "tilt" | "reveal";
 
 export type SpreadId =
     | "cover"
     | "about"
-    | "work"
     | "projects-intro"
     | "popup"
     | "contact"
-    | "closed";
+    | "closed"
+    | "end";
 
 export type BookSegment =
     | { kind: "hold"; spread: SpreadId; vh: number; anchor?: string }
     | { kind: "motion"; clip: BookClip; reverse?: boolean; vh: number };
+
+/* ------------------------------------------------------------------
+   THE CAT
+
+   A seal-point Siamese who lives in the room with the book. She walks
+   past along the right-hand edge while you read About, peeks over the
+   top-right corner at Contact while you write, and at the very end the
+   camera comes down to the table where she lies beside the closed book,
+   to be petted (components/book/cat, components/book/end).
+
+   Her footage is generated, then processed by scripts/book-cat.mjs into
+   public/book/cat/; `enabled` stays off until it has been, and the book
+   ends as it did before.
+   ------------------------------------------------------------------ */
+
+export const cat = {
+    enabled: true,
+    /* The pages she appears on, and how long after the pen has finished
+       writing that page (seconds). */
+    walk: { spread: "about" as SpreadId, delay: 1.2 },
+    peek: { spread: "contact" as SpreadId, delay: 4 },
+    /* The first time a page is reached on a visit she always appears;
+       after that, with this chance, so it stays a surprise. */
+    again: 1 / 3,
+    /* Left alone at the end, she does something now and then (seconds). */
+    ambient: [12, 20] as [number, number],
+} as const;
 
 /* The two page turns alternate. Blank pages make every turn look alike,
    and alternating two different takes is what keeps that from showing. */
@@ -59,9 +86,9 @@ export const bookTimeline: BookSegment[] = [
     { kind: "hold", spread: "cover", vh: 60, anchor: "top" },
     { kind: "motion", clip: "open", vh: 130 },
     { kind: "hold", spread: "about", vh: 150, anchor: "about" },
-    { kind: "motion", clip: "turnA", vh: 100 },
-    { kind: "hold", spread: "work", vh: 150, anchor: "work" },
-    { kind: "motion", clip: "turnB", vh: 80 },
+    /* Work and education are not in the book: /experience (the full
+       record, linked from About and the colophon) has all of it. */
+    { kind: "motion", clip: "turnB", vh: 90 },
     { kind: "hold", spread: "projects-intro", vh: 70 },
     /* The camera comes down to the front of the book, where the projects
        stand up off the page as a pop-up. The same clip reversed takes it
@@ -73,8 +100,29 @@ export const bookTimeline: BookSegment[] = [
     { kind: "hold", spread: "contact", vh: 190, anchor: "contact" },
     /* Closing the book is the opening played backwards. */
     { kind: "motion", clip: "open", reverse: true, vh: 120 },
-    { kind: "hold", spread: "closed", vh: 80 },
+    /* The pen writes "Thank you for reading." beside the closed book. With
+       the cat, the camera then comes down to the table where she lies. */
+    ...(cat.enabled
+        ? ([
+              { kind: "hold", spread: "closed", vh: 60 },
+              { kind: "motion", clip: "reveal", vh: 140 },
+              { kind: "hold", spread: "end", vh: 170, anchor: "end" },
+          ] as BookSegment[])
+        : ([{ kind: "hold", spread: "closed", vh: 80 }] as BookSegment[])),
 ];
+
+/* The fountain pen that writes each page's text as its spread comes to
+   rest (components/book/pen). Speeds are in em of the text's own size per
+   second, so a large heading is written as slowly as a hand would write
+   it and body text quickly; a whole spread, the pen's moves between lines
+   included, is never allowed longer than `maxSeconds`, so a long page
+   speeds up rather than keeping a reader waiting. */
+export const pen = {
+    speed: { line: 8, heading: 12, body: 40 },
+    maxSeconds: 6.5,
+    /* A fountain pen with its cap posted is about 14 cm. */
+    lengthCm: 14,
+} as const;
 
 /* The cover. The name goes on the book's own debossed title panel; the
    rest sits on the tablecloth to its left. */
@@ -117,21 +165,19 @@ export type NavItem = {
     id: string;
     label: string;
     href: string;
-    icon: "home" | "about" | "work" | "projects" | "contact";
+    icon: "home" | "about" | "projects" | "contact";
 };
 
 /* Root-relative so the dock still works from /experience. */
 export const nav: NavItem[] = [
     { id: "home", label: "Cover", href: "/#top", icon: "home" },
     { id: "about", label: "About", href: "/#about", icon: "about" },
-    { id: "work", label: "Work", href: "/#work", icon: "work" },
     { id: "projects", label: "Projects", href: "/#projects", icon: "projects" },
     { id: "contact", label: "Contact", href: "/#contact", icon: "contact" },
 ];
 
 /* ------------------------------------------------------------------
-   Work, education and stacks. The book's work spread shows these, and
-   /experience shows them in full.
+   Work, education and stacks, shown on /experience's shelf.
    ------------------------------------------------------------------ */
 
 /* Every stack /experience can highlight. `id` is what entries reference. */
@@ -210,11 +256,6 @@ export const education: TimelineEntry[] = [
     },
 ];
 
-export const workSpread = {
-    workHeading: "Work",
-    educationHeading: "Education",
-} as const;
-
 /* ------------------------------------------------------------------
    Projects. Two to a spread, so four projects are two page turns.
    ------------------------------------------------------------------ */
@@ -290,75 +331,117 @@ export { hireFields, type HireField } from "@/shared/contact";
 
 export const contactSpread = {
     heading: "Write to me",
-    body: "Feedback on the site, a project, a role, or something else entirely. Every message is read, and most are answered within a day.",
+    body: "Feedback on the book, a project, a role, or something else entirely. Choose some paper; every message is read, and most are answered within a day.",
     direct: "Or write directly to",
 } as const;
 
-export const contactForm = {
-    heading: "Drop a message",
-
-    /* Where everything this form sends is delivered. Defined in src/shared
-       so the API routes read the same value. */
+/* The contact spread is a writing desk. The right page holds three kinds
+   of stationery; the one chosen lies on the left page to be written on,
+   and a postage stamp dragged onto it sends it. Each paper asks what its
+   kind of message needs, in that paper's own conventions. */
+export const stationery = {
+    /* Where everything sent is delivered. Defined in src/shared so the API
+       routes read the same value. */
     email: contactEmail,
 
-    submit: "Send message",
+    chooser: "Choose your paper",
+    /* Under a paper's empty place on the right page while it is out. */
+    onDesk: "On the desk",
 
-    tabs: [
-        {
-            id: "feedback",
-            label: "Feedback",
-            title: "How did the book read?",
-            blurb:
-                "Anything that felt good, anything that broke, anything you would have done differently. Blunt is fine.",
-            messageLabel: "Your comment",
-        },
-        {
-            id: "connect",
-            label: "Connect",
-            title: "Start a conversation",
-            blurb:
-                "A proposal, a project, a question, or something entirely unrelated. All of it is welcome.",
-            messageLabel: "Your message",
-        },
-        {
-            id: "hire",
-            label: "Hire me",
-            title: "Let's talk about the role",
-            blurb: "Pick how you would be bringing me on, and take the CV with you.",
-            messageLabel: "Your message",
-        },
+    papers: [
+        { id: "feedback", name: "Postcard", purpose: "Feedback" },
+        { id: "connect", name: "Letter", purpose: "Connect" },
+        { id: "hire", name: "Engagement card", purpose: "Hire me" },
     ],
 
-    hire: {
+    stamp: {
+        /* Printed across the top of the stamp, and its value. */
+        legend: "The Book",
+        value: "1",
+        hint: "Drag the stamp onto the box to send, or",
+        send: "Send",
+        sending: "Posting",
+        target: "Stamp",
+    },
+
+    /* Pencilled in the margin by a field that stops a send. */
+    errors: {
+        name: "Who is writing?",
+        email: "Where do I reply?",
+        emailInvalid: "That address looks off.",
+        message: "Nothing written yet.",
+        capacity: "In what capacity?",
+        choice: "Circle one first.",
+    },
+
+    postcard: {
+        heading: "Post card",
+        message: "How did the book read?",
+        prompt: "Anything that felt good, anything that broke. Blunt is fine.",
+        from: "From",
+        replyTo: "Reply to",
+        /* The picture side, seen as the card turns over on its way. */
+        picture: "Greetings from the Book",
+    },
+
+    letter: {
+        salutation: "Dear Ambud,",
+        re: "Re:",
+        message: "Your letter",
+        signOff: "Yours,",
+        signature: "Your name",
+        replyTo: "Reply to",
+    },
+
+    engagement: {
+        heading: "Engagement",
+        engageAs: "I would like to engage you as",
+        options: { freelance: "a freelancer", employee: "an employee" },
+        forRole: "for the role of",
         freelance: {
-            label: "As a freelancer",
-            blurb:
-                "Project work, a fixed scope, or an extra pair of hands for a sprint. Take the CV, and tell me what you need built.",
+            blurb: "Project work, a fixed scope, or an extra pair of hands for a sprint.",
             /* The same file as the SDE CV: freelance work is the same
                engineering, sold differently. */
             resume: "/Ambud_Resume_SDE-1.pdf",
             resumeLabel: "Freelance CV",
+            brief: "Project brief",
         },
-        employee: {
-            label: "As an employee",
-            blurb:
-                "Tell me which side of the stack the role sits on and I will send you the CV written for it.",
-            question: "Which field are you hiring for?",
-            verifyBlurb:
-                "The CV goes to a verified address, so I know who I am talking to. Enter your email and I will send a six-digit code.",
-            othersLabel: "In what capacity are you hiring?",
-            othersNote:
-                "Send the job requirements in detail and I will be in touch shortly with the resume that fits.",
+        others: {
+            capacity: "In what capacity?",
+            requirements: "Job requirements",
         },
+        turnOver: "Turn over to verify",
+        turnBack: "Turn back",
+        back: {
+            heading: "Verification",
+            blurb: "The CV goes to a verified address, so I know who I am talking to. I will send a six-digit code.",
+            email: "Your work email",
+            request: "Send me a code",
+            requesting: "Sending",
+            code: "Six-digit code",
+            confirm: "Verify",
+            confirming: "Checking",
+            resend: "Send another",
+            verified: "Verified",
+            cvFor: "CV",
+        },
+    },
+
+    /* After a send, inked onto the empty page. */
+    sent: {
+        title: "Sent. Thank you.",
+        body: "It is on its way. I read every one, and most get a reply within a day.",
+        again: "Write another",
+        received: "Received",
     },
 
     fields: {
         name: "Name",
         email: "Email",
-        topic: "Topic",
-        message: "Your message",
     },
 } as const;
+
+export type PaperId = (typeof stationery.papers)[number]["id"];
 
 /* ------------------------------------------------------------------
    The closed book: the footer, set on the tablecloth beside it.
@@ -380,12 +463,44 @@ export const social: SocialLink[] = [
 
 export const footer = {
     heading: "Thank you for reading.",
-    /* Public by decision: it is already printed on every CV the Hire tab
-       hands out. */
+    /* Public by decision: it is already printed on every CV the engagement
+       card hands out. */
     email: contactEmail,
     backToTop: "Back to the cover",
     fullRecord: { label: "The full record", href: "/experience" },
     colophon: "Set in Cormorant Garamond and Literata. Built with Next.js.",
     /* The name on the bookplate inside the back cover. */
     bookplate: site.name,
+} as const;
+
+/* ------------------------------------------------------------------
+   The last scene: the cat on the table, and the way back into the book
+   set in maple type in front of her (components/book/end).
+   ------------------------------------------------------------------ */
+
+export type EndBlock = { label: string } & ({ anchor: string } | { href: string });
+
+export const endScene = {
+    /* Left to right on the table. `anchor` is a spread's anchor in the
+       book (bookTimeline); `href` leaves the book. */
+    blocks: [
+        { label: "About", anchor: "about" },
+        { label: "Projects", anchor: "projects" },
+        { label: "Contact", anchor: "contact" },
+        { label: "The full record", href: "/experience" },
+        { label: "Back to the cover", anchor: "top" },
+    ] as EndBlock[],
+    /* What each part of her says to a screen reader, as a button. */
+    pet: {
+        head: "Pet the cat's head",
+        chin: "Scratch the cat's chin",
+        ear: "Touch the cat's ear",
+        back: "Stroke the cat's back",
+        tail: "Touch the cat's tail",
+        paws: "Touch the cat's paws",
+        neck: "Scratch the cat's neck",
+        face: "Boop the cat's nose",
+    },
+    petHint: "She likes being petted.",
+    stillAlt: "A seal-point Siamese cat lying curled on the table beside the closed book, head up, watching you.",
 } as const;

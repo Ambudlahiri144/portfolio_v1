@@ -16,6 +16,10 @@ import { BookNavContext, type BookNav } from "./BookNav";
 import DogEar from "./DogEar";
 import { SpreadActiveContext } from "./SpreadActive";
 import PopupLayer from "./popup/PopupLayer";
+import PenLayer from "./pen/PenLayer";
+import CatLayer from "./cat/CatLayer";
+import EndLayer from "./end/EndLayer";
+import { cat } from "@light/lib/site";
 import DaylightGrade from "./DaylightGrade";
 import Dust from "./Dust";
 import Ribbon from "./Ribbon";
@@ -23,7 +27,7 @@ import LampChain from "./LampChain";
 import BookStatic from "./BookStatic";
 import { computeFit, place, type Fit } from "./fit";
 import { spreads } from "./Spreads";
-import { FADE, holds, manifest, readingPoint, rect, totalVh, type Hold } from "./timeline";
+import { FADE, endGeometry, holds, manifest, readingPoint, rect, spreadShowing, totalVh, type Hold } from "./timeline";
 import { frameUrl, useBookFrames } from "./useBookFrames";
 import styles from "./Book.module.css";
 
@@ -31,8 +35,9 @@ import styles from "./Book.module.css";
    THE BOOK — the whole light-theme home page.
 
    A wrapper as tall as the timeline, holding a sticky full-viewport
-   stage. Scrolling through the wrapper scrubs the footage on the canvas
-   and fades each spread's HTML onto the pages as the book comes to rest.
+   stage. Scrolling through the wrapper scrubs the footage on the canvas,
+   and as the book comes to rest a fountain pen writes each spread's text
+   onto its pages (pen/); photographs and objects fade on.
 
    Reduced motion and portrait screens get BookStatic instead: the same
    spreads as ordinary paper sheets in document order. Portrait is a
@@ -100,24 +105,39 @@ function BookScroll() {
     useEffect(() => {
         const el = stageRef.current;
         if (!el) return;
+        let stageWidth = 1;
         const ro = new ResizeObserver(([entry]) => {
             const { width, height } = entry.contentRect;
+            stageWidth = Math.max(1, width);
             setStage((s) => (s.w === width && s.h === height ? s : { w: width, h: height }));
         });
         ro.observe(el);
 
-        /* Where the pointer is across the stage, 0..1, as CSS variables:
-           the foil's highlight and anything else lit by "where you are"
-           reads them. Written straight to the style, never through
-           React. */
+        /* Where the pointer is across the stage, 0..1, as --px: the gold
+           foil's highlight follows it. Written straight to the style, never
+           through React, once a frame, and only onto the foil itself
+           ([data-foil]). Set on the stage it was inherited by every element
+           of the book, so each pointer move restyled all of them, and a
+           listener that then measured something (Dust) paid for that
+           restyle synchronously: 20-30 ms a move over the contact page. */
+        let raf = 0;
+        let x = 0.5;
+        const paint = () => {
+            raf = 0;
+            const v = x.toFixed(3);
+            el.querySelectorAll<HTMLElement>("[data-foil]").forEach((f) => f.style.setProperty("--px", v));
+        };
         const onMove = (e: PointerEvent) => {
-            const r = el.getBoundingClientRect();
-            el.style.setProperty("--px", ((e.clientX - r.left) / r.width).toFixed(3));
-            el.style.setProperty("--py", ((e.clientY - r.top) / r.height).toFixed(3));
+            /* The stage spans the viewport from its left edge; its width
+               comes from the observer, as reading it here would force
+               layout. */
+            x = e.clientX / stageWidth;
+            if (!raf) raf = requestAnimationFrame(paint);
         };
         el.addEventListener("pointermove", onMove, { passive: true });
         return () => {
             ro.disconnect();
+            cancelAnimationFrame(raf);
             el.removeEventListener("pointermove", onMove);
         };
     }, []);
@@ -185,6 +205,14 @@ function BookScroll() {
 
                 {fit && <PopupLayer fit={fit} stage={stage} />}
 
+                {/* The fountain pen that writes each page's text. */}
+                {fit && <PenLayer fit={fit} stage={stage} stageRef={stageRef} />}
+
+                {/* The cat: passing through the overhead pages, and at the
+                    end, on the table to be petted. */}
+                {fit && cat.enabled && <CatLayer fit={fit} />}
+                {fit && cat.enabled && <EndLayer fit={fit} />}
+
                 {/* Things hanging from the top of the page: the lamp's pull
                     chain (the theme switch) and the bookmark ribbon. */}
                 <LampChain />
@@ -229,13 +257,12 @@ function Spread({
         [first ? 1 : 0, 1, 1, last ? 1 : 0],
     );
 
-    /* Past halfway into view: interactive, and the ink settles. Below it the
-       spread is inert, so nothing invisible can be tabbed to or clicked. */
-    const visible = (p: number) =>
-        (first || p >= hold.from + span * FADE * 0.5) && (last || p <= hold.to - span * FADE * 0.5);
-    const [active, setActive] = useState(() => visible(progress.get()));
+    /* Past halfway into view: interactive, and the pen may write on it.
+       Below it the spread is inert, so nothing invisible can be tabbed to
+       or clicked. */
+    const [active, setActive] = useState(() => spreadShowing(hold, progress.get()));
     useMotionValueEvent(progress, "change", (p) => {
-        const v = visible(p);
+        const v = spreadShowing(hold, p);
         if (v !== active) setActive(v);
     });
 
@@ -267,6 +294,7 @@ function Spread({
         <motion.div
             className={styles.spread}
             style={{ opacity }}
+            data-hold={hold.spread}
             data-active={active || undefined}
             inert={!active}
             aria-hidden={!active}
@@ -280,6 +308,11 @@ function Spread({
             {slots.table && (
                 <div className={styles.tableSlot} style={table}>
                     {slots.table}
+                </div>
+            )}
+            {slots.endText && endGeometry && (
+                <div className={styles.endSlot} style={page(endGeometry.text)}>
+                    {slots.endText}
                 </div>
             )}
             {slots.left && (

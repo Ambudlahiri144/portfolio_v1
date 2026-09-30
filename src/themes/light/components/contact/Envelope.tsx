@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "@light/lib/useReducedMotion";
-import type { SentLetter } from "./ContactForm";
 import styles from "./Envelope.module.css";
 
 /* ==================================================================
@@ -23,6 +22,9 @@ import styles from "./Envelope.module.css";
    ================================================================== */
 
 const DONE_AT = 4300;
+
+/* What was sent: enough to write the folded letter. */
+export type SentLetter = { name: string; message: string };
 
 export default function Envelope({ letter, onAgain }: { letter: SentLetter; onAgain: () => void }) {
     const reduced = useReducedMotion();

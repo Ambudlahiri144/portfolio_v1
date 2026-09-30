@@ -19,14 +19,13 @@ import styles from "./Guilloche.module.css";
 
 type Ring = { R: number; r: number; d: number; turn: number };
 
-function hypotrochoid({ R, r, d, turn }: Ring) {
+function hypotrochoid({ R, r, d, turn }: Ring, perLoop: number) {
     /* R and r are integers here, so the curve closes after r / gcd(R, r)
        turns of the big wheel. */
     const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
     const loops = r / gcd(R, r);
     const k = (R - r) / r;
-    /* Enough points per loop that no facet shows at bookplate size. */
-    const samples = 160 * loops;
+    const samples = perLoop * loops;
     const pts: string[] = [];
     for (let i = 0; i <= samples; i++) {
         const t = (i / samples) * Math.PI * 2 * loops;
@@ -67,7 +66,11 @@ export default function Guilloche({
     size?: number;
     className?: string;
 }) {
-    const paths = useMemo(() => PRESETS[preset].map((ring) => hypotrochoid(ring)), [preset]);
+    /* Enough points per loop that no facet shows at bookplate size, and
+       no more than a small rosette needs: the full count is ~36 KB of path
+       data per rosette, and the contact page mounts several at 30-46 px. */
+    const perLoop = size < 60 ? 56 : 160;
+    const paths = useMemo(() => PRESETS[preset].map((ring) => hypotrochoid(ring, perLoop)), [preset, perLoop]);
     const extent = preset === "plate" ? 118 : 96;
 
     return (

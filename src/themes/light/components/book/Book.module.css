@@ -90,6 +90,17 @@
     padding-left: calc(var(--pw) * 0.08);
 }
 
+/* The free table beside the cat in the last scene. Sized from its own
+   width, like a page. */
+.endSlot {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: clamp(11px, calc(var(--pw) * 0.05), 17px);
+    color: var(--ink-2);
+}
+
 /* The debossed panel on the cover: centre whatever is set in it. */
 .labelSlot {
     display: grid;
@@ -104,15 +115,16 @@
 }
 
 /* ------------------------------------------------------------------
-   Ink settling
+   Settling onto the page
 
-   When a page comes to rest its content resolves from a slight blur, the
-   way ink sinks into paper. Each child waits a little longer than the one
-   before, top to bottom, which is also the order it is read in.
+   Photographs, stationery and the like are set down when a page comes to
+   rest: each resolves from a slight blur, a little after the one before,
+   top to bottom. Text is not faded: it is written, by the pen (pen/).
    ------------------------------------------------------------------ */
 
-.page > * > *,
-.tableSlot > * > * {
+.page > * > :not([data-write]),
+.tableSlot > * > :not([data-write]),
+.endSlot > * > * {
     opacity: 0;
     filter: blur(3px);
     transform: translateY(0.35em);
@@ -122,19 +134,41 @@
         transform 900ms var(--ease-out);
 }
 
-.spread[data-active] .page > * > *,
-.spread[data-active] .tableSlot > * > * {
+.spread[data-active] .page > * > :not([data-write]),
+.spread[data-active] .tableSlot > * > :not([data-write]),
+.spread[data-active] .endSlot > * > * {
     opacity: 1;
     filter: none;
     transform: none;
 }
 
-.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(2) { transition-delay: 70ms; }
-.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(3) { transition-delay: 140ms; }
-.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(4) { transition-delay: 210ms; }
-.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(5) { transition-delay: 280ms; }
-.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(6) { transition-delay: 350ms; }
-.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(n + 7) { transition-delay: 420ms; }
+.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(2):not([data-write]) { transition-delay: 70ms; }
+.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(3):not([data-write]) { transition-delay: 140ms; }
+.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(4):not([data-write]) { transition-delay: 210ms; }
+.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(5):not([data-write]) { transition-delay: 280ms; }
+.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(6):not([data-write]) { transition-delay: 350ms; }
+.spread[data-active] :is(.page, .tableSlot) > * > :nth-child(n + 7):not([data-write]) { transition-delay: 420ms; }
+
+/* Text the pen will write: hidden until it has been, by a mask the
+   writer then replaces line by line (pen/writer.ts). Only while the pen
+   is on the stage ([data-pen]): without it, the text simply shows. */
+[data-pen] .spread [data-write]:not([data-inked]) {
+    -webkit-mask-image: linear-gradient(transparent, transparent);
+    mask-image: linear-gradient(transparent, transparent);
+}
+
+/* Fresh ink is darker and a little glossy; it dries to the page's own
+   colour once the block is written. */
+.spread [data-write] {
+    transition:
+        filter 1100ms var(--ease-out),
+        text-decoration-color var(--dur-1) var(--ease);
+}
+
+.spread [data-write][data-wet] {
+    filter: brightness(0.72) saturate(1.15);
+    transition: none;
+}
 
 /* ------------------------------------------------------------------
    Dog-ear: the right page's lower corner, lifting under the pointer.

@@ -19,8 +19,7 @@
 /* A page's content, top to bottom. */
 .flow,
 .project,
-.opening,
-.formPage {
+.opening {
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -218,50 +217,6 @@
 }
 
 /* ------------------------------------------------------------------
-   Work and education
-   ------------------------------------------------------------------ */
-
-.entries {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25em;
-}
-
-.entry {
-    display: grid;
-    gap: 0.15em;
-    padding-top: 0.9em;
-    border-top: 1px solid var(--rule);
-}
-
-.period,
-.kind {
-    font-family: var(--font-mono);
-    font-size: 0.72em;
-    letter-spacing: 0.02em;
-    color: var(--ink-3);
-}
-
-.entryTitle {
-    font-size: 1.5em;
-    line-height: 1.12;
-}
-
-.org {
-    font-style: italic;
-    color: var(--ink-3);
-    font-size: 0.95em;
-}
-
-.entryDetail {
-    margin-top: 0.35em;
-    font-size: 0.92em;
-    line-height: 1.55;
-}
-
-/* ------------------------------------------------------------------
    Projects
 
    The screenshot is a print tipped onto the page: a glossy photograph
@@ -271,6 +226,13 @@
 
 .project {
     gap: 0.55em;
+}
+
+.kind {
+    font-family: var(--font-mono);
+    font-size: 0.72em;
+    letter-spacing: 0.02em;
+    color: var(--ink-3);
 }
 
 .print,
@@ -328,20 +290,6 @@
 /* ------------------------------------------------------------------
    Contact
    ------------------------------------------------------------------ */
-
-.formPage {
-    font-family: var(--font-ui);
-}
-
-.direct {
-    font-size: 0.95em;
-    color: var(--ink-3);
-    margin-top: 0.4em;
-}
-
-.direct .link {
-    display: inline;
-}
 
 /* ------------------------------------------------------------------
    The closed book: colophon on the tablecloth
@@ -406,15 +354,8 @@
 }
 
 /* ------------------------------------------------------------------
-   Engraving: the seal beside Education, the bookplate in the colophon.
+   Engraving: the bookplate in the colophon.
    ------------------------------------------------------------------ */
-
-.headingWithSeal {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1em;
-}
 
 .bookplate {
     display: flex;
@@ -448,3 +389,9 @@
     color: var(--ink);
 }
 
+/* The colophon on the table beside the cat: the same parts, set smaller,
+   and without the heading (the pen wrote that on the closed book). */
+.endText {
+    gap: 1em;
+    font-size: clamp(12px, calc(var(--pw) * 0.045), 16px);
+}

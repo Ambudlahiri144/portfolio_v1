@@ -1,0 +1,1459 @@
+/* ==================================================================
+   STATIONERY — the contact spread's papers, stamps and ink.
+
+   Sized in em from the page's font-size, like everything on a page of
+   the book, so it all scales with the photograph. The 3D is CSS
+   (perspective and preserve-3d): the camera is overhead here and there
+   is no WebGL on this spread.
+   ================================================================== */
+
+.visuallyHidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Hot-stamped gold (as on the cover; --px comes from the book's stage). */
+.foil {
+    --sheen: calc(18% + var(--px, 0.5) * 64%);
+    background-image: linear-gradient(
+        104deg,
+        #5f421f 0%,
+        #9c7338 16%,
+        #d8b46b calc(var(--sheen) - 14%),
+        #fff1c9 var(--sheen),
+        #e1bd72 calc(var(--sheen) + 10%),
+        #a47a3a 82%,
+        #5a3e1c 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(255, 247, 228, 0.5)) drop-shadow(0 -0.5px 0 rgba(42, 28, 19, 0.55));
+}
+
+/* ------------------------------------------------------------------
+   The chooser: stationery lying on the right page
+   ------------------------------------------------------------------ */
+
+.chooser {
+    display: grid;
+    gap: 0.7em;
+    margin-top: 0.6em;
+}
+
+.chooserLabel,
+.printed,
+.fieldLabel,
+.stampBoxLabel,
+.purpose {
+    font-family: var(--font-ui);
+    font-size: 0.68em;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.places {
+    display: flex;
+    align-items: flex-end;
+    gap: min(1.3em, 3vw);
+}
+
+.place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55em;
+    perspective: 36em;
+}
+
+.place[data-paper="feedback"] {
+    --rot: -4deg;
+}
+.place[data-paper="connect"] {
+    --rot: 3deg;
+}
+.place[data-paper="hire"] {
+    --rot: -2deg;
+}
+
+.thumb {
+    position: relative;
+    display: block;
+    border-radius: 0.2em;
+    transform: rotate(var(--rot));
+    transform-style: preserve-3d;
+    transition:
+        transform 320ms var(--ease-out),
+        filter 320ms var(--ease-out);
+    filter: drop-shadow(0 0.3em 0.35em rgba(42, 28, 19, 0.2));
+}
+
+/* Lifted off the page toward the pointer. */
+.thumb:not([data-out]):is(:hover, :focus-visible) {
+    transform: rotate(calc(var(--rot) * 0.4)) translateY(-0.45em) rotateX(calc(var(--ty, 0) * -16deg))
+        rotateY(calc(var(--tx, 0) * 18deg));
+    filter: drop-shadow(0 1.1em 0.9em rgba(42, 28, 19, 0.28));
+}
+
+.thumb:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 0.35em;
+}
+
+/* Out on the desk: where it lay, a faint impression in the page. */
+.thumb[data-out] {
+    filter: none;
+}
+
+.thumb[data-out] .mini {
+    opacity: 0;
+}
+
+.thumb[data-out]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 0.2em;
+    border: 1px dashed color-mix(in srgb, var(--ink-4) 60%, transparent);
+    background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
+.caption {
+    display: grid;
+    justify-items: center;
+    line-height: 1.25;
+}
+
+.paperName {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.8em;
+    color: var(--ink-3);
+}
+
+/* The miniatures: the desk's papers, drawn small. */
+.mini {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 0.2em;
+    transition: opacity 200ms var(--ease);
+}
+
+/* A sheen that crosses as it tilts. */
+.mini::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        115deg,
+        transparent calc(30% + var(--tx, -0.5) * 60%),
+        rgba(255, 252, 244, 0.55) calc(42% + var(--tx, -0.5) * 60%),
+        transparent calc(54% + var(--tx, -0.5) * 60%)
+    );
+    opacity: 0;
+    transition: opacity 240ms var(--ease);
+}
+
+.thumb:hover .mini::after {
+    opacity: 1;
+}
+
+.miniPostcard {
+    width: 7.4em;
+    height: 4.9em;
+    background:
+        linear-gradient(rgba(246, 239, 226, 0.78), rgba(246, 239, 226, 0.78)),
+        url("/book/props/cardstock.webp") center / 12em;
+}
+
+.miniPostcard::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 16%;
+    bottom: 12%;
+    border-left: 1px solid var(--rule);
+}
+
+.miniPostcard .miniLines {
+    left: 9%;
+    right: 56%;
+    top: 34%;
+}
+
+.miniStamp {
+    position: absolute;
+    right: 8%;
+    top: 12%;
+    width: 15%;
+    height: 27%;
+    border: 1px dashed var(--ink-4);
+}
+
+.miniAddress {
+    position: absolute;
+    left: 58%;
+    right: 9%;
+    top: 56%;
+    height: 22%;
+    background: repeating-linear-gradient(to bottom, transparent 0 0.42em, var(--rule) 0.42em calc(0.42em + 1px));
+}
+
+.miniLetter {
+    width: 5.4em;
+    height: 7.1em;
+    background:
+        linear-gradient(rgba(248, 243, 233, 0.8), rgba(248, 243, 233, 0.8)),
+        url("/book/props/laid.webp") center / 10em;
+}
+
+.miniLines {
+    position: absolute;
+    left: 14%;
+    right: 14%;
+    top: 22%;
+    bottom: 14%;
+    background: repeating-linear-gradient(to bottom, transparent 0 0.42em, var(--rule) 0.42em calc(0.42em + 1px));
+}
+
+.miniEngage {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    padding-top: 0.55em;
+    width: 5.6em;
+    height: 7.3em;
+    background: #f7f0e3;
+    box-shadow:
+        inset 0 0 0 0.22em #f7f0e3,
+        inset 0 0 0 calc(0.22em + 1px) color-mix(in srgb, var(--ink-4) 70%, transparent);
+}
+
+.miniRosette {
+    width: 1.8em;
+    height: 1.8em;
+}
+
+.miniTitle {
+    font-family: var(--font-serif);
+    font-size: 0.62em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-top: 0.2em;
+}
+
+.miniEngage .miniLines {
+    top: 50%;
+}
+
+/* The address, rubber-stamped at the foot of the right page. */
+.address {
+    align-self: flex-end;
+    margin-top: auto;
+    display: grid;
+    gap: 0.1em;
+    padding: 0.45em 0.8em 0.5em;
+    border: 1.5px solid color-mix(in srgb, var(--signal) 65%, transparent);
+    border-radius: 0.2em;
+    rotate: -2deg;
+    font-size: 0.86em;
+    color: var(--ink-3);
+}
+
+.address a {
+    font-family: var(--font-body);
+    font-style: italic;
+    color: var(--signal);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--signal) 35%, transparent);
+    text-underline-offset: 0.2em;
+}
+
+.address a:hover {
+    text-decoration-color: currentColor;
+}
+
+/* ------------------------------------------------------------------
+   The desk: the left page
+   ------------------------------------------------------------------ */
+
+.desk {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    color: var(--ink-2);
+}
+
+.surface {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.paper {
+    position: relative;
+    height: 100%;
+    transform-origin: 0 0;
+}
+
+/* The one flying home, drawn over the one arriving. */
+.paperLeaving {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.post {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+    min-height: 4.6em;
+    padding-top: 0.5em;
+    transition: opacity 300ms var(--ease);
+}
+
+.post[data-quiet] .postHint {
+    opacity: 0.45;
+}
+
+/* Once the paper has gone, "Write another" is the only thing to do. */
+.post[data-gone] {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.postHint {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.82em;
+    line-height: 1.5;
+    color: var(--ink-3);
+    max-width: 17em;
+    transition: opacity 300ms var(--ease);
+}
+
+.pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.2em;
+    padding: 0.42em 1.05em;
+    border-radius: 999px;
+    border: 1.5px solid var(--signal);
+    color: var(--signal);
+    font-family: var(--font-ui);
+    font-style: normal;
+    font-size: 0.92em;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.pill:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.pill:focus-visible,
+.textButton:focus-visible,
+.turnCorner:focus-visible,
+.choice:focus-visible,
+.cv:focus-visible,
+.again:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+}
+
+.textButton {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.86em;
+    color: var(--ink-3);
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 0.2em;
+}
+
+.status {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.82em;
+    color: #9a2e1f;
+}
+
+.status:empty {
+    display: none;
+}
+
+/* ------------------------------------------------------------------
+   Writing: printed labels, ruled lines, ink
+   ------------------------------------------------------------------ */
+
+.field {
+    position: relative;
+    display: grid;
+    gap: 0.15em;
+    min-width: 0;
+}
+
+.fieldInline {
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 0.6em;
+}
+
+.fieldInline .fieldLabel {
+    font-family: var(--font-body);
+    font-size: 1em;
+    font-style: italic;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink-2);
+}
+
+.ink {
+    width: 100%;
+    min-width: 0;
+    padding: 0.2em 0.1em 0.25em;
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink-4) 75%, transparent);
+    border-radius: 0;
+    background: transparent;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 1em;
+    color: var(--ink);
+    caret-color: var(--signal);
+    transition: border-color var(--dur-1) var(--ease);
+}
+
+.ink:focus-visible {
+    outline: none;
+    border-bottom-color: var(--signal);
+}
+
+/* A message: lines ruled down the space, written on, not boxed. */
+.inkLines {
+    resize: none;
+    line-height: 1.55em;
+    border-bottom-color: transparent;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(1.55em - 1px),
+        var(--rule) calc(1.55em - 1px),
+        var(--rule) 1.55em
+    );
+    background-attachment: local;
+}
+
+.inkLines:focus-visible {
+    border-bottom-color: transparent;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(1.55em - 1px),
+        color-mix(in srgb, var(--signal) 45%, transparent) calc(1.55em - 1px),
+        color-mix(in srgb, var(--signal) 45%, transparent) 1.55em
+    );
+}
+
+/* Written with the book's pen (book/pen/follow.ts): letters typed ahead
+   of the nib stay hidden until it passes them. Three mask layers, all in
+   the field's own box: everything above the caret's line, the caret's
+   line up to the nib (with a soft wet edge), and everything below it,
+   so the ruled lines and earlier text are never touched. */
+.ink[data-inking] {
+    --ink-mask:
+        linear-gradient(#000, #000),
+        linear-gradient(to right, #000 calc(var(--ink-x) - 5px), transparent var(--ink-x)),
+        linear-gradient(#000, #000);
+    -webkit-mask-image: var(--ink-mask);
+    mask-image: var(--ink-mask);
+    -webkit-mask-size: 100% var(--ink-top), 100% var(--ink-h), 100% 100%;
+    mask-size: 100% var(--ink-top), 100% var(--ink-h), 100% 100%;
+    -webkit-mask-position: 0 0, 0 var(--ink-top), 0 calc(var(--ink-top) + var(--ink-h));
+    mask-position: 0 0, 0 var(--ink-top), 0 calc(var(--ink-top) + var(--ink-h));
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-origin: border-box;
+    mask-origin: border-box;
+}
+
+/* The nib, resting at the end of the line being written. Only without
+   the book's pen (unbound, on phones): with it, the real pen is there. */
+.field:not(.fieldInline):focus-within::after {
+    content: "";
+    position: absolute;
+    right: -0.2em;
+    bottom: 0.1em;
+    width: 0.9em;
+    height: 0.9em;
+    background: var(--ink-3);
+    clip-path: polygon(50% 100%, 100% 30%, 70% 0, 30% 0, 0 30%);
+    rotate: 35deg;
+    opacity: 0.55;
+    animation: nib 1.6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+:global([data-pen]) .field:focus-within::after {
+    display: none;
+}
+
+@keyframes nib {
+    50% {
+        translate: 0 -0.12em;
+    }
+}
+
+/* Red pencil: the loop round a line that stopped a send, and the word. */
+/* Wider than their box on purpose, so not capped by the base styles'
+   `svg { max-width: 100% }`. */
+.loop,
+.ring,
+.postmark {
+    max-width: none;
+}
+
+.loop,
+.ring {
+    position: absolute;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.loop {
+    inset: -0.35em -0.5em -0.3em -0.4em;
+    width: calc(100% + 0.9em);
+    height: calc(100% + 0.65em);
+}
+
+.loop path,
+.ring path {
+    fill: none;
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 520ms cubic-bezier(0.6, 0, 0.3, 1) forwards;
+}
+
+.loop path {
+    stroke: #b0442f;
+}
+
+/* Under the line, at its end: clear of the printed label however narrow
+   the line is. */
+.note {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.1em;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.78em;
+    color: #b0442f;
+    rotate: -3deg;
+    animation: noteIn 380ms var(--ease-out) 260ms both;
+    pointer-events: none;
+}
+
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes noteIn {
+    from {
+        opacity: 0;
+        translate: 0 0.2em;
+    }
+}
+
+/* Printed options, one ringed in ink. */
+.choices {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25em 0.9em;
+}
+
+.choices .note {
+    position: static;
+    align-self: center;
+}
+
+.choice {
+    position: relative;
+    padding: 0.15em 0.35em;
+    font-family: var(--font-serif);
+    font-size: 1.14em;
+    font-style: italic;
+    color: var(--ink-2);
+    transition: color var(--dur-1) var(--ease);
+}
+
+.choice:hover,
+.choice[aria-checked="true"] {
+    color: var(--ink);
+}
+
+.ring {
+    inset: -0.15em -0.35em;
+    width: calc(100% + 0.7em);
+    height: calc(100% + 0.3em);
+}
+
+.ring path {
+    stroke: var(--signal);
+    stroke-width: 1.6;
+}
+
+/* ------------------------------------------------------------------
+   The stamp box, and the stamps
+   ------------------------------------------------------------------ */
+
+.stampCorner {
+    position: absolute;
+    top: 0.9em;
+    right: 0.9em;
+    z-index: 2;
+}
+
+.stampBox {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 3.8em;
+    height: 4.5em;
+    border: 1px dashed color-mix(in srgb, var(--ink-4) 80%, transparent);
+    border-radius: 0.1em;
+    transition:
+        border-color 180ms var(--ease),
+        background-color 180ms var(--ease),
+        scale 220ms var(--ease-out);
+}
+
+.stampBox[data-over] {
+    border-style: solid;
+    border-color: var(--signal);
+    background: color-mix(in srgb, var(--signal) 8%, transparent);
+    scale: 1.06;
+}
+
+.stampBox[data-filled] {
+    border-color: transparent;
+}
+
+.stampBoxLabel {
+    font-size: 0.5em;
+}
+
+.stampBox[data-filled] .stampBoxLabel {
+    opacity: 0;
+}
+
+/* Perforated: a row of holes all round, punched with a radial mask over
+   a solid centre. */
+.stampFace {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    justify-items: center;
+    width: 3.3em;
+    height: 4em;
+    background: #eadbbd;
+    -webkit-mask:
+        radial-gradient(circle, #0000 0.11em, #000 0.12em) -0.16em -0.16em / 0.32em 0.32em round,
+        linear-gradient(#000 0 0) content-box;
+    mask:
+        radial-gradient(circle, #0000 0.11em, #000 0.12em) -0.16em -0.16em / 0.32em 0.32em round,
+        linear-gradient(#000 0 0) content-box;
+    padding: 0.2em;
+}
+
+.stampFace::before {
+    content: "";
+    position: absolute;
+    inset: 0.28em;
+    border: 1px solid color-mix(in srgb, var(--signal) 55%, transparent);
+    background: #f2e6cc;
+}
+
+.stampLegend,
+.stampValue,
+.stampArt {
+    position: relative;
+}
+
+.stampLegend {
+    margin-top: 0.12em;
+    font-family: var(--font-ui);
+    font-size: 0.34em;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--signal);
+}
+
+.stampArt {
+    width: 78%;
+    height: 100%;
+    min-height: 0;
+    object-fit: contain;
+    object-position: 50% 30%;
+    mix-blend-mode: multiply;
+    -webkit-user-drag: none;
+}
+
+.stampValue {
+    justify-self: end;
+    margin: 0 0.35em 0.1em 0;
+    font-family: var(--font-serif);
+    font-size: 0.7em;
+    font-weight: 600;
+    color: var(--signal);
+}
+
+.handStamp {
+    position: relative;
+    display: inline-block;
+    flex: none;
+    margin-right: 0.4em;
+    rotate: 6deg;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    filter: drop-shadow(0 0.25em 0.25em rgba(42, 28, 19, 0.28));
+    transition:
+        rotate 220ms var(--ease-out),
+        scale 220ms var(--ease-out),
+        filter 220ms var(--ease-out),
+        opacity 300ms var(--ease);
+}
+
+.handStamp:hover {
+    rotate: 0deg;
+    scale: 1.05;
+}
+
+.handStamp[data-dragging] {
+    z-index: 20;
+    cursor: grabbing;
+    rotate: -4deg;
+    scale: 1.12;
+    filter: drop-shadow(0 1.2em 0.9em rgba(42, 28, 19, 0.3));
+    transition: none;
+}
+
+.handStamp[data-over] {
+    scale: 1.02;
+    rotate: 0deg;
+}
+
+.handStamp[data-hidden] {
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
+}
+
+.stuckStamp {
+    display: block;
+    rotate: -3deg;
+    filter: drop-shadow(0 0.08em 0.1em rgba(42, 28, 19, 0.3));
+}
+
+.stuckStamp[data-trembling] {
+    animation: tremble 160ms linear infinite alternate;
+}
+
+@keyframes tremble {
+    to {
+        rotate: -2deg;
+        translate: 0.02em 0;
+    }
+}
+
+/* The cancellation, inked over the stamp and out across the paper. */
+.postmark {
+    position: absolute;
+    top: 0;
+    right: -0.2em;
+    width: 9.6em;
+    height: 4.8em;
+    overflow: visible;
+    filter: url(#ink-soft);
+    pointer-events: none;
+    rotate: -8deg;
+}
+
+.postmark circle,
+.postmark path {
+    fill: none;
+    stroke: rgba(38, 30, 52, 0.8);
+    stroke-width: 1.7;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 520ms cubic-bezier(0.5, 0, 0.3, 1) forwards;
+}
+
+.postmark path {
+    animation-delay: 220ms;
+}
+
+.postmark text {
+    fill: rgba(38, 30, 52, 0.82);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    animation: noteIn 300ms var(--ease) 300ms both;
+}
+
+.postmarkTop {
+    font-size: 5.4px;
+}
+
+.postmarkDate {
+    font-size: 6.2px;
+}
+
+/* A rubber stamp: struck down, a little crooked, never quite evenly
+   inked. */
+.rubber {
+    display: inline-block;
+    padding: 0.2em 0.6em 0.16em;
+    border: 0.14em solid currentColor;
+    border-radius: 0.2em;
+    box-shadow: inset 0 0 0 0.12em #0000, inset 0 0 0 0.2em currentColor;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(163, 48, 31, 0.82);
+    rotate: -9deg;
+    mix-blend-mode: multiply;
+    filter: url(#ink-soft);
+    animation: strike 460ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+.rubber[data-tone="green"] {
+    color: rgba(64, 92, 40, 0.85);
+}
+
+@keyframes strike {
+    0% {
+        opacity: 0;
+        scale: 1.7;
+    }
+    55% {
+        opacity: 1;
+        scale: 0.94;
+    }
+    100% {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+/* ------------------------------------------------------------------
+   Papers
+   ------------------------------------------------------------------ */
+
+.cardFace {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 0.25em;
+    box-shadow:
+        0 0.1em 0.15em rgba(42, 28, 19, 0.12),
+        0 1.4em 2em -1.3em var(--shadow);
+}
+
+.prompt {
+    font-family: var(--font-body);
+    font-size: 0.84em;
+    line-height: 1.5;
+    color: var(--ink-3);
+}
+
+/* ---- Postcard ---------------------------------------------------- */
+
+.paper[data-paper="feedback"] {
+    display: grid;
+    align-content: center;
+}
+
+.postcard {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    rotate: -0.8deg;
+    transform-style: preserve-3d;
+    font-size: 0.86em;
+}
+
+.postcardFront {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.3em;
+    padding: 1.9em 1.2em 1.1em;
+    background:
+        linear-gradient(rgba(246, 239, 226, 0.8), rgba(246, 239, 226, 0.8)),
+        url("/book/props/cardstock.webp") center / 22em;
+}
+
+.postcardHeading {
+    position: absolute;
+    top: 0.7em;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: var(--font-ui);
+    font-size: 0.62em;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+}
+
+.postcardMessage {
+    display: grid;
+    align-content: start;
+    gap: 0.5em;
+}
+
+.postcardAddress {
+    position: relative;
+    display: grid;
+    align-content: end;
+    gap: 0.9em;
+    padding-left: 1.2em;
+    border-left: 1px solid var(--rule);
+}
+
+.postcardAddress .stampCorner {
+    top: -0.9em;
+    right: -0.3em;
+}
+
+.postcardBack {
+    display: grid;
+    place-items: center;
+    transform: rotateY(180deg);
+    background:
+        radial-gradient(ellipse at 50% 60%, rgba(255, 250, 238, 0.7), transparent 70%),
+        #e9dcc2 url("/book/props/portrait-lines.webp") center 30% / 42% no-repeat;
+}
+
+.greetings {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 1.9em;
+    text-align: center;
+    padding: 0 1em;
+    align-self: end;
+    margin-bottom: 1em;
+    background-image: linear-gradient(104deg, #5f421f, #d8b46b 45%, #fff1c9 52%, #a47a3a 70%, #5a3e1c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Sent: it turns over, picture side up, and goes. The fade is on the
+   paper around it: opacity on the card itself would flatten its 3D, and
+   the side turned away would show through, mirrored. */
+.paper[data-leaving][data-paper="feedback"] {
+    perspective: 60em;
+    animation: fadeAway 500ms ease-in 1000ms both;
+}
+
+.paper[data-leaving][data-paper="feedback"] .postcard {
+    animation: postcardAway 1500ms cubic-bezier(0.5, 0, 0.3, 1) both;
+}
+
+@keyframes postcardAway {
+    0% {
+        transform: none;
+    }
+    42% {
+        transform: translateY(-0.8em) rotateY(180deg);
+    }
+    52% {
+        transform: rotateY(180deg);
+    }
+    100% {
+        transform: translate(-34em, 3em) rotateY(180deg) rotateZ(-10deg);
+    }
+}
+
+@keyframes fadeAway {
+    to {
+        opacity: 0;
+    }
+}
+
+/* ---- Letter -------------------------------------------------------- */
+
+.letter {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55em;
+    height: 100%;
+    /* A deep foot: room under the last lines for a margin note, inside
+       the deckled edge that clips the sheet. */
+    padding: 1.3em 1.5em 2em;
+    rotate: 0.4deg;
+    background:
+        linear-gradient(rgba(249, 244, 234, 0.82), rgba(249, 244, 234, 0.82)),
+        url("/book/props/laid.webp") center / 24em;
+    box-shadow:
+        0 0.1em 0.15em rgba(42, 28, 19, 0.12),
+        0 1.4em 2em -1.3em var(--shadow);
+    /* A deckled edge along the foot. */
+    clip-path: polygon(
+        0 0, 100% 0, 100% 99%, 94% 99.6%, 86% 99.1%, 78% 99.8%, 70% 99.2%, 61% 99.7%, 52% 99.1%,
+        43% 99.8%, 34% 99.2%, 25% 99.7%, 16% 99.1%, 8% 99.7%, 0 99.2%
+    );
+}
+
+/* The corner turned back. */
+.letter::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1.6em;
+    height: 1.6em;
+    background: linear-gradient(135deg, #e7dcc6 50%, rgba(42, 28, 19, 0.12) 50%, transparent 70%);
+}
+
+.letter .stampCorner {
+    top: 1em;
+    right: 1.1em;
+}
+
+.salutation {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.55em;
+    color: var(--ink);
+}
+
+.re {
+    max-width: calc(100% - 5em);
+}
+
+.letterBody {
+    flex: 1;
+    min-height: 0;
+    align-content: start;
+}
+
+.letterBody .inkLines {
+    height: 100%;
+    min-height: 4.65em;
+}
+
+.signOff {
+    font-family: var(--font-body);
+    font-style: italic;
+    color: var(--ink-2);
+}
+
+.signRow,
+.pair {
+    display: grid;
+    /* minmax(0, ...): an input's intrinsic width (about 20 characters)
+       would otherwise hold each track open and push a phone-width sheet
+       wider than the screen. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1em;
+}
+
+.signature .ink {
+    font-family: var(--font-serif);
+    font-size: 1.2em;
+}
+
+/* ---- Engagement card --------------------------------------------- */
+
+.engagement {
+    position: relative;
+    height: 100%;
+    perspective: 70em;
+    font-size: 0.86em;
+}
+
+/* The faces share one grid cell rather than being positioned over each
+   other, so the card is as tall as its taller face: on a page of the
+   book that is the page; unbound, on a phone, it is the content. */
+.turner {
+    position: relative;
+    display: grid;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 820ms cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.engagement[data-turned] .turner {
+    transform: rotateY(180deg);
+}
+
+.engagement[data-still] .turner {
+    transition: none;
+}
+
+.engageFront,
+.engageBack {
+    position: relative;
+    inset: auto;
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 1.7em 1.6em 1.5em;
+    background: #f8f1e4;
+}
+
+.engageBack {
+    transform: rotateY(180deg);
+}
+
+/* The engraving: a double rule inside the edge, a rosette at its head. */
+.frame {
+    position: absolute;
+    inset: 0.5em;
+    border: 1px solid color-mix(in srgb, var(--ink-4) 60%, transparent);
+    box-shadow:
+        inset 0 0 0 0.18em #f8f1e4,
+        inset 0 0 0 calc(0.18em + 1px) color-mix(in srgb, var(--ink-4) 45%, transparent);
+    pointer-events: none;
+}
+
+.frameRosette {
+    position: absolute;
+    top: -0.9em;
+    left: 50%;
+    translate: -50% 0;
+    background: #f8f1e4;
+    border-radius: 50%;
+    padding: 0.1em;
+}
+
+.engageHeading,
+.backHeading {
+    margin-top: 0.3em;
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 1.9em;
+    letter-spacing: 0.04em;
+    line-height: 1;
+}
+
+.backHeading {
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.printed {
+    margin-top: 0.3em;
+}
+
+.cv {
+    align-self: flex-start;
+    display: inline-flex;
+    gap: 0.45em;
+    align-items: center;
+    padding: 0.4em 0.95em;
+    border: 1.5px solid var(--signal);
+    border-radius: 0.2em 0.2em 0.9em 0.2em;
+    color: var(--signal);
+    font-family: var(--font-ui);
+    font-size: 0.86em;
+    font-weight: 500;
+    background: #fbf6ec;
+}
+
+.cvPending {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.85em;
+    color: var(--ink-3);
+}
+
+/* In the flow, pushed to the card's foot: at the foot when there is
+   room, after the last line when there is not. */
+.turnCorner {
+    position: relative;
+    z-index: 2;
+    align-self: flex-end;
+    margin-top: auto;
+    display: inline-flex;
+    gap: 0.35em;
+    align-items: center;
+    padding: 0.35em 0.8em;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.9em;
+    color: var(--signal);
+    border-radius: 0.2em;
+    background: linear-gradient(135deg, transparent 50%, rgba(42, 28, 19, 0.06) 50%);
+}
+
+.turnCorner:hover {
+    color: var(--ink);
+}
+
+.engageBack .turnCorner {
+    align-self: flex-start;
+}
+
+.backActions {
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+    margin-top: 0.2em;
+}
+
+.backActions .pill {
+    margin-left: 0;
+}
+
+/* Six slots, set like type. */
+.codeField {
+    display: grid;
+    gap: 0.35em;
+}
+
+.slots {
+    position: relative;
+    display: flex;
+    gap: 0.45em;
+}
+
+.codeInput {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    font-size: 1em;
+    caret-color: transparent;
+}
+
+.slot {
+    display: grid;
+    place-items: center;
+    width: 1.9em;
+    height: 2.4em;
+    border-radius: 0.15em;
+    background: #efe5d2;
+    box-shadow:
+        inset 0 0.12em 0.2em rgba(42, 28, 19, 0.2),
+        inset 0 -1px 0 rgba(255, 250, 240, 0.7);
+    font-family: var(--font-mono);
+    font-size: 1.1em;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.slot[data-filled] {
+    animation: press 260ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.slots[data-focused] .slot[data-next] {
+    box-shadow:
+        inset 0 0.12em 0.2em rgba(42, 28, 19, 0.2),
+        0 0 0 1.5px var(--signal);
+}
+
+@keyframes press {
+    0% {
+        scale: 1.25;
+        translate: 0 -0.2em;
+        opacity: 0;
+    }
+    60% {
+        scale: 0.94;
+        opacity: 1;
+    }
+}
+
+.verified {
+    display: grid;
+    justify-items: start;
+    gap: 1.1em;
+    margin-top: 0.6em;
+}
+
+.verifiedStamp {
+    font-size: 1.3em;
+}
+
+/* The CV comes out of its sleeve. */
+.sleeve {
+    position: relative;
+    padding: 0.8em 0.9em 0;
+    border-radius: 0.2em 0.2em 0 0;
+    background: linear-gradient(to bottom, #e4d6bb, #ddcdaf);
+    overflow: hidden;
+}
+
+.sleeve .cv {
+    animation: slideOut 700ms cubic-bezier(0.2, 0.9, 0.3, 1.1) 350ms both;
+}
+
+@keyframes slideOut {
+    from {
+        translate: 0 110%;
+    }
+}
+
+/* Sent: RECEIVED is struck across it, the seal pressed on, and it goes. */
+.receivedStamp {
+    position: absolute;
+    left: 50%;
+    top: 44%;
+    translate: -50% -50%;
+    z-index: 5;
+    font-size: 1.9em;
+}
+
+.cardSeal {
+    position: absolute;
+    right: 1.6em;
+    bottom: 1.4em;
+    z-index: 5;
+    width: 4.2em;
+    height: 4.2em;
+    filter: drop-shadow(0 0.3em 0.35em rgba(42, 28, 19, 0.35));
+    animation: sealPress 620ms cubic-bezier(0.3, 1.4, 0.5, 1) 480ms both;
+}
+
+@keyframes sealPress {
+    0% {
+        opacity: 0;
+        transform: translateY(-1.5em) scale(1.7) rotate(-18deg);
+    }
+    55% {
+        opacity: 1;
+        transform: scale(0.9, 0.86) rotate(-8deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(-8deg);
+    }
+}
+
+.paper[data-leaving][data-paper="hire"] {
+    animation: cardAway 800ms cubic-bezier(0.55, 0, 0.75, 0.2) 1100ms both;
+}
+
+@keyframes cardAway {
+    to {
+        transform: translate(-30em, 2.5em) rotate(-9deg);
+        opacity: 0;
+    }
+}
+
+/* ------------------------------------------------------------------
+   After: the note inked onto the empty page
+   ------------------------------------------------------------------ */
+
+.sent {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.8em;
+    animation: inkIn 900ms var(--ease-out) both;
+}
+
+@keyframes inkIn {
+    from {
+        opacity: 0;
+        filter: blur(4px);
+    }
+}
+
+.sentTitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 2.6em;
+    line-height: 1.05;
+    color: var(--ink);
+}
+
+.sentBody {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--ink-2);
+}
+
+.again {
+    align-self: flex-start;
+    font-family: var(--font-body);
+    font-style: italic;
+    color: var(--signal);
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+    text-decoration-color: color-mix(in srgb, var(--signal) 40%, transparent);
+}
+
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+    .foil {
+        --sheen: 50%;
+    }
+
+    .thumb,
+    .turner,
+    .handStamp {
+        transition: none;
+    }
+
+    .thumb:not([data-out]):is(:hover, :focus-visible) {
+        transform: rotate(var(--rot)) translateY(-0.2em);
+    }
+
+    .loop path,
+    .ring path,
+    .postmark circle,
+    .postmark path {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+
+    .note,
+    .postmark text,
+    .rubber,
+    .slot[data-filled],
+    .sleeve .cv,
+    .cardSeal,
+    .sent,
+    .stuckStamp[data-trembling],
+    .field:focus-within::after {
+        animation: none;
+    }
+
+    .paper[data-leaving] .postcard,
+    .paper[data-leaving][data-paper="hire"] {
+        animation: none;
+    }
+}

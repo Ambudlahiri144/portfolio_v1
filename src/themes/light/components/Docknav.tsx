@@ -36,14 +36,6 @@ function Icon({ name }: { name: NavItem["icon"] }) {
                     <path d="M4.8 19.8a7.4 7.4 0 0 1 14.4 0" />
                 </svg>
             );
-        case "work":
-            return (
-                <svg {...common}>
-                    <rect x="3.5" y="7.2" width="17" height="12.3" rx="1.8" />
-                    <path d="M8.8 7.2V5.6a1.6 1.6 0 0 1 1.6-1.6h3.2a1.6 1.6 0 0 1 1.6 1.6v1.6" />
-                    <path d="M3.5 12.6h17" />
-                </svg>
-            );
         case "projects":
             return (
                 <svg {...common}>

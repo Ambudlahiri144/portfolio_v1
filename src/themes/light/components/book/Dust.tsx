@@ -80,17 +80,29 @@ export default function Dust() {
             return ((x - ox) * dir.x + (y - oy) * dir.y) / len;
         };
 
+        /* The pointer in the canvas' own space. The handler only records
+           the client position: measuring the canvas there forced a
+           synchronous restyle and layout of the whole book on every move.
+           The canvas' offset is read in the frame instead, and only after
+           a scroll or resize can have moved it (it is pinned in the book). */
         const pointer = { x: -1e4, y: -1e4 };
+        const client = { x: -1e4, y: -1e4 };
+        const origin = { x: 0, y: 0 };
+        let stale = true;
         const onMove = (e: PointerEvent) => {
-            const r = canvas.getBoundingClientRect();
-            pointer.x = e.clientX - r.left;
-            pointer.y = e.clientY - r.top;
+            client.x = e.clientX;
+            client.y = e.clientY;
         };
         const onLeave = () => {
-            pointer.x = pointer.y = -1e4;
+            client.x = client.y = -1e4;
+        };
+        const onShift = () => {
+            stale = true;
         };
         window.addEventListener("pointermove", onMove, { passive: true });
         document.addEventListener("pointerleave", onLeave);
+        window.addEventListener("scroll", onShift, { passive: true });
+        window.addEventListener("resize", onShift);
 
         let raf = 0;
         let lastP = progress.get();
@@ -101,6 +113,15 @@ export default function Dust() {
             raf = requestAnimationFrame(tick);
             if (document.hidden || !w) return;
             t += 1 / 60;
+
+            if (stale) {
+                const r = canvas.getBoundingClientRect();
+                origin.x = r.left;
+                origin.y = r.top;
+                stale = false;
+            }
+            pointer.x = client.x - origin.x;
+            pointer.y = client.y - origin.y;
 
             /* Scroll moves the dust a little the other way: parallax. */
             const p = progress.get();
@@ -159,6 +180,8 @@ export default function Dust() {
             ro.disconnect();
             window.removeEventListener("pointermove", onMove);
             document.removeEventListener("pointerleave", onLeave);
+            window.removeEventListener("scroll", onShift);
+            window.removeEventListener("resize", onShift);
         };
     }, [progress]);
 

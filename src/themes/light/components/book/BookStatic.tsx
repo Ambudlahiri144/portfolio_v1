@@ -11,6 +11,7 @@ import { holds, manifest, rect } from "./timeline";
 import { projects } from "@light/lib/site";
 import { ProjectPage, spreads } from "./Spreads";
 import { frameUrl } from "./useBookFrames";
+import EndStatic from "./end/EndStatic";
 import styles from "./BookStatic.module.css";
 
 const G = manifest.geometry;
@@ -63,11 +64,23 @@ export default function BookStatic() {
                             </section>
                         );
                     }
+                    /* The cat's last scene: her still and the way back. */
+                    if (h.spread === "end") {
+                        return (
+                            <section key={h.spread} id={h.anchor} className={styles.spread}>
+                                <div className={styles.table}>
+                                    <EndStatic still="/book/cat/end-still.webp">{spreads.end.endText}</EndStatic>
+                                </div>
+                            </section>
+                        );
+                    }
                     const s = spreads[h.spread];
+                    /* The contact spread's right page is the stationery to
+                       choose from, so unbound it comes first. */
+                    const pages = h.spread === "contact" ? [s.right, s.left] : [s.left, s.right];
                     return (
                         <section key={h.spread} id={h.anchor} className={styles.spread}>
-                            {s.left && <div className={styles.sheet}>{s.left}</div>}
-                            {s.right && <div className={styles.sheet}>{s.right}</div>}
+                            {pages.map((p, i) => p && <div key={i} className={styles.sheet}>{p}</div>)}
                             {s.table && <div className={styles.table}>{s.table}</div>}
                         </section>
                     );

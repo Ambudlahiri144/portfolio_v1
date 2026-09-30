@@ -52,6 +52,13 @@ const CONFIG = {
     rests: {
         overhead: { file: "V2.mp4", frame: 5 },
         front: { file: "V3.mp4", frame: 175 },
+        /* The closed book from overhead (the open clip's first frame): where
+           the cat's reveal starts. */
+        closed: { file: "V1.mp4", frame: 16 },
+        /* The cat's last scene: the first frame of her waiting loop, which
+           every one of her end clips starts and ends on, so the video
+           patched over her always matches the frame around it. */
+        end: { file: "../cat/cat-idle.mp4", frame: 0, watermark: { mode: "interpolate" } },
     },
 
     /* Frame numbers are 0-based, inclusive, in the SOURCE file. fadeIn and
@@ -76,6 +83,17 @@ const CONFIG = {
                matches every frame. This clip rebuilds the region from its
                border on each frame instead, with grain laid back over it. */
             watermark: { mode: "interpolate" },
+        },
+        /* After the book closes, the camera comes down to the low side angle
+           where the cat lies on the table (V4, generated from the closed
+           rest to K-end). -1 is "the source's last frame". */
+        /* Until V4.mp4 has been generated, a slow dissolve with a push-in
+           stands in (standInReveal below), and is replaced as soon as it is. */
+        reveal: {
+            file: "V4.mp4", start: 0, end: -1, fadeIn: 4, fadeOut: 8,
+            from: "closed", to: "end",
+            watermark: { mode: "interpolate" },
+            standIn: true,
         },
     },
 
@@ -118,6 +136,24 @@ const CONFIG = {
             pageQuad: [[215, 217], [1042, 213], [1145, 438], [138, 442]],
             spreadCm: [49.2, 32],
         },
+
+        /* The cat's last scene (the end rest), measured on it.
+           bookQuad  the closed book's top face: back-left (the spine's
+                     head), back-right, front-right, front-left, for
+                     calibrate-camera.mjs --rest end; it is the book's
+                     width (25.6 cm) across and its height (33.7 cm, the
+                     spine) in depth, as measured on the cover overhead
+           tableY    the table, that far below the face: the book's
+                     thickness
+           text      the free wall at the upper left, for the colophon
+           blocks    the strip of table in front of her for the type */
+        end: {
+            bookQuad: [[108, 383], [417, 362], [542, 465], [197, 499]],
+            bookCm: [25.6, 33.7],
+            tableY: -3,
+            text: [150, 70, 400, 240],
+            blocks: [420, 556, 760, 84],
+        },
     },
 };
 
@@ -132,6 +168,7 @@ function ffmpeg(argv) {
 
 function watermarkChain(input, output, override = {}) {
     const { x, y, w, h, sx, sy, mode } = { ...CONFIG.watermark, ...override };
+    if (mode === "none") return `[${input}]null[${output}]`;
     if (mode === "interpolate") {
         return (
             `[${input}]delogo=x=${x + 4}:y=${y + 4}:w=${w - 8}:h=${h - 8},split[wa][wb];` +
@@ -142,18 +179,50 @@ function watermarkChain(input, output, override = {}) {
     return `[${input}]split[wa][wb];[wb]crop=${w}:${h}:${sx}:${sy}[wp];[wa][wp]overlay=${x}:${y}[${output}]`;
 }
 
+/* Frames in a source video (for the "-1 is the last frame" convention). */
+function frameCount(file) {
+    const out = execFileSync("ffprobe", [
+        "-v", "error", "-select_streams", "v:0", "-count_packets",
+        "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", resolve(SRC, file),
+    ]).toString().trim();
+    return Number(out);
+}
+const last = (file, n) => (n < 0 ? frameCount(file) + n : n);
+/* Footage that has not been generated yet (the cat's V4) is simply
+   skipped, rest and clip alike, until it is there. */
+const have = (file) => existsSync(resolve(SRC, file));
+
+/* The cat's reveal before V4.mp4 exists: the closed book, a slow push-in
+   toward it, dissolving into her last scene as that settles out of a
+   slight zoom. Made from the two rest frames, so it lands exactly. */
+function standInReveal(rests) {
+    const out = join(MASTERS, "reveal-standin.mp4");
+    const { fps, width: W, height: H } = CONFIG;
+    ffmpeg([
+        "-loop", "1", "-framerate", String(fps), "-t", "4", "-i", rests.closed,
+        "-loop", "1", "-framerate", String(fps), "-t", "3", "-i", rests.end,
+        "-filter_complex",
+        `[0:v]scale=${W * 2}:${H * 2},zoompan=z='1+0.14*on/96':x='min(iw-iw/zoom,max(0,1720-iw/zoom/2))':y='max(0,680-ih/zoom/2)':d=1:s=${W}x${H}:fps=${fps},format=yuv420p[a];` +
+            `[1:v]scale=${W * 2}:${H * 2},zoompan=z='1.07-0.07*on/71':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s=${W}x${H}:fps=${fps},format=yuv420p[b];` +
+            `[a][b]xfade=transition=fade:duration=2:offset=2,format=yuv420p[o]`,
+        "-map", "[o]", "-c:v", "libx264", "-crf", "12", "-preset", "medium", out,
+    ]);
+    return out;
+}
+
 function count(dir) {
     return readdirSync(dir).filter((f) => /\.(png|webp)$/.test(f)).length;
 }
 
 function renderRest(name) {
-    const { file, frame } = CONFIG.rests[name];
+    const { file, watermark } = CONFIG.rests[name];
+    const frame = last(file, CONFIG.rests[name].frame);
     mkdirSync(MASTERS, { recursive: true });
     const out = join(MASTERS, `rest-${name}.png`);
     ffmpeg([
-        "-i", join(SRC, file),
+        "-i", resolve(SRC, file),
         "-filter_complex",
-        `[0:v]select=eq(n\\,${frame}),setpts=N/FRAME_RATE/TB[s];${watermarkChain("s", "w")};[w]${CONFIG.clean},format=rgb24[o]`,
+        `[0:v]select=eq(n\\,${frame}),setpts=N/FRAME_RATE/TB,scale=${CONFIG.width}:${CONFIG.height}[s];${watermarkChain("s", "w", watermark)};[w]${CONFIG.clean},format=rgb24[o]`,
         "-map", "[o]", "-frames:v", "1", out,
     ]);
     return out;
@@ -165,6 +234,7 @@ function renderClip(name, spec, rests) {
     mkdirSync(dir, { recursive: true });
 
     const { fps } = CONFIG;
+    spec = { ...spec, end: last(spec.file, spec.end) };
     const len = spec.end - spec.start + 1;
     const g = [];
 
@@ -196,7 +266,7 @@ function renderClip(name, spec, rests) {
     const fromPng = rests[spec.from ?? spec.to];
     const toPng = rests[spec.to ?? spec.from];
     ffmpeg([
-        "-i", join(SRC, spec.file),
+        "-i", resolve(SRC, spec.file),
         "-loop", "1", "-framerate", String(fps), "-i", fromPng,
         "-loop", "1", "-framerate", String(fps), "-i", toPng,
         "-filter_complex", g.join(";"),
@@ -271,10 +341,22 @@ if (!existsSync(SRC)) {
     process.exit(1);
 }
 
-const rests = Object.fromEntries(Object.keys(CONFIG.rests).map((r) => [r, renderRest(r)]));
+const rests = Object.fromEntries(
+    Object.keys(CONFIG.rests)
+        .filter((r) => have(CONFIG.rests[r].file))
+        .map((r) => [r, renderRest(r)]),
+);
 const clips = {};
 
-for (const [name, spec] of Object.entries(CONFIG.clips)) {
+for (let [name, spec] of Object.entries(CONFIG.clips)) {
+    if (spec.standIn && !have(spec.file) && rests.closed && rests.end) {
+        console.log(`${name}: no ${spec.file} yet, a dissolve stands in`);
+        spec = { ...spec, file: standInReveal(rests), watermark: { mode: "none" } };
+    }
+    if (!have(spec.file)) {
+        console.log(`${name}: no ${spec.file} yet, skipped`);
+        continue;
+    }
     if (only && only !== name) {
         const dir = join(OUT, name, "lg");
         if (existsSync(dir)) clips[name] = { count: count(dir) };
@@ -286,7 +368,8 @@ for (const [name, spec] of Object.entries(CONFIG.clips)) {
     console.log(`${name}: ${n} frames`);
 }
 
-/* The 3D camera for the front rest, solved by scripts/calibrate-camera.mjs.
+/* The 3D cameras (the front rest's, and the cat's end), solved by
+   scripts/calibrate-camera.mjs.
    Carried over from the existing manifest so re-rendering frames never
    throws away a hand-tuned calibration. */
 const previous = existsSync(join(OUT, "manifest.json"))
@@ -301,8 +384,11 @@ const manifest = {
     table: sampleTable(rests.overhead),
     tiers: CONFIG.tiers,
     clips,
-    geometry: CONFIG.geometry,
+    /* geometry.end is measured once the cat's last scene exists; until it
+       is in CONFIG, whatever an earlier run had is kept. */
+    geometry: { ...(previous.geometry?.end ? { end: previous.geometry.end } : {}), ...CONFIG.geometry },
     ...(previous.camera ? { camera: previous.camera } : {}),
+    ...(previous.cameras ? { cameras: previous.cameras } : {}),
 };
 
 mkdirSync(OUT, { recursive: true });

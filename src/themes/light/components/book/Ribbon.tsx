@@ -18,11 +18,11 @@ import type { SpreadId } from "@light/lib/site";
 const CHAPTER: Record<SpreadId, string> = {
     cover: "Cover",
     about: "About",
-    work: "Work",
     "projects-intro": "Selected work",
     popup: "Projects",
     contact: "Contact",
     closed: "The end",
+    end: "The cat",
 };
 
 /* The hold at or before progress p. */
@@ -136,6 +136,7 @@ export default function Ribbon() {
             side="right"
             length={170}
             links={20}
+            gustName="ribbon"
             draw={draw(CHAPTER[chapter.spread])}
             onPull={goNext}
             buttonLabel={next ? `Next chapter: ${CHAPTER[next.spread]}` : "Back to the cover"}

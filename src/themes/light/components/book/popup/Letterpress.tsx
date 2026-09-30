@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
-import { Text, useCursor } from "@react-three/drei";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { useCursor } from "@react-three/drei";
 import {
     CuboidCollider,
     Physics,
@@ -16,6 +15,7 @@ import type { MotionValue } from "framer-motion";
 import { projects } from "@light/lib/site";
 import { FOLD_START, RISE_END } from "./choreography";
 import { usePaperTextures } from "./paperTexture";
+import { BLOCK_H, Block, widthOf } from "./TypeBlock";
 import "./rapier-console";
 
 /* ==================================================================
@@ -38,19 +38,12 @@ import "./rapier-console";
    Units are centimetres, like the rest of the pop-up; gravity is 981.
    ================================================================== */
 
-const FONT = "/book/fonts/plexmono-500.ttf";
-
-const TYPE_SIZE = 0.56;
-const BLOCK_H = 1.05;
-const BLOCK_D = 1.3;
 const GAP = 0.4;
 const ROW_Z = 10.2;
 /* Half the spread; blocks that leave it are put back. */
 const PAGE = { x: 24.6, z: 16 };
 /* Seconds at rest before a displaced block returns to its slot. */
 const SETTLE_S = 1.5;
-
-const widthOf = (name: string) => 0.8 + name.length * TYPE_SIZE * 0.6;
 
 function lineFor(stack: readonly string[]) {
     const total = stack.reduce((s, n) => s + widthOf(n), 0) + GAP * (stack.length - 1);
@@ -63,6 +56,12 @@ function lineFor(stack: readonly string[]) {
     });
 }
 const LINES = projects.map((p) => lineFor(p.tech));
+
+/* Every letter the type blocks will ever show. The first set of blocks
+   used to be the first text in this font, so troika built its glyphs then,
+   on the GPU with a synchronous read-back: a ~150 ms stall right as the
+   pop-up came into view. Preloaded, it happens during WarmUp instead. */
+const TYPE_CHARS = [...new Set(projects.flatMap((p) => p.tech).join(""))].join("");
 
 type Pose = { p: THREE.Vector3; q: THREE.Quaternion };
 
@@ -127,6 +126,17 @@ export default function Letterpress({
 
     return (
         <>
+            {/* A type block the size of a speck, under the page, there from
+                the start. The real blocks only exist once a project is in
+                the spotlight, so WarmUp never saw their material: its
+                shaders compiled on the first live frame, a ~110 ms wait on
+                the GPU just as the pop-up came into view. This one gets
+                them compiled, and its glyphs (drei suspends on
+                `characters`, inside the scene's Suspense) built and
+                uploaded, during the warm-up. */}
+            <group scale={0.001} position={[0, -1, 0]}>
+                <Block name={TYPE_CHARS} w={1} texture={maple} pressed={false} characters={TYPE_CHARS} />
+            </group>
             <Physics gravity={[0, -981, 0]} paused={!visible}>
                 {/* The page: a slab under y = 0, the size of the spread. Thick
                     on purpose: a block dropped from 10 cm meets it at ~140
@@ -381,40 +391,5 @@ function SinkingBlock({
         <group ref={ref}>
             <Block name={name} w={w} texture={texture} pressed={false} />
         </group>
-    );
-}
-
-/* One rounded body per block width, shared by every block of that width
-   (and by the sinking copy of a block as it leaves). drei's RoundedBox
-   built and creased a fresh geometry per block, and a project's type
-   landing all at once spent ~130 ms of one frame doing it. */
-const bodies = new Map<number, THREE.BufferGeometry>();
-function bodyFor(w: number) {
-    let g = bodies.get(w);
-    if (!g) {
-        g = new RoundedBoxGeometry(w, BLOCK_H, BLOCK_D, 3, 0.12);
-        bodies.set(w, g);
-    }
-    return g;
-}
-
-function Block({ name, w, texture, pressed }: { name: string; w: number; texture: THREE.Texture; pressed: boolean }) {
-    const body = useMemo(() => bodyFor(w), [w]);
-    return (
-        <>
-            <mesh geometry={body} castShadow receiveShadow>
-                <meshStandardMaterial map={texture} color={pressed ? "#f6d9ad" : "#ffffff"} roughness={0.78} />
-            </mesh>
-            <Text
-                font={FONT}
-                fontSize={TYPE_SIZE}
-                color="#3a2618"
-                anchorX="center"
-                anchorY="middle"
-                position={[0, 0, BLOCK_D / 2 + 0.012]}
-            >
-                {name}
-            </Text>
-        </>
     );
 }

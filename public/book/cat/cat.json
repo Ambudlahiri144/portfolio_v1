@@ -1,0 +1,309 @@
+{
+  "walk": {
+    "src": "/book/cat/walk.webp",
+    "box": [
+      326,
+      0,
+      954,
+      720
+    ],
+    "duration": 6.02,
+    "cues": [
+      {
+        "t": 0.7,
+        "event": "gust",
+        "cord": "ribbon",
+        "strength": 1.1
+      },
+      {
+        "t": 1.9,
+        "event": "penNudge",
+        "dx": -0.6,
+        "rot": 9
+      }
+    ]
+  },
+  "peek": {
+    "src": "/book/cat/peek.webp",
+    "box": [
+      786,
+      0,
+      494,
+      620
+    ],
+    "duration": 6.02,
+    "cues": [
+      {
+        "t": 1.1,
+        "event": "gust",
+        "cord": "ribbon",
+        "strength": 0.7
+      }
+    ]
+  },
+  "end": {
+    "box": [
+      454,
+      42,
+      812,
+      586
+    ],
+    "still": "/book/cat/end-still.webp",
+    "idle": [
+      "idle",
+      "idle-look"
+    ],
+    "clips": {
+      "idle": {
+        "mp4": "/book/cat/end/idle.mp4",
+        "webm": "/book/cat/end/idle.webm",
+        "duration": 6.02
+      },
+      "idle-look": {
+        "mp4": "/book/cat/end/idle-look.mp4",
+        "webm": "/book/cat/end/idle-look.webm",
+        "duration": 6.02
+      },
+      "chin": {
+        "mp4": "/book/cat/end/chin.mp4",
+        "webm": "/book/cat/end/chin.webm",
+        "duration": 4.01
+      },
+      "tail": {
+        "mp4": "/book/cat/end/tail.mp4",
+        "webm": "/book/cat/end/tail.webm",
+        "duration": 4.01
+      },
+      "paws": {
+        "mp4": "/book/cat/end/paws.mp4",
+        "webm": "/book/cat/end/paws.webm",
+        "duration": 4.01
+      },
+      "scratch": {
+        "mp4": "/book/cat/end/scratch.mp4",
+        "webm": "/book/cat/end/scratch.webm",
+        "duration": 4.01
+      },
+      "yawn": {
+        "mp4": "/book/cat/end/yawn.mp4",
+        "webm": "/book/cat/end/yawn.webm",
+        "duration": 4.01
+      },
+      "watch": {
+        "mp4": "/book/cat/end/watch.mp4",
+        "webm": "/book/cat/end/watch.webm",
+        "duration": 4.01
+      }
+    },
+    "regions": {
+      "back": [
+        [
+          800,
+          250
+        ],
+        [
+          900,
+          226
+        ],
+        [
+          1050,
+          240
+        ],
+        [
+          1150,
+          290
+        ],
+        [
+          1200,
+          360
+        ],
+        [
+          1182,
+          396
+        ],
+        [
+          1080,
+          440
+        ],
+        [
+          900,
+          452
+        ],
+        [
+          822,
+          420
+        ]
+      ],
+      "tail": [
+        [
+          760,
+          470
+        ],
+        [
+          900,
+          455
+        ],
+        [
+          1080,
+          440
+        ],
+        [
+          1182,
+          396
+        ],
+        [
+          1220,
+          420
+        ],
+        [
+          1200,
+          482
+        ],
+        [
+          1100,
+          510
+        ],
+        [
+          900,
+          522
+        ],
+        [
+          760,
+          515
+        ]
+      ],
+      "neck": [
+        [
+          604,
+          330
+        ],
+        [
+          800,
+          322
+        ],
+        [
+          812,
+          440
+        ],
+        [
+          620,
+          450
+        ]
+      ],
+      "paws": [
+        [
+          615,
+          440
+        ],
+        [
+          830,
+          420
+        ],
+        [
+          900,
+          470
+        ],
+        [
+          862,
+          505
+        ],
+        [
+          700,
+          506
+        ],
+        [
+          624,
+          486
+        ]
+      ],
+      "chin": [
+        [
+          622,
+          286
+        ],
+        [
+          700,
+          300
+        ],
+        [
+          776,
+          286
+        ],
+        [
+          746,
+          330
+        ],
+        [
+          700,
+          342
+        ],
+        [
+          655,
+          330
+        ]
+      ],
+      "face": [
+        [
+          602,
+          205
+        ],
+        [
+          792,
+          200
+        ],
+        [
+          776,
+          286
+        ],
+        [
+          700,
+          300
+        ],
+        [
+          622,
+          286
+        ]
+      ],
+      "head": [
+        [
+          615,
+          150
+        ],
+        [
+          760,
+          144
+        ],
+        [
+          792,
+          200
+        ],
+        [
+          602,
+          205
+        ]
+      ],
+      "ear": [
+        [
+          572,
+          92
+        ],
+        [
+          640,
+          150
+        ],
+        [
+          615,
+          205
+        ],
+        [
+          585,
+          200
+        ],
+        [
+          576,
+          150
+        ]
+      ]
+    }
+  }
+}

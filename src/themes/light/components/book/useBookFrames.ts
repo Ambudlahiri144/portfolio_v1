@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 import type { BookClip } from "@light/lib/site";
-import { holds, manifest, segments, type FrameRef } from "./timeline";
+import { clipFrames, holds, manifest, segments, type FrameRef } from "./timeline";
 
 /* ==================================================================
    BOOK FRAMES — download everything, decode only what is near.
@@ -76,7 +76,7 @@ export class FrameStore {
 
     constructor(readonly tier: Tier) {
         this.window = WINDOW[tier];
-        for (const clip of CLIPS) this.blobs[clip] = new Array(manifest.clips[clip].count);
+        for (const clip of CLIPS) this.blobs[clip] = new Array(clipFrames(clip));
         /* The frames the book rests on. */
         for (const h of holds) this.pinned.add(key(h.clip, h.frame));
     }
@@ -193,7 +193,7 @@ function downloadOrder(): FrameRef[] {
     )];
     for (const stride of [8, 4, 2, 1]) {
         for (const clip of clipsInOrder) {
-            const n = manifest.clips[clip].count;
+            const n = clipFrames(clip);
             for (let f = 0; f < n; f += stride) push(clip, f);
             push(clip, n - 1);
         }

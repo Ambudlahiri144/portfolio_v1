@@ -22,7 +22,8 @@
    World space, in centimetres: the page plane is y = 0, the spine runs
    along x = 0, +x is the right-hand page, +z comes toward the camera.
 
-   Writes `camera` into public/book/manifest.json. Fine adjustments
+   Writes `camera` into public/book/manifest.json (with --rest end,
+   `cameras.end`, for the cat's last scene). Fine adjustments
    (--fov degrees, --dx/--dy/--dz cm, --pitch degrees) are applied on top
    of the solve, for when the ?calibrate=3d overlay shows a small offset.
    ================================================================== */
@@ -34,12 +35,28 @@ const ROOT = resolve(import.meta.dirname, "..");
 const MANIFEST = join(ROOT, "public/book/manifest.json");
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const { width: W, height: H } = manifest;
-const { pageQuad, spreadCm } = manifest.geometry.front;
-
 const arg = (name, fallback = 0) => {
     const i = process.argv.indexOf(`--${name}`);
     return i === -1 ? fallback : Number(process.argv[i + 1]);
 };
+
+/* Which rest to solve. `front` (the default) is the pop-up's, from the
+   page block's top; `end` is the cat's last scene, from the closed
+   book's top face (geometry.end.bookQuad, its size geometry.end.bookCm;
+   the world's y = 0 is that face, and the table lies geometry.end.tableY
+   below it). */
+const restArg = process.argv.indexOf("--rest");
+const REST = restArg === -1 ? "front" : process.argv[restArg + 1];
+const source =
+    REST === "end"
+        ? { quad: manifest.geometry.end?.bookQuad, size: manifest.geometry.end?.bookCm }
+        : { quad: manifest.geometry.front.pageQuad, size: manifest.geometry.front.spreadCm };
+if (!source.quad || !source.size) {
+    console.error(`No ${REST === "end" ? "geometry.end.bookQuad / bookCm" : "geometry.front"} in the manifest yet.`);
+    process.exit(1);
+}
+const pageQuad = source.quad;
+const spreadCm = source.size;
 
 /* ---- small linear algebra ------------------------------------------ */
 
@@ -66,14 +83,16 @@ const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a
 
 /* ---- 1. plane points (cm) and image points (centred px) ------------ */
 
-const [sw, sd] = spreadCm;
+const [sw] = spreadCm;
+let sd = spreadCm[1];
 /* Same order as pageQuad: far-left, far-right, near-right, near-left. */
-const plane = [
-    [-sw / 2, -sd / 2],
-    [sw / 2, -sd / 2],
-    [sw / 2, sd / 2],
-    [-sw / 2, sd / 2],
+const planeOf = (d) => [
+    [-sw / 2, -d / 2],
+    [sw / 2, -d / 2],
+    [sw / 2, d / 2],
+    [-sw / 2, d / 2],
 ];
+let plane = planeOf(sd);
 const cx = W / 2;
 const cy = H / 2;
 const img = pageQuad.map(([x, y]) => [x - cx, y - cy]);
@@ -109,7 +128,11 @@ if (!candidates.length) {
     console.error("Could not solve a focal length from pageQuad; check the corner order.");
     process.exit(1);
 }
-const f = Math.sqrt(candidates.reduce((s, v) => s + v, 0) / candidates.length);
+/* The end rest's book is seen almost edge-on, where the orthogonality
+   constraint says little about the focal length; start it from a normal
+   lens instead, and let the refinement below settle it. */
+const fSolved = Math.sqrt(candidates.reduce((s, v) => s + v, 0) / candidates.length);
+let f = REST === "end" ? H / 2 / Math.tan((35 * Math.PI) / 360) : fSolved;
 
 /* ---- 4. pose -------------------------------------------------------- */
 
@@ -145,9 +168,10 @@ const C = scale([0, 1, 2].map((i) => dot(Rt[i], t)), -1); /* camera centre */
 /* The camera's own axes in world space are R's ROWS (R maps world to
    camera). three.js looks down -z with y up, so its basis is OpenCV's
    x, -y, -z. */
-const camX = R[0];
-const camY = scale(R[1], -1);
-const camZ = scale(R[2], -1);
+let camX = R[0];
+let camY = scale(R[1], -1);
+let camZ = scale(R[2], -1);
+let Cw = C;
 
 /* The camera is above the table — flip world Y if the solve put it below. */
 if (C[1] < 0) {
@@ -176,6 +200,93 @@ function quat(m) {
     const s = 2 * Math.sqrt(1 + m22 - m00 - m11);
     return [(m02 + m20) / s, (m12 + m21) / s, 0.25 * s, (m10 - m01) / s];
 }
+/* ---- 5. refinement (end rest) -------------------------------------
+   Four corners and eight numbers to fit: the field of view, the camera's
+   position and rotation, and the book's depth (the generated book need
+   not be quite the overhead one's shape). Nelder-Mead on the
+   reprojection error, from the analytic pose. */
+
+const basisOf = (yaw, pitch, roll) => {
+    const cyw = Math.cos(yaw), syw = Math.sin(yaw);
+    const cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const cr = Math.cos(roll), sr = Math.sin(roll);
+    /* R = Ry(yaw) Rx(pitch) Rz(roll); columns are the camera's x, y, z. */
+    const Ry = [[cyw, 0, syw], [0, 1, 0], [-syw, 0, cyw]];
+    const Rx = [[1, 0, 0], [0, cp, -sp], [0, sp, cp]];
+    const Rz = [[cr, -sr, 0], [sr, cr, 0], [0, 0, 1]];
+    const mul = (a, b2) => a.map((row) => [0, 1, 2].map((j) => row.reduce((acc, v, k) => acc + v * b2[k][j], 0)));
+    const m = mul(mul(Ry, Rx), Rz);
+    return [0, 1, 2].map((j) => [m[0][j], m[1][j], m[2][j]]);
+};
+
+function reproject([fov, x, y, z, yaw, pitch, roll, d]) {
+    const [bx, by, bz] = basisOf(yaw, pitch, roll);
+    const fy = H / 2 / Math.tan((fov * Math.PI) / 360);
+    return planeOf(d).map(([X, Z]) => {
+        const p = [X - x, -y, Z - z];
+        const zc = dot(bz, p);
+        return [cx + (fy * dot(bx, p)) / -zc, cy - (fy * dot(by, p)) / -zc, zc];
+    });
+}
+
+function cost(v) {
+    const [fov, , y, , , , , d] = v;
+    if (fov < 12 || fov > 75 || d < spreadCm[1] * 0.6 || d > spreadCm[1] * 1.6 || y < 0.5) return 1e12;
+    let e = 0;
+    for (const [i, [u, w, zc]] of reproject(v).entries()) {
+        if (zc > -1) return 1e12; /* behind the camera */
+        e += (u - pageQuad[i][0]) ** 2 + (w - pageQuad[i][1]) ** 2;
+    }
+    /* A gentle pull toward the measured depth and a normal lens: four
+       corners alone leave a little freedom between them. */
+    return e + 20 * ((d - spreadCm[1]) / spreadCm[1]) ** 2 + 0.02 * (fov - 35) ** 2;
+}
+
+function nelderMead(fn, x0, steps, iters = 6000) {
+    const n = x0.length;
+    let pts = [x0, ...steps.map((st, i) => x0.map((v, j) => (j === i ? v + st : v)))].map((x) => ({ x, v: fn(x) }));
+    for (let k = 0; k < iters; k++) {
+        pts.sort((a, b2) => a.v - b2.v);
+        const c = Array(n).fill(0);
+        for (const p2 of pts.slice(0, n)) p2.x.forEach((v, j) => (c[j] += v / n));
+        const worst = pts[n];
+        const at = (t) => c.map((v, j) => v + t * (worst.x[j] - v));
+        const r = { x: at(-1) }; r.v = fn(r.x);
+        if (r.v < pts[0].v) {
+            const e = { x: at(-2) }; e.v = fn(e.x);
+            pts[n] = e.v < r.v ? e : r;
+        } else if (r.v < pts[n - 1].v) {
+            pts[n] = r;
+        } else {
+            const ct = { x: at(0.5) }; ct.v = fn(ct.x);
+            if (ct.v < worst.v) pts[n] = ct;
+            else pts = pts.map((p2, i) => (i === 0 ? p2 : { x: p2.x.map((v, j) => pts[0].x[j] + 0.5 * (v - pts[0].x[j])), v: 0 })).map((p2) => ({ x: p2.x, v: fn(p2.x) }));
+        }
+    }
+    pts.sort((a, b2) => a.v - b2.v);
+    return pts[0];
+}
+
+if (REST === "end") {
+    /* Start: the analytic camera position, looking at the book's centre. */
+    const toC = scale(Cw, -1 / norm(Cw));
+    const yaw0 = Math.atan2(-toC[0], -toC[2]);
+    const pitch0 = Math.asin(Math.max(-1, Math.min(1, toC[1])));
+    let best = { v: Infinity, x: null };
+    for (const fov0 of [25, 35, 45]) {
+        const x0 = [fov0, Cw[0], Math.max(2, Cw[1]), Cw[2], yaw0, pitch0, 0, sd];
+        let r = nelderMead(cost, x0, [5, 20, 10, 20, 0.2, 0.1, 0.05, 3]);
+        r = nelderMead(cost, r.x, [1, 4, 2, 4, 0.03, 0.02, 0.01, 0.5]);
+        if (r.v < best.v) best = r;
+    }
+    const [fov, x, y, z, yaw, pitch, roll, d] = best.x;
+    [camX, camY, camZ] = basisOf(yaw, pitch, roll);
+    Cw = [x, y, z];
+    f = H / 2 / Math.tan((fov * Math.PI) / 360);
+    sd = d;
+    plane = planeOf(d);
+}
+
 const basis = [0, 1, 2].map((i) => [camX[i], camY[i], camZ[i]]);
 const q = quat(basis);
 
@@ -185,7 +296,7 @@ const fovDeg = (2 * Math.atan(H / 2 / f) * 180) / Math.PI;
 
 const camera = {
     fov: +(fovDeg + arg("fov")).toFixed(3),
-    position: [C[0] + arg("dx"), C[1] + arg("dy"), C[2] + arg("dz")].map((v) => +v.toFixed(3)),
+    position: [Cw[0] + arg("dx"), Cw[1] + arg("dy"), Cw[2] + arg("dz")].map((v) => +v.toFixed(3)),
     quaternion: q.map((v) => +v.toFixed(6)),
     /* Extra pitch applied at runtime, degrees, for hand tuning. */
     pitch: arg("pitch"),
@@ -198,7 +309,7 @@ const camera = {
 /* Project the plane corners back through the solved camera to report how
    far off each lands, in source pixels. */
 function project([X, Z]) {
-    const p = [X - C[0], 0 - C[1], Z - C[2]];
+    const p = [X - Cw[0], 0 - Cw[1], Z - Cw[2]];
     const x = dot(camX, p);
     const y = dot(camY, p);
     const z = dot(camZ, p);
@@ -210,9 +321,11 @@ const err = plane.map((pt, i) => {
     return Math.hypot(px - pageQuad[i][0], py - pageQuad[i][1]);
 });
 
-manifest.camera = camera;
+if (REST === "end") manifest.cameras = { ...(manifest.cameras ?? {}), end: camera };
+else manifest.camera = camera;
 writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
 
 console.log(`focal ${f.toFixed(1)} px, vertical fov ${fovDeg.toFixed(2)} deg`);
-console.log(`camera at (${camera.position.join(", ")}) cm, ${Math.hypot(...C).toFixed(1)} cm from the spine`);
+console.log(`camera at (${camera.position.join(", ")}) cm, ${Math.hypot(...Cw).toFixed(1)} cm from the ${REST === "end" ? "book" : "spine"}`);
+if (REST === "end") console.log(`book depth fitted: ${sd.toFixed(1)} cm (measured ${spreadCm[1]})`);
 console.log(`reprojection error per corner (px): ${err.map((e) => e.toFixed(2)).join(", ")}`);

@@ -1,0 +1,37 @@
+/* ==================================================================
+   PEN — the fountain pen over the book, and its shadow.
+
+   Both are placed by PenLayer with one transform each (translate to the
+   nib, rotate, scale, then back by the nib's own offset in the sprite),
+   so moving the pen is compositor work only.
+   ================================================================== */
+
+.layer {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.pen,
+.shadow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+}
+
+.pen > *,
+.shadow > * {
+    display: block;
+    max-width: none;
+}
+
+/* The sprite itself, darkened and softened: where the window light does
+   not reach the paper. */
+.shadow {
+    filter: brightness(0) blur(3px);
+    opacity: 0.34;
+}

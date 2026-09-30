@@ -15,6 +15,12 @@ export { manifest };
 
 export type Rect = readonly [number, number, number, number];
 
+/* Frames per clip. A clip the timeline can name but whose footage has
+   not been made yet (the cat's reveal, until book-frames has rendered it)
+   simply is not in the manifest; the timeline only uses it once it is. */
+export const clipFrames = (clip: BookClip): number =>
+    (manifest.clips as Partial<Record<BookClip, { count: number }>>)[clip]?.count ?? 0;
+
 /* The manifest is JSON, so its rectangles type as number[]. */
 export const rect = (r: readonly number[]): Rect => [r[0], r[1], r[2], r[3]];
 
@@ -41,7 +47,7 @@ export const segments: PlacedSegment[] = (() => {
     });
 })();
 
-const clipCount = (clip: BookClip) => manifest.clips[clip].count;
+const clipCount = clipFrames;
 
 /* Where a motion ends. A reversed clip ends on its first frame. */
 function endOf(seg: Extract<BookSegment, { kind: "motion" }>) {
@@ -120,3 +126,50 @@ export function spreadRange(spread: SpreadId) {
     const h = holds.find((x) => x.spread === spread)!;
     return { from: h.from, to: h.to, first: h.from === 0, last: h.to === 1 };
 }
+
+/* Whether a hold's spread is on the page at p: past halfway into its
+   fade-in and not yet halfway out (the book's first and last spreads have
+   no fade at their outer ends). Below it a spread is inert. Book.tsx
+   marks spreads with it, and the pen reads it to know which page it is
+   over. */
+export function spreadShowing(hold: Pick<PlacedSegment, "from" | "to">, p: number) {
+    const span = hold.to - hold.from;
+    const first = hold.from === 0;
+    const last = hold.to >= 0.9999;
+    return (first || p >= hold.from + span * FADE * 0.5) && (last || p <= hold.to - span * FADE * 0.5);
+}
+
+/* ------------------------------------------------------------------
+   The last scene (the cat at the end of the book). Measured on its rest
+   frame, the reveal clip's last, by scripts/book-frames.mjs, and its
+   camera solved by scripts/calibrate-camera.mjs --rest end. Both are
+   absent until that footage exists, and nothing reads them until then.
+   ------------------------------------------------------------------ */
+
+export type EndGeometry = {
+    /* The free table beside the cat, for the colophon's HTML. */
+    text: number[];
+    /* The strip of table in front of her where the type blocks land. */
+    blocks: number[];
+    /* The closed book's top face (far-left, far-right, near-right,
+       near-left) and its size: what the camera is solved from. */
+    bookQuad?: number[][];
+    bookCm?: number[];
+    /* The table, below that face, in cm (the book's thickness). */
+    tableY?: number;
+};
+
+export type SolvedCamera = {
+    fov: number;
+    position: number[];
+    quaternion: number[];
+    near: number;
+    far: number;
+};
+
+/* Through `unknown`: the manifest's type is inferred from whatever JSON is
+   on disk, which only has these once the footage has been processed. */
+export const endGeometry: EndGeometry | null =
+    (manifest.geometry as unknown as { end?: EndGeometry }).end ?? null;
+export const endCamera: SolvedCamera | null =
+    (manifest as unknown as { cameras?: { end?: SolvedCamera } }).cameras?.end ?? null;
